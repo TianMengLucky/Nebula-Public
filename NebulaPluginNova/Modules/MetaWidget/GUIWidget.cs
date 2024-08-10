@@ -4,6 +4,7 @@ using Virial.Assignable;
 using Virial.Compat;
 using Virial.Media;
 using Virial.Text;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Modules.GUIWidget;
 
@@ -16,11 +17,11 @@ public abstract class AbstractGUIWidget : Virial.Media.GUIWidget
 
         if (obj != null)
         {
-            UnityEngine.Vector3 localPos = anchor.anchoredPosition.ToUnityVector() -
-                new UnityEngine.Vector3(
-                    actualSize.Width * (anchor.pivot.x - 0.5f),
-                    actualSize.Height * (anchor.pivot.y - 0.5f),
-                    0f);
+            var localPos = anchor.anchoredPosition.ToUnityVector() -
+                           new UnityEngine.Vector3(
+                               actualSize.Width * (anchor.pivot.x - 0.5f),
+                               actualSize.Height * (anchor.pivot.y - 0.5f),
+                               0f);
 
             obj.transform.localPosition = localPos;
         }
@@ -71,13 +72,13 @@ public class VerticalWidgetsHolder : WidgetsHolder {
     internal override GameObject? Instantiate(Size size, out Size actualSize)
     {
         var results = widgets.Select(c => (c.Instantiate(size, out var acSize), acSize, c)).ToArray();
-        (float maxWidth, float sumHeight) = results.Aggregate((0f, 0f), (r, current) => (Math.Max(r.Item1, current.acSize.Width), r.Item2 + current.acSize.Height));
+        (var maxWidth, var sumHeight) = results.Aggregate((0f, 0f), (r, current) => (Math.Max(r.Item1, current.acSize.Width), r.Item2 + current.acSize.Height));
         if (FixedWidth != null) maxWidth = FixedWidth.Value;
 
-        GameObject myObj = UnityHelper.CreateObject("WidgetsHolder", null, UnityEngine.Vector3.zero);
+        var myObj = UnityHelper.CreateObject("WidgetsHolder", null, UnityEngine.Vector3.zero);
 
 
-        float height = sumHeight * 0.5f;
+        var height = sumHeight * 0.5f;
         foreach (var r in results)
         {
             if (r.Item1 != null)
@@ -103,13 +104,13 @@ public class HorizontalWidgetsHolder : WidgetsHolder
     internal override GameObject? Instantiate(Size size, out Size actualSize)
     {
         var results = widgets.Select(c => (c.Instantiate(size, out var acSize), acSize, c)).ToArray();
-        (float sumWidth, float maxHeight) = results.Aggregate((0f, 0f), (r, current) => (r.Item1 + current.acSize.Width, Math.Max(r.Item2, current.acSize.Height)));
+        (var sumWidth, var maxHeight) = results.Aggregate((0f, 0f), (r, current) => (r.Item1 + current.acSize.Width, Math.Max(r.Item2, current.acSize.Height)));
         if (FixedHeight != null) maxHeight = FixedHeight.Value;
 
-        GameObject myObj = UnityHelper.CreateObject("WidgetsHolder", null, UnityEngine.Vector3.zero);
+        var myObj = UnityHelper.CreateObject("WidgetsHolder", null, UnityEngine.Vector3.zero);
 
 
-        float width = -sumWidth * 0.5f;
+        var width = -sumWidth * 0.5f;
         foreach (var r in results)
         {
             if (r.Item1 != null)
@@ -175,7 +176,7 @@ public class NoSGameObjectGUIWrapper : AbstractGUIWidget
 
     public NoSGameObjectGUIWrapper(GUIAlignment alignment, IMetaParallelPlacableOld widget) : base(alignment)
     {
-        this.generator = () =>
+        generator = () =>
         {
             var holder = UnityHelper.CreateObject("Holder", null, UnityEngine.Vector3.zero, LayerExpansion.GetUILayer());
             var height = widget.Generate(holder, UnityEngine.Vector3.zero, out var width);
@@ -189,10 +190,10 @@ public class NebulaGUIWidgetEngine : Virial.Media.GUI
     public static NebulaGUIWidgetEngine Instance { get; private set; } = new();
     public static Virial.Media.GUI API => Instance;
 
-    private Dictionary<AttributeParams, Virial.Text.TextAttribute> allAttr = new();
-    private Dictionary<AttributeAsset, Virial.Text.TextAttribute> allAttrAsset = new();
+    private Dictionary<AttributeParams, TextAttribute> allAttr = new();
+    private Dictionary<AttributeAsset, TextAttribute> allAttrAsset = new();
     public Virial.Media.GUIWidget EmptyWidget => GUIEmptyWidget.Default;
-    public Virial.Text.TextAttribute GetAttribute(AttributeParams attribute)
+    public TextAttribute GetAttribute(AttributeParams attribute)
     {
         if (allAttr.TryGetValue(attribute, out var attr))
         {
@@ -207,7 +208,7 @@ public class NebulaGUIWidgetEngine : Virial.Media.GUI
         }
     }
 
-    public Virial.Text.TextAttribute GetAttribute(AttributeAsset attribute)
+    public TextAttribute GetAttribute(AttributeAsset attribute)
     {
         if (!allAttrAsset.TryGetValue(attribute, out var attr))
         {
@@ -218,11 +219,11 @@ public class NebulaGUIWidgetEngine : Virial.Media.GUI
                 AttributeAsset.StandardLargeWideMasked => new TextAttribute(Virial.Text.TextAlignment.Center, GetFont(FontAsset.GothicMasked), Virial.Text.FontStyle.Bold, new(1.7f, 1f, 1.7f), new(2.9f, 0.45f), new(255, 255, 255), false),
                 AttributeAsset.CenteredBold => new TextAttribute(Virial.Text.TextAlignment.Left, GetFont(FontAsset.Gothic), Virial.Text.FontStyle.Bold, new(1.9f, 1f, 1.9f), new(8f, 8f), new(255, 255, 255), true),
                 AttributeAsset.CenteredBoldFixed => new TextAttribute(Virial.Text.TextAlignment.Center, GetFont(FontAsset.Gothic), Virial.Text.FontStyle.Bold, new(1.9f, 1f, 1.9f), new(1.1f, 0.32f), new(255, 255, 255), false),
-                AttributeAsset.OverlayTitle => new TextAttribute(GUI.Instance.GetAttribute(AttributeParams.StandardBaredBoldLeft)) { FontSize = new(1.8f) },
-                AttributeAsset.OverlayContent => new TextAttribute(GUI.Instance.GetAttribute(AttributeParams.StandardBaredLeft)) { FontSize = new(1.5f, 1.1f, 1.5f), Size = new(5f, 6f) },
-                AttributeAsset.DocumentStandard => new TextAttribute(GUI.Instance.GetAttribute(AttributeParams.StandardLeft)) { FontSize = new(1.2f, 0.6f, 1.2f), Size = new(7f, 6f) },
-                AttributeAsset.DocumentBold => new TextAttribute(GUI.Instance.GetAttribute(AttributeParams.StandardBoldLeft)) { FontSize = new(1.2f, 0.6f, 1.2f), Size = new(5f, 6f) },
-                AttributeAsset.DocumentTitle => new TextAttribute(GUI.Instance.GetAttribute(AttributeParams.StandardBoldLeft)) { FontSize = new(2.2f, 0.6f, 2.2f), Size = new(5f, 6f) },
+                AttributeAsset.OverlayTitle => new TextAttribute(Instance.GetAttribute(AttributeParams.StandardBaredBoldLeft)) { FontSize = new(1.8f) },
+                AttributeAsset.OverlayContent => new TextAttribute(Instance.GetAttribute(AttributeParams.StandardBaredLeft)) { FontSize = new(1.5f, 1.1f, 1.5f), Size = new(5f, 6f) },
+                AttributeAsset.DocumentStandard => new TextAttribute(Instance.GetAttribute(AttributeParams.StandardLeft)) { FontSize = new(1.2f, 0.6f, 1.2f), Size = new(7f, 6f) },
+                AttributeAsset.DocumentBold => new TextAttribute(Instance.GetAttribute(AttributeParams.StandardBoldLeft)) { FontSize = new(1.2f, 0.6f, 1.2f), Size = new(5f, 6f) },
+                AttributeAsset.DocumentTitle => new TextAttribute(Instance.GetAttribute(AttributeParams.StandardBoldLeft)) { FontSize = new(2.2f, 0.6f, 2.2f), Size = new(5f, 6f) },
                 AttributeAsset.DeviceButton => new TextAttribute(Virial.Text.TextAlignment.Center, GetFont(FontAsset.GothicMasked), Virial.Text.FontStyle.Bold, new(1.9f, 1f, 1.9f), new(2.05f, 0.28f), new(255, 255, 255), false),
                 AttributeAsset.OptionsTitle => new TextAttribute(Virial.Text.TextAlignment.Left, GetFont(FontAsset.GothicMasked), Virial.Text.FontStyle.Bold, new(1.8f, 1f, 2f), new(4f, 0.4f), new(255, 255, 255), false),
                 AttributeAsset.OptionsTitleHalf => new TextAttribute(Virial.Text.TextAlignment.Left, GetFont(FontAsset.GothicMasked), Virial.Text.FontStyle.Bold, new(1.8f, 1f, 2f), new(1.8f, 0.4f), new(255, 255, 255), false),
@@ -236,8 +237,8 @@ public class NebulaGUIWidgetEngine : Virial.Media.GUI
                 AttributeAsset.MarketplaceTitle => new TextAttribute(Virial.Text.TextAlignment.Left, GetFont(FontAsset.GothicMasked), Virial.Text.FontStyle.Bold, new(2.6f, 1f, 2f), new(3.8f, 0.4f), new(255, 255, 255), false),
                 AttributeAsset.MarketplaceDeveloper => new TextAttribute(Virial.Text.TextAlignment.Left, GetFont(FontAsset.GothicMasked), Virial.Text.FontStyle.Normal, new(1.4f, 1f, 1.4f), new(2f, 0.32f), new(255, 255, 255), false),
                 AttributeAsset.MarketplaceBlurb => new TextAttribute(Virial.Text.TextAlignment.Left, GetFont(FontAsset.GothicMasked), Virial.Text.FontStyle.Normal, new(1.4f, 1f, 1.4f), new(6f, 0.3f), new(255, 255, 255), false),
-                AttributeAsset.MarketplacePublishButton => new TextAttribute(GUI.Instance.GetAttribute(AttributeParams.StandardBold)) { FontSize = new(2.2f, 0.6f, 2.2f), Size = new(0.95f, 0.17f) },
-                AttributeAsset.MeetingTitle => new TextAttribute(GUI.Instance.GetAttribute(AttributeParams.StandardBaredBoldLeft)) { FontSize = new(1.8f,0.6f,1.8f), Size = new(2f,0.5f) },
+                AttributeAsset.MarketplacePublishButton => new TextAttribute(Instance.GetAttribute(AttributeParams.StandardBold)) { FontSize = new(2.2f, 0.6f, 2.2f), Size = new(0.95f, 0.17f) },
+                AttributeAsset.MeetingTitle => new TextAttribute(Instance.GetAttribute(AttributeParams.StandardBaredBoldLeft)) { FontSize = new(1.8f,0.6f,1.8f), Size = new(2f,0.5f) },
                 AttributeAsset.VersionShower => new TextAttribute(Virial.Text.TextAlignment.Left, GetFont(FontAsset.Barlow), Virial.Text.FontStyle.Normal, new(1.28f, false), new(1f, 0.4f), new(255, 255, 255), true),
                 AttributeAsset.MetaRoleButton => new TextAttribute(Virial.Text.TextAlignment.Center, GetFont(FontAsset.GothicMasked), Virial.Text.FontStyle.Bold, new(1.8f, 1f, 2f), new(1.4f, 0.26f), new(255, 255, 255), false),
                 _ => null!
@@ -247,16 +248,16 @@ public class NebulaGUIWidgetEngine : Virial.Media.GUI
         return allAttrAsset[attribute];
     }
 
-    public Virial.Text.TextAttribute GenerateAttribute(AttributeParams attribute, Virial.Color color, FontSize fontSize, Size size)
+    public TextAttribute GenerateAttribute(AttributeParams attribute, Virial.Color color, FontSize fontSize, Size size)
     {
-        Virial.Text.TextAlignment alignment =
+        var alignment =
             (((AttributeTemplateFlag)(int)attribute) & AttributeTemplateFlag.AlignmentMask) switch
             {
                 AttributeTemplateFlag.AlignmentLeft => Virial.Text.TextAlignment.Left,
                 AttributeTemplateFlag.AlignmentRight => Virial.Text.TextAlignment.Right,
                 _ => Virial.Text.TextAlignment.Center
             };
-        Virial.Text.Font font = GetFont(
+        var font = GetFont(
             (((AttributeTemplateFlag)(int)attribute) & (AttributeTemplateFlag.FontMask | AttributeTemplateFlag.MaterialMask)) switch
             {
                 AttributeTemplateFlag.FontStandard | AttributeTemplateFlag.MaterialBared => FontAsset.Gothic,
@@ -270,8 +271,8 @@ public class NebulaGUIWidgetEngine : Virial.Media.GUI
         Virial.Text.FontStyle style = 0;
         if (((AttributeTemplateFlag)attribute & AttributeTemplateFlag.StyleBold) != 0) style |= Virial.Text.FontStyle.Bold;
 
-        bool isFlexible = ((AttributeTemplateFlag)attribute & AttributeTemplateFlag.IsFlexible) != 0;
-        return new Virial.Text.TextAttribute(alignment, font, style, fontSize, size, color, isFlexible);
+        var isFlexible = ((AttributeTemplateFlag)attribute & AttributeTemplateFlag.IsFlexible) != 0;
+        return new TextAttribute(alignment, font, style, fontSize, size, color, isFlexible);
     }
 
     public Virial.Text.Font GetFont(FontAsset font)
@@ -290,8 +291,8 @@ public class NebulaGUIWidgetEngine : Virial.Media.GUI
 
     public Virial.Media.GUIWidget Arrange(GUIAlignment alignment, IEnumerable<Virial.Media.GUIWidget?> inner, int perLine)
     {
-        List<Virial.Media.GUIWidget> widgets = new();
-        List<Virial.Media.GUIWidget> horizontalWidgets = new();
+        List<Virial.Media.GUIWidget> widgets = [];
+        List<Virial.Media.GUIWidget> horizontalWidgets = [];
         foreach(var widget in inner)
         {
             if (widget == null) continue;
@@ -320,20 +321,20 @@ public class NebulaGUIWidgetEngine : Virial.Media.GUI
         return result;
     }
 
-    public Virial.Media.GUIWidget LocalizedButton(GUIAlignment alignment, Virial.Text.TextAttribute attribute, string translationKey, GUIClickableAction onClick, GUIClickableAction? onMouseOver = null, GUIClickableAction? onMouseOut = null, GUIClickableAction? onRightClick = null, Virial.Color? color = null, Virial.Color? selectedColor = null)
+    public Virial.Media.GUIWidget LocalizedButton(GUIAlignment alignment, TextAttribute attribute, string translationKey, GUIClickableAction onClick, GUIClickableAction? onMouseOver = null, GUIClickableAction? onMouseOut = null, GUIClickableAction? onRightClick = null, Virial.Color? color = null, Virial.Color? selectedColor = null)
         => new GUIButton(alignment, attribute, new TranslateTextComponent(translationKey)) { OnClick = onClick, OnMouseOver = onMouseOver, OnMouseOut = onMouseOut, OnRightClick = onRightClick, Color = color?.ToUnityColor(), SelectedColor = selectedColor?.ToUnityColor() };
-    public Virial.Media.GUIWidget RawButton(GUIAlignment alignment, Virial.Text.TextAttribute attribute, string rawText, GUIClickableAction onClick, GUIClickableAction? onMouseOver = null, GUIClickableAction? onMouseOut = null, GUIClickableAction? onRightClick = null, Virial.Color? color = null, Virial.Color? selectedColor = null)
+    public Virial.Media.GUIWidget RawButton(GUIAlignment alignment, TextAttribute attribute, string rawText, GUIClickableAction onClick, GUIClickableAction? onMouseOver = null, GUIClickableAction? onMouseOut = null, GUIClickableAction? onRightClick = null, Virial.Color? color = null, Virial.Color? selectedColor = null)
         => new GUIButton(alignment, attribute, new RawTextComponent(rawText)) { OnClick = onClick, OnMouseOver = onMouseOver, OnMouseOut = onMouseOut, OnRightClick = onRightClick, Color = color?.ToUnityColor(), SelectedColor = selectedColor?.ToUnityColor() };
-    public Virial.Media.GUIWidget Button(GUIAlignment alignment, Virial.Text.TextAttribute attribute, TextComponent text, GUIClickableAction onClick, GUIClickableAction? onMouseOver = null, GUIClickableAction? onMouseOut = null, GUIClickableAction? onRightClick = null, Virial.Color? color = null, Virial.Color? selectedColor = null)
+    public Virial.Media.GUIWidget Button(GUIAlignment alignment, TextAttribute attribute, TextComponent text, GUIClickableAction onClick, GUIClickableAction? onMouseOver = null, GUIClickableAction? onMouseOut = null, GUIClickableAction? onRightClick = null, Virial.Color? color = null, Virial.Color? selectedColor = null)
         => new GUIButton(alignment, attribute, text) { OnClick = onClick, OnMouseOver = onMouseOver, OnMouseOut = onMouseOut, OnRightClick = onRightClick, Color = color?.ToUnityColor(), SelectedColor = selectedColor?.ToUnityColor() };
 
     public Virial.Media.GUIWidget SpinButton(GUIAlignment alignment, Action<bool> onClick) => new GUISpinButton(alignment, onClick);
 
-    public Virial.Media.GUIWidget LocalizedText(GUIAlignment alignment, Virial.Text.TextAttribute attribute, string translationKey) => new NoSGUIText(alignment, attribute, new TranslateTextComponent(translationKey));
+    public Virial.Media.GUIWidget LocalizedText(GUIAlignment alignment, TextAttribute attribute, string translationKey) => new NoSGUIText(alignment, attribute, new TranslateTextComponent(translationKey));
     
-    public Virial.Media.GUIWidget RawText(GUIAlignment alignment, Virial.Text.TextAttribute attribute, string rawText) => new NoSGUIText(alignment, attribute, new RawTextComponent(rawText));
+    public Virial.Media.GUIWidget RawText(GUIAlignment alignment, TextAttribute attribute, string rawText) => new NoSGUIText(alignment, attribute, new RawTextComponent(rawText));
     
-    public Virial.Media.GUIWidget Text(GUIAlignment alignment, Virial.Text.TextAttribute attribute, TextComponent text) => new NoSGUIText(alignment, attribute, text);
+    public Virial.Media.GUIWidget Text(GUIAlignment alignment, TextAttribute attribute, TextComponent text) => new NoSGUIText(alignment, attribute, text);
     
 
     public Virial.Media.GUIWidget Margin(FuzzySize margin) => new NoSGUIMargin(GUIAlignment.Center, new(margin.Width ?? 0f, margin.Height ?? 0f));
@@ -367,14 +368,15 @@ public class GUIScreenImpl : GUIScreen
 
     public GUIScreenImpl(Anchor anchor,Size screenSize, Transform? parent, UnityEngine.Vector3 localPos)
     {
-        this.myAnchor = anchor;
+        myAnchor = anchor;
         this.screenSize = screenSize;
-        this.myScreen = UnityHelper.CreateObject("Screen", parent, localPos, LayerExpansion.GetUILayer());
+        myScreen = UnityHelper.CreateObject("Screen", parent, localPos, LayerExpansion.GetUILayer());
     }
 
+    // ReSharper disable Unity.PerformanceAnalysis
     public void SetWidget(Virial.Media.GUIWidget? widget, out Size actualSize)
     {
-        myScreen.ForEachChild((Il2CppSystem.Action<GameObject>)(obj => GameObject.Destroy(obj)));
+        myScreen.ForEachChild((Il2CppSystem.Action<GameObject>)(obj => Object.Destroy(obj)));
 
         if (widget != null)
         {

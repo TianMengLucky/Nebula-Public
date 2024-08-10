@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Virial;
 using Virial.Events.Game;
 using Virial.Game;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Modules.ScriptComponents;
 
@@ -45,7 +46,7 @@ internal class PlayersIconHolder : INebulaScriptComponent, IGameOperator
 {
     HudContent myContent;
     GameObject adjuster;
-    List<PlayerIconInfo> icons = new();
+    List<PlayerIconInfo> icons = [];
     public float XInterval = 0.29f;
     public PlayersIconHolder()
     {
@@ -55,12 +56,12 @@ internal class PlayersIconHolder : INebulaScriptComponent, IGameOperator
 
     private void UpdateIcons()
     {
-        for (int i = 0; i < icons.Count; i++) icons[i].Icon.transform.localPosition = new(i * XInterval - 0.3f, -0.1f, -i * 0.01f);
+        for (var i = 0; i < icons.Count; i++) icons[i].Icon.transform.localPosition = new(i * XInterval - 0.3f, -0.1f, -i * 0.01f);
     }
 
     public void Remove(PlayerIconInfo icon)
     {
-        if (icons.Remove(icon)) GameObject.Destroy(icon.Icon.gameObject);
+        if (icons.Remove(icon)) Object.Destroy(icon.Icon.gameObject);
         UpdateIcons();
     }
 
@@ -75,7 +76,7 @@ internal class PlayersIconHolder : INebulaScriptComponent, IGameOperator
 
     void IGameOperator.OnReleased()
     {
-        if(myContent) GameObject.Destroy(myContent.gameObject);
+        if(myContent) Object.Destroy(myContent.gameObject);
     }
 
     void OnUpdate(GameUpdateEvent ev)

@@ -70,22 +70,22 @@ public class FontAssetNoS
         LineHeight = info.DefaultHeight;
         if (info.WhitespaceWidth.HasValue) RegisterCharacterAsWhitespace(' ', info.WhitespaceWidth.Value);
 
-        float halfWidth = 1f / (float)info.X * 0.5f;
-        float halfHeight = 1f / (float)info.Y * 0.5f;
+        var halfWidth = 1f / (float)info.X * 0.5f;
+        var halfHeight = 1f / (float)info.Y * 0.5f;
 
         void Register(int index, float ratio, char character)
         {
-            int x = (index % info.X);
-            int y = (index / info.X);
-            float centerX = (x + 0.5f) / (float)info.X;
-            float centerY = 1f - (y + 0.5f) / (float)info.Y;
+            var x = (index % info.X);
+            var y = (index / info.X);
+            var centerX = (x + 0.5f) / (float)info.X;
+            var centerY = 1f - (y + 0.5f) / (float)info.Y;
 
             RegisterCharacter(character, new(centerY + halfHeight, centerY - halfHeight, centerX - halfWidth * ratio, centerX + halfWidth * ratio, 0f));
         }
 
-        if (info.LowercaseSequenceBegin.HasValue) for (int i = 0; i < 26; i++) Register(info.LowercaseSequenceBegin.Value + i, 1f, (char)((int)'a' + i));
-        if (info.UppercaseSequenceBegin.HasValue) for (int i = 0; i < 26; i++) Register(info.UppercaseSequenceBegin.Value + i, 1f, (char)((int)'A' + i));
-        if (info.NumberSequenceBegin.HasValue) for (int i = 0; i < 10; i++) Register(info.NumberSequenceBegin.Value + i, 1f, (char)((int)'0' + i));
+        if (info.LowercaseSequenceBegin.HasValue) for (var i = 0; i < 26; i++) Register(info.LowercaseSequenceBegin.Value + i, 1f, (char)((int)'a' + i));
+        if (info.UppercaseSequenceBegin.HasValue) for (var i = 0; i < 26; i++) Register(info.UppercaseSequenceBegin.Value + i, 1f, (char)((int)'A' + i));
+        if (info.NumberSequenceBegin.HasValue) for (var i = 0; i < 10; i++) Register(info.NumberSequenceBegin.Value + i, 1f, (char)((int)'0' + i));
         foreach (var chara in info.Characters) Register(chara.Index, chara.Ratio, chara.Character);
         this.texture = texture;
     }
@@ -136,15 +136,15 @@ public class TextMeshNoS : MonoBehaviour
         var text = currentText.Replace("<br>", "\n").Replace("\r\n", "\n").Replace("\r", "");
 
         //まずは0,0を左上隅として計算する (Pivot = (0,1)のときと同じ条件)
-        List<List<Vector3>> posList = new();
-        List<Vector2> uvList = new();
-        List<int> indexList = new();
+        List<List<Vector3>> posList = [];
+        List<Vector2> uvList = [];
+        List<int> indexList = [];
 
         List<Vector3> currentPosList;
 
         void MoveNextLine()
         {
-            currentPosList = new();
+            currentPosList = [];
             posList.Add(currentPosList);
         }
 
@@ -152,8 +152,8 @@ public class TextMeshNoS : MonoBehaviour
 
         MoveNextLine();//先頭の行へ
 
-        Texture tex = myRenderer.material.mainTexture;
-        float texRatio = (float)tex.width / (float)tex.height;
+        var tex = myRenderer.material.mainTexture;
+        var texRatio = (float)tex.width / (float)tex.height;
         foreach (var c in text)
         {
             if(c == '\n')
@@ -169,12 +169,12 @@ public class TextMeshNoS : MonoBehaviour
                 {
                     if (!info.IsWhitespace)
                     {
-                        int offset = currentPosList.Count;
+                        var offset = currentPosList.Count;
                         
                         //Yを基準に大きさを決定する。
                         
-                        float charaY = Font.LineHeight * FontSize;
-                        float charaX = (info.right - info.left) / (info.top - info.bottom) * texRatio * Font.LineHeight * FontSize;
+                        var charaY = Font.LineHeight * FontSize;
+                        var charaX = (info.right - info.left) / (info.top - info.bottom) * texRatio * Font.LineHeight * FontSize;
 
                         currentPosList.AddRange([new(x, 0f), new(x + charaX, 0f), new(x + charaX, -charaY), new(x, -charaY)]);
                         uvList.AddRange([new(info.left, info.top), new(info.right, info.top), new(info.right, info.bottom), new(info.left, info.bottom)]);
@@ -202,18 +202,18 @@ public class TextMeshNoS : MonoBehaviour
         myRenderer.enabled = true;
 
         //枠の大きさを計算
-        float width = posList.Max(list => list.Count == 0 ? 0f : list[list.Count - 2].x);//最後から一つ前の要素が右端の座標を持っている
-        float height = Font.LineHeight * FontSize * posList.Count + LineInterval * (posList.Count - 1);
+        var width = posList.Max(list => list.Count == 0 ? 0f : list[list.Count - 2].x);//最後から一つ前の要素が右端の座標を持っている
+        var height = Font.LineHeight * FontSize * posList.Count + LineInterval * (posList.Count - 1);
 
         Vector2 additionByPivot = new(-Pivot.x * width, (1f - Pivot.y) * height); //Pivotによる位置のずれ
 
-        int lines = 0;
+        var lines = 0;
         foreach (var list in posList)
         {
             if (list.Count == 0) continue;
             var currentWidth = list[list.Count - 2].x;//この行の幅
 
-            float additionByAlignment = 0f;
+            var additionByAlignment = 0f;
             //ビットフラグ 0x1 左, 0x2 中央, 0x4 右
             if (((int)TextAlignment | 0x2) != 0)
             {
@@ -226,7 +226,7 @@ public class TextMeshNoS : MonoBehaviour
                 additionByAlignment = width - currentWidth;
             }
 
-            for (int i = 0; i < list.Count; i++) list[i] += new Vector3(additionByPivot.x + additionByAlignment, additionByPivot.y + lines * (Font.LineHeight * FontSize + LineInterval));
+            for (var i = 0; i < list.Count; i++) list[i] += new Vector3(additionByPivot.x + additionByAlignment, additionByPivot.y + lines * (Font.LineHeight * FontSize + LineInterval));
         }
 
         IEnumerable<Vector3>? enumerable = null;

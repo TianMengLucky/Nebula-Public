@@ -75,7 +75,7 @@ public class VoiceChatInfo : MonoBehaviour
 
     public void Update()
     {
-        float y = transform.localPosition.y;
+        var y = transform.localPosition.y;
         if (MustShow)
         {
             timer -= Time.deltaTime;

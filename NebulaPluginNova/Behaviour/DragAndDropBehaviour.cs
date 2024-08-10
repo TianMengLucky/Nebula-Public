@@ -331,7 +331,7 @@ public static class Window
     public static string GetClassName(IntPtr hWnd)
     {
         var sb = new System.Text.StringBuilder(256);
-        int count = GetClassName(hWnd, sb, 256);
+        var count = GetClassName(hWnd, sb, 256);
         return sb.ToString(0, count);
     }
 
@@ -341,9 +341,9 @@ public static class Window
     static extern int GetWindowText(IntPtr hWnd, System.Text.StringBuilder lpString, int nMaxCount);
     public static string GetWindowText(IntPtr hWnd)
     {
-        int length = GetWindowTextLength(hWnd) + 2;
+        var length = GetWindowTextLength(hWnd) + 2;
         var sb = new System.Text.StringBuilder(length);
-        int count = GetWindowText(hWnd, sb, length);
+        var count = GetWindowText(hWnd, sb, length);
         return sb.ToString(0, count);
     }
 }
@@ -420,13 +420,13 @@ public static class UnityDragAndDropHook
             WinAPI.DragQueryPoint(lParam.wParam, out pos);
 
             // 0xFFFFFFFF as index makes the method return the number of files
-            uint n = WinAPI.DragQueryFile(lParam.wParam, 0xFFFFFFFF, null!, 0);
+            var n = WinAPI.DragQueryFile(lParam.wParam, 0xFFFFFFFF, null!, 0);
             var sb = new System.Text.StringBuilder(1024);
 
-            List<string> result = new List<string>();
+            List<string> result = [];
             for (uint i = 0; i < n; i++)
             {
-                int len = (int)WinAPI.DragQueryFile(lParam.wParam, i, sb, 1024);
+                var len = (int)WinAPI.DragQueryFile(lParam.wParam, i, sb, 1024);
                 result.Add(sb.ToString(0, len));
                 sb.Length = 0;
             }
@@ -453,7 +453,7 @@ public class DragAndDropBehaviour : MonoBehaviour
 
     static public void Show(Transform? parent, GetFilePathEvent onGetFilePath)
     {
-        GameObject obj = new GameObject("DragAndDropBehaviour");
+        var obj = new GameObject("DragAndDropBehaviour");
         obj.transform.SetParent(parent);
         obj.SetActive(false);
         obj.transform.localPosition = new Vector3(0, 0, -300);
@@ -461,7 +461,7 @@ public class DragAndDropBehaviour : MonoBehaviour
         accepter.OnGetFilePath = (pathes, point) =>
         {
             onGetFilePath(pathes);
-            GameObject.Destroy(obj);
+            Destroy(obj);
         };
 
         obj.SetActive(true);
@@ -488,7 +488,7 @@ public class DragAndDropBehaviour : MonoBehaviour
 
         var collider = background.gameObject.AddComponent<BoxCollider2D>();
         collider.size = new Vector2(100f, 100f);
-        background.gameObject.SetUpButton().OnClick.AddListener(() => GameObject.Destroy(gameObject));
+        background.gameObject.SetUpButton().OnClick.AddListener(() => Destroy(gameObject));
 
         /*
         var screen = MetaScreen.OpenScreen(gameObject, new Vector2(1f, 1f), Vector2.zero);

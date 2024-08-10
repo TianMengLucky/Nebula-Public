@@ -47,12 +47,12 @@ public class Doctor : DefinedRoleTemplate, DefinedRole
             {
                 vitalButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability);
                 vitalButton.SetSprite(HudManager.Instance.UseButton.fastUseSettings[ImageNames.VitalsButton].Image);
-                vitalButton.Availability = (button) => MyPlayer.CanMove && vitalTimer > 0f;
-                vitalButton.Visibility = (button) => !MyPlayer.IsDead;
-                vitalButton.OnClick = (button) =>
+                vitalButton.Availability = button => MyPlayer.CanMove && vitalTimer > 0f;
+                vitalButton.Visibility = button => !MyPlayer.IsDead;
+                vitalButton.OnClick = button =>
                 {
                     VitalsMinigame? vitalsMinigame = null;
-                    foreach (RoleBehaviour role in RoleManager.Instance.AllRoles)
+                    foreach (var role in RoleManager.Instance.AllRoles)
                     {
                         if (role.Role == RoleTypes.Scientist)
                         {
@@ -75,7 +75,7 @@ public class Doctor : DefinedRoleTemplate, DefinedRole
                     {
                         acTokenCommon ??= new("doctor.common1");
 
-                        int lastAliveCount = NebulaGameManager.Instance!.AllPlayerInfo().Count(p => !p.IsDead);
+                        var lastAliveCount = NebulaGameManager.Instance!.AllPlayerInfo().Count(p => !p.IsDead);
 
                         while (vitalsMinigame.amClosing != Minigame.CloseState.Closing)
                         {

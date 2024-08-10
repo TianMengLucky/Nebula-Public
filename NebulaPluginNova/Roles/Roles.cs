@@ -29,14 +29,14 @@ internal class NoSRoleSetUp
     static private void SetNebulaTeams()
     {
         //Set Up Team
-        Virial.Assignable.NebulaTeams.CrewmateTeam = Crewmate.Crewmate.MyTeam;
-        Virial.Assignable.NebulaTeams.ImpostorTeam = Impostor.Impostor.MyTeam;
-        Virial.Assignable.NebulaTeams.ArsonistTeam = Neutral.Arsonist.MyTeam;
-        Virial.Assignable.NebulaTeams.ChainShifterTeam = Neutral.ChainShifter.MyTeam;
-        Virial.Assignable.NebulaTeams.JackalTeam = Neutral.Jackal.MyTeam;
-        Virial.Assignable.NebulaTeams.JesterTeam = Neutral.Jester.MyTeam;
-        Virial.Assignable.NebulaTeams.PaparazzoTeam = Neutral.Paparazzo.MyTeam;
-        Virial.Assignable.NebulaTeams.VultureTeam = Neutral.Vulture.MyTeam;
+        NebulaTeams.CrewmateTeam = Crewmate.Crewmate.MyTeam;
+        NebulaTeams.ImpostorTeam = Impostor.Impostor.MyTeam;
+        NebulaTeams.ArsonistTeam = Neutral.Arsonist.MyTeam;
+        NebulaTeams.ChainShifterTeam = Neutral.ChainShifter.MyTeam;
+        NebulaTeams.JackalTeam = Neutral.Jackal.MyTeam;
+        NebulaTeams.JesterTeam = Neutral.Jester.MyTeam;
+        NebulaTeams.PaparazzoTeam = Neutral.Paparazzo.MyTeam;
+        NebulaTeams.VultureTeam = Neutral.Vulture.MyTeam;
     }
 
     static NoSRoleSetUp()
@@ -46,7 +46,7 @@ internal class NoSRoleSetUp
         SetNebulaTeams();
         foreach (var assembly in AddonScriptManager.ScriptAssemblies.Where(script => script.Behaviour.LoadRoles).Select(s => s.Assembly).Prepend(Assembly.GetAssembly(typeof(Roles))))
         {
-            var types = assembly?.GetTypes().Where((type) => type.IsAssignableTo(typeof(DefinedAssignable)));
+            var types = assembly?.GetTypes().Where(type => type.IsAssignableTo(typeof(DefinedAssignable)));
             foreach(var type in types ?? []) System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(type.TypeHandle);
         }
     }
@@ -73,10 +73,10 @@ public class Roles
 
     static public IReadOnlyList<Team> AllTeams { get; private set; } = null!;
 
-    static private List<DefinedRole>? allRoles = new();
-    static private List<DefinedGhostRole>? allGhostRoles = new();
-    static private List<DefinedModifier>? allModifiers = new();
-    static private List<Team>? allTeams = new();
+    static private List<DefinedRole>? allRoles = [];
+    static private List<DefinedGhostRole>? allGhostRoles = [];
+    static private List<DefinedModifier>? allModifiers = [];
+    static private List<Team>? allTeams = [];
 
     static public void Register(DefinedRole role) {
         if(allRoles == null)
@@ -119,7 +119,7 @@ public class Roles
         });
 
         allGhostRoles!.Sort((role1, role2) => {
-            int diff = (int)role1.Category - (int)role2.Category;
+            var diff = (int)role1.Category - (int)role2.Category;
             if (diff != 0) return diff;
             return role1.InternalName.CompareTo(role2.InternalName);
         });
@@ -131,9 +131,9 @@ public class Roles
 
         allTeams!.Sort((team1, team2) => team1.TranslationKey.CompareTo(team2.TranslationKey));
 
-        for (int i = 0; i < allRoles!.Count; i++) allRoles![i].Id = i;
-        for (int i = 0; i < allGhostRoles!.Count; i++) allGhostRoles![i].Id = i;
-        for (int i = 0; i < allModifiers!.Count; i++) allModifiers![i].Id = i;
+        for (var i = 0; i < allRoles!.Count; i++) allRoles![i].Id = i;
+        for (var i = 0; i < allGhostRoles!.Count; i++) allGhostRoles![i].Id = i;
+        for (var i = 0; i < allModifiers!.Count; i++) allModifiers![i].Id = i;
 
         AllRoles = allRoles!.AsReadOnly();
         AllGhostRoles = allGhostRoles!.AsReadOnly();
@@ -181,11 +181,11 @@ internal static class RoleOptionHelper
     {
         if (!screen) screen = MetaScreen.GenerateWindow(new Vector2(6.7f, setAndShare != null ? 4.5f : 3.7f), HudManager.Instance.transform, Vector3.zero, true, true);
 
-        bool showOnlySpawnable = ClientOption.AllOptions[ClientOption.ClientOptionType.ShowOnlySpawnableAssignableOnFilter].Value == 1;
+        var showOnlySpawnable = ClientOption.AllOptions[ClientOption.ClientOptionType.ShowOnlySpawnableAssignableOnFilter].Value == 1;
 
         IEnumerable<R> allRolesFiltered = showOnlySpawnable ? allRoles.Where(r => (r as ISpawnable)?.IsSpawnable ?? true) : allRoles;
 
-        List<GUIWidget> shortcutButtons = new();
+        List<GUIWidget> shortcutButtons = [];
         if(setAndShare != null)
         {
             void Append(string translationKey, Func<bool> isInvalid, Action<bool> onClicked)

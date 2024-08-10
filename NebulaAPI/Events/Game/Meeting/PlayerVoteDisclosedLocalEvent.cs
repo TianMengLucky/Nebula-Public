@@ -15,7 +15,7 @@ public class PlayerVoteDisclosedLocalEvent : AbstractPlayerEvent
 
     internal PlayerVoteDisclosedLocalEvent(Virial.Game.Player voter, Virial.Game.Player? voteTo, bool voteToWillBeExiled) : base(voter)
     {
-        this.VoteFor = voteTo;
-        this.VoteToWillBeExiled = voteToWillBeExiled;
+        VoteFor = voteTo;
+        VoteToWillBeExiled = voteToWillBeExiled;
     }
 }

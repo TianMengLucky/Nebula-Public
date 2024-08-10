@@ -39,11 +39,11 @@ public class Noiseghost : DefinedGhostRoleTemplate, DefinedGhostRole
                 int left = NumOfNoiseOption;
                 var noiseButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability);
                 noiseButton.SetSprite(buttonSprite.GetSprite());
-                noiseButton.Availability = (button) => MyPlayer.CanMove;
-                noiseButton.Visibility = (button) => MyPlayer.IsDead;
+                noiseButton.Availability = button => MyPlayer.CanMove;
+                noiseButton.Visibility = button => MyPlayer.IsDead;
                 var usesIcon = noiseButton.ShowUsesIcon(3);
                 usesIcon.text = left.ToString();
-                noiseButton.OnClick = (button) =>
+                noiseButton.OnClick = button =>
                 {
                     new StaticAchievementToken("noiseghost.common1");
                     RpcGhostNoise.Invoke((MyPlayer, MyPlayer.VanillaPlayer.transform.position));

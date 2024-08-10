@@ -14,7 +14,7 @@ internal class MeetingOverlayHolder : AbstractModule<Virial.Game.Game>, OverlayH
     static Image NotificationSprite = SpriteLoader.FromResource("Nebula.Resources.MeetingNotificationDot.png", 135f);
     static public Image[] IconsSprite = Helpers.Sequential(IconSprite.Length).Select(num => new WrapSpriteLoader(()=>IconSprite.GetSprite(num))).ToArray();
 
-    List<(GUIWidgetSupplier overlay, Image icon, UnityEngine.Color color,Reference<bool> isNew)> icons = new();
+    List<(GUIWidgetSupplier overlay, Image icon, Color color,Reference<bool> isNew)> icons = [];
     Transform? shower;
 
     //常駐エンティティ
@@ -25,7 +25,7 @@ internal class MeetingOverlayHolder : AbstractModule<Virial.Game.Game>, OverlayH
         this.Register(NebulaAPI.CurrentGame!);
     }
 
-    public void RegisterOverlay(GUIWidgetSupplier overlay, Image icon, UnityEngine.Color color)
+    public void RegisterOverlay(GUIWidgetSupplier overlay, Image icon, Color color)
     {
         icons.Add((overlay, icon, color, new Reference<bool>() { Value = true }));
         Generate(icons.Count - 1);
@@ -52,7 +52,7 @@ internal class MeetingOverlayHolder : AbstractModule<Virial.Game.Game>, OverlayH
 
         IEnumerator CoAppear()
         {
-            float p = 0f;
+            var p = 0f;
             while(true)
             {
                 p += Time.deltaTime * 2.4f;
@@ -82,6 +82,6 @@ internal class MeetingOverlayHolder : AbstractModule<Virial.Game.Game>, OverlayH
     void OnMeetingStart(MeetingStartEvent ev)
     {
         shower = UnityHelper.CreateObject("OverlayHolder", MeetingHud.Instance.transform, new(0f, 2.7f, -20f)).transform;
-        for (int i = 0; i < icons.Count; i++) Generate(i);
+        for (var i = 0; i < icons.Count; i++) Generate(i);
     }
 }

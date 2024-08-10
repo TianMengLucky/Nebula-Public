@@ -38,18 +38,18 @@ public class ColCommand : ICommand
         if (arguments.Count % 2 != 0 || arguments.Count == 0)
             return new CoImmediateErrorTask<ICommandToken>(env.Logger, label + " <collection> <variable> <effectors>");
 
-        string p = "-";
+        var p = "-";
         var task = arguments[1].AsValue<string>(env).Action(val => p = val).Chain(_ => arguments[0].AsEnumerable(env));
-        int num = arguments.Count / 2 - 1;
+        var num = arguments.Count / 2 - 1;
 
 
 
-        for (int i = 0; i < num; i++)
+        for (var i = 0; i < num; i++)
         {
-            int copiedIndex = i;
+            var copiedIndex = i;
             task = task.Chain(col =>
             {
-                int n = (copiedIndex + 1) * 2;
+                var n = (copiedIndex + 1) * 2;
                 return arguments[n].AsValue<string>(env).ChainIf<IEnumerable<ICommandToken>, string>(new()
                 {
                     { "where", () => WhereComponent(col, arguments[n + 1], p, env)},

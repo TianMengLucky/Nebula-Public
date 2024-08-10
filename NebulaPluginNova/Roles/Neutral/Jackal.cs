@@ -9,6 +9,7 @@ using Virial.Configuration;
 using Virial.Events.Game;
 using Virial.Events.Player;
 using Virial.Game;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Roles.Neutral;
 
@@ -46,7 +47,7 @@ public class Jackal : DefinedRoleTemplate, HasCitation, DefinedRole
         private ModAbilityButton? killButton = null;
         private ModAbilityButton? sidekickButton = null;
         public int JackalTeamId;
-        private int killingTotal = 0;
+        public int killingTotal { get; private set; } = 0;
         private int myKillingTotal = 0;
 
         private int LeftKillingToCreateSidekick => Math.Max(0, NumOfKillingToCreateSidekickOption - myKillingTotal);
@@ -78,7 +79,7 @@ public class Jackal : DefinedRoleTemplate, HasCitation, DefinedRole
         }
 
         [OnlyMyPlayer]
-        void CheckWins(PlayerCheckWinEvent ev) => ev.SetWinIf(ev.GameEnd == NebulaGameEnd.JackalWin && NebulaGameManager.Instance!.AllPlayerInfo().Any(p => !p.IsDead && Jackal.IsJackal(p, JackalTeamId)));
+        void CheckWins(PlayerCheckWinEvent ev) => ev.SetWinIf(ev.GameEnd == NebulaGameEnd.JackalWin && NebulaGameManager.Instance!.AllPlayerInfo().Any(p => !p.IsDead && IsJackal(p, JackalTeamId)));
 
         void RuntimeAssignable.OnActivated()
         {
@@ -87,9 +88,9 @@ public class Jackal : DefinedRoleTemplate, HasCitation, DefinedRole
                 if (JackalTeamId != MyPlayer.PlayerId)
                     new StaticAchievementToken("sidekick.common1");
 
-                bool hasSidekick = false;
+                var hasSidekick = false;
 
-                var myTracker = Bind(ObjectTrackers.ForPlayer(null, MyPlayer, (p) => ObjectTrackers.StandardPredicate(p) && !IsMySidekick(p), null, Impostor.Impostor.CanKillHidingPlayerOption));
+                var myTracker = Bind(ObjectTrackers.ForPlayer(null, MyPlayer, p => ObjectTrackers.StandardPredicate(p) && !IsMySidekick(p), null, Impostor.Impostor.CanKillHidingPlayerOption));
 
                 SpriteRenderer? lockSprite = null;
                 TMPro.TextMeshPro? leftText = null;
@@ -105,9 +106,9 @@ public class Jackal : DefinedRoleTemplate, HasCitation, DefinedRole
                         leftText.text = LeftKillingToCreateSidekick.ToString();
                     }
                     sidekickButton.SetSprite(sidekickButtonSprite.GetSprite());
-                    sidekickButton.Availability = (button) => myTracker.CurrentTarget != null && MyPlayer.CanMove && LeftKillingToCreateSidekick <= 0;
-                    sidekickButton.Visibility = (button) => !MyPlayer.IsDead && !hasSidekick;
-                    sidekickButton.OnClick = (button) =>
+                    sidekickButton.Availability = button => myTracker.CurrentTarget != null && MyPlayer.CanMove && LeftKillingToCreateSidekick <= 0;
+                    sidekickButton.Visibility = button => !MyPlayer.IsDead && !hasSidekick;
+                    sidekickButton.OnClick = button =>
                     {
                         button.StartCoolDown();
 
@@ -125,17 +126,17 @@ public class Jackal : DefinedRoleTemplate, HasCitation, DefinedRole
                 }
 
                 killButton = Bind(new ModAbilityButton(isArrangedAsKillButton: true)).KeyBind(Virial.Compat.VirtualKeyInput.Kill);
-                killButton.Availability = (button) => myTracker.CurrentTarget != null && MyPlayer.CanMove;
-                killButton.Visibility = (button) => !MyPlayer.IsDead;
-                killButton.OnClick = (button) =>
+                killButton.Availability = button => myTracker.CurrentTarget != null && MyPlayer.CanMove;
+                killButton.Visibility = button => !MyPlayer.IsDead;
+                killButton.OnClick = button =>
                 {
                     MyPlayer.MurderPlayer(myTracker.CurrentTarget!, PlayerState.Dead, EventDetail.Kill, KillParameter.NormalKill);
                     button.StartCoolDown();
 
                     if (LeftKillingToCreateSidekick == 0)
                     {
-                        if (lockSprite) GameObject.Destroy(lockSprite!.gameObject);
-                        if (leftText) GameObject.Destroy(leftText!.transform.parent.gameObject);
+                        if (lockSprite) Object.Destroy(lockSprite!.gameObject);
+                        if (leftText) Object.Destroy(leftText!.transform.parent.gameObject);
                         lockSprite = null;
                         leftText = null;
                     }
@@ -182,7 +183,7 @@ public class Jackal : DefinedRoleTemplate, HasCitation, DefinedRole
         [Local]
         void DecorateSidekickColor(PlayerDecorateNameEvent ev)
         {
-            if (IsMySidekick(ev.Player)) ev.Color = Jackal.MyRole.RoleColor;
+            if (IsMySidekick(ev.Player)) ev.Color = MyRole.RoleColor;
         }
         
         //サイドキックはジャッカルを識別できる
@@ -192,7 +193,7 @@ public class Jackal : DefinedRoleTemplate, HasCitation, DefinedRole
             var myInfo = PlayerControl.LocalPlayer.GetModInfo();
             if (myInfo == null) return;
 
-            if (IsMySidekick(myInfo)) ev.Color = Jackal.MyRole.RoleColor;
+            if (IsMySidekick(myInfo)) ev.Color = MyRole.RoleColor;
         }
 
 
@@ -205,7 +206,7 @@ public class Jackal : DefinedRoleTemplate, HasCitation, DefinedRole
                 if (IsMySidekick(player))
                 {
                     using(RPCRouter.CreateSection("Sidekick")){
-                        player.Unbox().RpcInvokerSetRole(Jackal.MyRole, [JackalTeamId, killingTotal]).InvokeSingle();
+                        player.Unbox().RpcInvokerSetRole(MyRole, [JackalTeamId, killingTotal]).InvokeSingle();
                         player.Unbox().RpcInvokerUnsetModifier(SidekickModifier.MyRole).InvokeSingle();
                     }
                 }
@@ -215,6 +216,7 @@ public class Jackal : DefinedRoleTemplate, HasCitation, DefinedRole
 
         bool RuntimeRole.HasImpostorVision => true;
         bool RuntimeRole.IgnoreBlackout => true;
+        
 
         [Local]
         void OnGameEnd(GameEndEvent ev)
@@ -250,11 +252,11 @@ file static class SidekickAchievementChecker
 
 public class Sidekick : DefinedRoleTemplate, HasCitation, DefinedRole
 {
-    private Sidekick() : base("sidekick", Jackal.MyTeam.Color, RoleCategory.NeutralRole, Jackal.MyTeam, [IsModifierOption, SidekickCanKillOption, CanCreateSidekickChainlyOption, KillCoolDownOption], false, optionHolderPredicate: ()=> (Jackal.MyRole as DefinedRole).IsSpawnable && Jackal.CanCreateSidekickOption ) {
+    private Sidekick() : base("sidekick", Jackal.MyTeam.Color, RoleCategory.NeutralRole, Jackal.MyTeam, [IsModifierOption, SidekickCanKillOption, CanCreateSidekickChainlyOption, KillCoolDownOption, JackalDisconnectToJackal], false, optionHolderPredicate: ()=> (Jackal.MyRole as DefinedRole).IsSpawnable && Jackal.CanCreateSidekickOption ) {
         ConfigurationHolder?.ScheduleAddRelated(() => [Jackal.MyRole.ConfigurationHolder!]);
         ConfigurationHolder!.Title = ConfigurationHolder.Title.WithComparison("role.jackal.sidekick.name");
     }
-    IEnumerable<DefinedAssignable> DefinedAssignable.AchievementGroups => [Sidekick.MyRole, MyRole];
+    IEnumerable<DefinedAssignable> DefinedAssignable.AchievementGroups => [MyRole, MyRole];
     string DefinedAssignable.InternalName => "jackal.sidekick";
     Citation? HasCitation.Citaion => Citations.TheOtherRoles;
 
@@ -263,6 +265,7 @@ public class Sidekick : DefinedRoleTemplate, HasCitation, DefinedRole
     static internal BoolConfiguration IsModifierOption = NebulaAPI.Configurations.Configuration("options.role.sidekick.isModifier", false);
     static internal BoolConfiguration SidekickCanKillOption = NebulaAPI.Configurations.Configuration("options.role.sidekick.canKill", false, () => !IsModifierOption);
     static internal BoolConfiguration CanCreateSidekickChainlyOption = NebulaAPI.Configurations.Configuration("options.role.sidekick.canCreateSidekickChainly", false);
+    static internal BoolConfiguration JackalDisconnectToJackal = NebulaAPI.Configurations.Configuration("options.role.sidekick.disconnectToJackal", false);
     static private IRelativeCoolDownConfiguration KillCoolDownOption = NebulaAPI.Configurations.KillConfiguration("options.role.sidekick.killCoolDown", CoolDownType.Relative, (2.5f, 60f, 2.5f), 25f, (-40f, 40f, 2.5f), -5f, (0.125f, 2f, 0.125f), 1f);
 
     static public Sidekick MyRole = new Sidekick();
@@ -280,6 +283,20 @@ public class Sidekick : DefinedRoleTemplate, HasCitation, DefinedRole
 
         int[]? RuntimeAssignable.RoleArguments => [JackalTeamId];
 
+        [Local]
+        void JackalDisconnect(GameStatistics.Event ev)
+        {
+            if (!JackalDisconnectToJackal) return;
+            if (MyPlayer.IsDead)return;
+            var player = NebulaGameManager.Instance!.GetPlayer((byte)ev.SourceId!)!;
+            if (!Jackal.IsJackal(player, JackalTeamId)) return;
+            var killingTotal = ((Jackal.Instance)player.Role).killingTotal;
+            using(RPCRouter.CreateSection("Sidekick")){
+                MyPlayer.Unbox().RpcInvokerSetRole(Jackal.MyRole, [JackalTeamId, killingTotal]).InvokeSingle();
+                MyPlayer.Unbox().RpcInvokerUnsetModifier(SidekickModifier.MyRole).InvokeSingle();
+            }
+        }
+
         [OnlyMyPlayer]
         void CheckWins(PlayerCheckWinEvent ev) => ev.SetWinIf(ev.GameEnd == NebulaGameEnd.JackalWin && NebulaGameManager.Instance!.AllPlayerInfo().Any(p => !p.IsDead && Jackal.IsJackal(p, JackalTeamId)));
         void RuntimeAssignable.OnActivated()
@@ -293,9 +310,9 @@ public class Sidekick : DefinedRoleTemplate, HasCitation, DefinedRole
                     var myTracker = Bind(ObjectTrackers.ForPlayer(null, MyPlayer, ObjectTrackers.StandardPredicate));
 
                     killButton = Bind(new ModAbilityButton(isArrangedAsKillButton: true)).KeyBind(Virial.Compat.VirtualKeyInput.Kill);
-                    killButton.Availability = (button) => myTracker.CurrentTarget != null && MyPlayer.CanMove;
-                    killButton.Visibility = (button) => !MyPlayer.IsDead;
-                    killButton.OnClick = (button) =>
+                    killButton.Availability = button => myTracker.CurrentTarget != null && MyPlayer.CanMove;
+                    killButton.Visibility = button => !MyPlayer.IsDead;
+                    killButton.OnClick = button =>
                     {
                         MyPlayer.MurderPlayer(myTracker.CurrentTarget!, PlayerState.Dead, EventDetail.Kill, KillParameter.NormalKill);
                         button.StartCoolDown();
@@ -305,7 +322,7 @@ public class Sidekick : DefinedRoleTemplate, HasCitation, DefinedRole
                 }
 
                 if (GeneralConfigurations.JackalRadioOption)
-                    Bind(VoiceChatManager.GenerateBindableRadioScript((p) => p.Role is Jackal.Instance jackal && jackal.JackalTeamId == JackalTeamId, "voiceChat.info.jackalRadio", MyRole.UnityColor));
+                    Bind(VoiceChatManager.GenerateBindableRadioScript(p => p.Role is Jackal.Instance jackal && jackal.JackalTeamId == JackalTeamId, "voiceChat.info.jackalRadio", MyRole.UnityColor));
             }
         }
     }
@@ -344,7 +361,7 @@ public class SidekickModifier : DefinedModifierTemplate, HasCitation, DefinedMod
                 SidekickAchievementChecker.TriggerSidekickChallenge(MyPlayer);
 
                 if (GeneralConfigurations.JackalRadioOption)
-                    Bind(VoiceChatManager.GenerateBindableRadioScript((p) => p.Role is Jackal.Instance jackal && jackal.JackalTeamId == JackalTeamId, "voiceChat.info.jackalRadio", MyRole.UnityColor));                
+                    Bind(VoiceChatManager.GenerateBindableRadioScript(p => p.Role is Jackal.Instance jackal && jackal.JackalTeamId == JackalTeamId, "voiceChat.info.jackalRadio", MyRole.UnityColor));                
 
                 if (MyPlayer.Role.Role.Category == RoleCategory.ImpostorRole && MyPlayer.Unbox().TryGetModifier<Lover.Instance>(out _))
                     new StaticAchievementToken("threeRoles");

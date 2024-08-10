@@ -11,7 +11,7 @@ using Virial.Configuration;
 
 namespace Nebula.Configuration;
 
-public abstract class AssignableFilterConfigurationValue<T> where T : class, Virial.Assignable.ICodeName, Virial.Assignable.IRoleID
+public abstract class AssignableFilterConfigurationValue<T> where T : class, ICodeName, IRoleID
 {
     private const int UnitSize = 30;
     internal class FilterSharableVariable : ISharableVariable<int>
@@ -24,10 +24,10 @@ public abstract class AssignableFilterConfigurationValue<T> where T : class, Vir
 
         public FilterSharableVariable(AssignableFilterConfigurationValue<T> filter, int index)
         {
-            this.name = filter.Id + index;
-            this.id = -1;
+            name = filter.Id + index;
+            id = -1;
             this.index = index;
-            this.myFilter = filter;
+            myFilter = filter;
 
             currentValue = filter.ToSharableValueFromLocal(this.index);
 
@@ -61,7 +61,7 @@ public abstract class AssignableFilterConfigurationValue<T> where T : class, Vir
         }
         void ISharableEntry.RestoreSavedValue()
         {
-            currentValue = myFilter.ToSharableValueFromLocal(this.index);
+            currentValue = myFilter.ToSharableValueFromLocal(index);
         }
     }
 
@@ -75,21 +75,25 @@ public abstract class AssignableFilterConfigurationValue<T> where T : class, Vir
     public AssignableFilterConfigurationValue(string id)
     {
         Id = id;
-        dataEntry = new StringArrayDataEntry(id, Configuration.ConfigurationValues.ConfigurationSaver, []);
+        dataEntry = new StringArrayDataEntry(id, ConfigurationValues.ConfigurationSaver, []);
 
         void RefreshCache()
         {
-            myLocalCache = new(dataEntry.Value.Select(code => AllAssignables.FirstOrDefault(a => a.CodeName == code)).Where(a => a != null)!);
+            myLocalCache =
+            [
+                ..dataEntry.Value.Select(code => AllAssignables.FirstOrDefault(a => a.CodeName == code))
+                    .Where(a => a != null)!
+            ];
         }
 
         void GenerateSharable()
         {
             RefreshCache();
 
-            int length = (AllAssignables.Max(a => a.Id) + 1) / UnitSize + 1;
+            var length = (AllAssignables.Max(a => a.Id) + 1) / UnitSize + 1;
 
             sharableVariables = new ISharableVariable<int>[length];
-            for (int i = 0; i < length; i++)
+            for (var i = 0; i < length; i++)
             {
                 sharableVariables[i] = new FilterSharableVariable(this, i);
             }
@@ -146,7 +150,7 @@ public abstract class AssignableFilterConfigurationValue<T> where T : class, Vir
     }
 }
 
-public class ModifierFilterImpl : AssignableFilterConfigurationValue<DefinedAllocatableModifier>, Virial.Configuration.ModifierFilter
+public class ModifierFilterImpl : AssignableFilterConfigurationValue<DefinedAllocatableModifier>, ModifierFilter
 {
     public ModifierFilterImpl(string id) : base(id)
     {
@@ -154,12 +158,12 @@ public class ModifierFilterImpl : AssignableFilterConfigurationValue<DefinedAllo
 
     protected override IEnumerable<DefinedAllocatableModifier> AllAssignables => Roles.Roles.AllModifiers.Select(a => a as DefinedAllocatableModifier).Where(a => a is not null)!;
 
-    bool Virial.Configuration.AssignableFilter<DefinedModifier>.Test(DefinedModifier assignable) => assignable is DefinedAllocatableModifier adm ? Test(adm) : false;
-    void Virial.Configuration.AssignableFilter<DefinedModifier>.SetAndShare(Virial.Assignable.DefinedModifier assignable, bool val) { if (assignable is DefinedAllocatableModifier adm) SetAndShare(adm, val); }
-    void Virial.Configuration.AssignableFilter<DefinedModifier>.ToggleAndShare(Virial.Assignable.DefinedModifier assignable) { if (assignable is DefinedAllocatableModifier adm) ToggleAndShare(adm); }
+    bool AssignableFilter<DefinedModifier>.Test(DefinedModifier assignable) => assignable is DefinedAllocatableModifier adm ? Test(adm) : false;
+    void AssignableFilter<DefinedModifier>.SetAndShare(DefinedModifier assignable, bool val) { if (assignable is DefinedAllocatableModifier adm) SetAndShare(adm, val); }
+    void AssignableFilter<DefinedModifier>.ToggleAndShare(DefinedModifier assignable) { if (assignable is DefinedAllocatableModifier adm) ToggleAndShare(adm); }
 }
 
-public class GhostRoleFilterImpl : AssignableFilterConfigurationValue<DefinedGhostRole>, Virial.Configuration.GhostRoleFilter
+public class GhostRoleFilterImpl : AssignableFilterConfigurationValue<DefinedGhostRole>, GhostRoleFilter
 {
     public GhostRoleFilterImpl(string id) : base(id)
     {
@@ -167,9 +171,9 @@ public class GhostRoleFilterImpl : AssignableFilterConfigurationValue<DefinedGho
 
     protected override IEnumerable<DefinedGhostRole> AllAssignables => Roles.Roles.AllGhostRoles;
 
-    bool Virial.Configuration.AssignableFilter<DefinedGhostRole>.Test(DefinedGhostRole assignable) => Test(assignable);
-    void Virial.Configuration.AssignableFilter<DefinedGhostRole>.ToggleAndShare(Virial.Assignable.DefinedGhostRole assignable) => ToggleAndShare(assignable);
-    void Virial.Configuration.AssignableFilter<DefinedGhostRole>.SetAndShare(Virial.Assignable.DefinedGhostRole assignable, bool val) => SetAndShare(assignable, val);
+    bool AssignableFilter<DefinedGhostRole>.Test(DefinedGhostRole assignable) => Test(assignable);
+    void AssignableFilter<DefinedGhostRole>.ToggleAndShare(DefinedGhostRole assignable) => ToggleAndShare(assignable);
+    void AssignableFilter<DefinedGhostRole>.SetAndShare(DefinedGhostRole assignable, bool val) => SetAndShare(assignable, val);
 }
 
 
@@ -182,18 +186,18 @@ public static class RoleFilterHelper
     /// <returns></returns>
     public static string GetFilterDisplayString(DefinedAssignable roleFilter, bool canAssignToCrewmate, bool canAssignToImpostor, bool canAssignToNeutral)
     {
-        List<DefinedRole> assignableCrewmate = new();
-        List<DefinedRole> nonAssignableCrewmate = new();
-        List<DefinedRole> assignableImpostor = new();
-        List<DefinedRole> nonAssignableImpostor = new();
-        List<DefinedRole> assignableNeutral = new();
-        List<DefinedRole> nonAssignableNeutral = new();
+        List<DefinedRole> assignableCrewmate = [];
+        List<DefinedRole> nonAssignableCrewmate = [];
+        List<DefinedRole> assignableImpostor = [];
+        List<DefinedRole> nonAssignableImpostor = [];
+        List<DefinedRole> assignableNeutral = [];
+        List<DefinedRole> nonAssignableNeutral = [];
         foreach(var r in Roles.Roles.AllRoles)
         {
             //ヘルプ画面に出現しない役職はスルー
             if (!r.ShowOnHelpScreen) continue;
 
-            bool assignable = true;
+            var assignable = true;
 
             switch (r.Category)
             {
@@ -215,9 +219,9 @@ public static class RoleFilterHelper
             }
         }
 
-        int allAssignableSum = assignableCrewmate.Count + assignableImpostor.Count + assignableNeutral.Count;
-        int allNonAssignableSum = nonAssignableCrewmate.Count + nonAssignableImpostor.Count + nonAssignableNeutral.Count;
-        int byCategorySum = Math.Min(assignableCrewmate.Count, nonAssignableCrewmate.Count) + Math.Min(assignableImpostor.Count, nonAssignableImpostor.Count) + Math.Min(assignableNeutral.Count, nonAssignableNeutral.Count);
+        var allAssignableSum = assignableCrewmate.Count + assignableImpostor.Count + assignableNeutral.Count;
+        var allNonAssignableSum = nonAssignableCrewmate.Count + nonAssignableImpostor.Count + nonAssignableNeutral.Count;
+        var byCategorySum = Math.Min(assignableCrewmate.Count, nonAssignableCrewmate.Count) + Math.Min(assignableImpostor.Count, nonAssignableImpostor.Count) + Math.Min(assignableNeutral.Count, nonAssignableNeutral.Count);
 
         if(allAssignableSum == 0)
         {
@@ -236,13 +240,13 @@ public static class RoleFilterHelper
         if (allNonAssignableSum <= 8)
         {
             //割当不可能な対象が比較的少ない場合
-            string roles = string.Join(Language.Translate("roleFilter.separator"), nonAssignableImpostor.Concat(nonAssignableCrewmate).Concat(nonAssignableNeutral).Select(r => r.DisplayColoredName));
+            var roles = string.Join(Language.Translate("roleFilter.separator"), nonAssignableImpostor.Concat(nonAssignableCrewmate).Concat(nonAssignableNeutral).Select(r => r.DisplayColoredName));
             return Language.Translate("roleFilter.exceptPattern.all").Replace("%ROLES%", roles);
         }
         if(byCategorySum <= 6)
         {
             //陣営ごとに最適な表示をした方が良い場合
-            string separator = Language.Translate("roleFilter.separator");
+            var separator = Language.Translate("roleFilter.separator");
             string impostorStr, crewmateStr, neutralStr;
 
             string GetCategoryString(string category, List<DefinedRole> assignable, List<DefinedRole> nonAssignable)

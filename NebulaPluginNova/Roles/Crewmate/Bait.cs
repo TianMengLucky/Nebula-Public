@@ -38,7 +38,7 @@ public class Bait : DefinedRoleTemplate, HasCitation, DefinedRole
         {
             if(ShowKillFlashOption) AmongUsUtil.PlayQuickFlash(MyRole.UnityColor);
 
-            float t = Mathf.Max(0.1f, ReportDelayOption) + ReportDelayDispersionOption * (float)System.Random.Shared.NextDouble();
+            var t = Mathf.Max(0.1f, ReportDelayOption) + ReportDelayDispersionOption * (float)System.Random.Shared.NextDouble();
             yield return new WaitForSeconds(t);
             murderer.CmdReportDeadBody(MyPlayer.VanillaPlayer.Data);
         }

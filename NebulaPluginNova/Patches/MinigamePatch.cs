@@ -1,4 +1,5 @@
 ﻿using Il2CppInterop.Runtime.InteropTypes.Arrays;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Patches;
 
@@ -29,7 +30,7 @@ public class MinigameBeginPatch
 
                 if (sabTask.IsComplete)
                 {
-                    GameObject.Destroy(__instance.gameObject);
+                    Object.Destroy(__instance.gameObject);
                     return false;
                 }
             }
@@ -159,19 +160,19 @@ public static class RandomTaskPatch
 {
     static public bool Prefix(NormalPlayerTask __instance, ref Il2CppSystem.Collections.Generic.List<Console> __result, [HarmonyArgument(0)] TaskTypes taskType, [HarmonyArgument(1)] Il2CppStructArray<byte> consoleIds)
     {
-        List<Console> orgList = ShipStatus.Instance.AllConsoles.Where((t) => { return t.TaskTypes.Contains(taskType); }).ToList<Console>();
-        List<Console> list = new List<Console>(orgList);
-        List<Console> result = new List<Console>();
+        List<Console> orgList = ShipStatus.Instance.AllConsoles.Where(t => { return t.TaskTypes.Contains(taskType); }).ToList<Console>();
+        List<Console> list = [..orgList];
+        List<Console> result = [];
 
         //返り値を作成する
         __result = new();
         foreach (var console in orgList) __result.Add(console);
 
-        for (int i = 0; i < consoleIds.Length; i++)
+        for (var i = 0; i < consoleIds.Length; i++)
         {
             //候補が全て上がってしまったらリセット
-            if (list.Count == 0) list = new List<Console>(orgList);
-            int index = System.Random.Shared.Next(list.Count);
+            if (list.Count == 0) list = [..orgList];
+            var index = System.Random.Shared.Next(list.Count);
             result.Add(list[index]);
             list.RemoveAt(index);
         }
@@ -179,7 +180,7 @@ public static class RandomTaskPatch
         if (!GeneralConfigurations.RandomizedWiringOption) result.Sort((console1, console2) => { return console1.ConsoleId - console2.ConsoleId; });
 
         //得られた並び順を返す
-        for (int i = 0; i < consoleIds.Length; i++) consoleIds[i] = (byte)result[i].ConsoleId;
+        for (var i = 0; i < consoleIds.Length; i++) consoleIds[i] = (byte)result[i].ConsoleId;
 
         return false;
     }
@@ -203,7 +204,7 @@ public static class EmergencyUpdatePatch
     {
         //int num = Mathf.CeilToInt(15f - ShipStatus.Instance.Timer);
         //num = Mathf.Max(Mathf.CeilToInt(ShipStatus.Instance.EmergencyCooldown), num);
-        int num = Mathf.CeilToInt(leftTime);
+        var num = Mathf.CeilToInt(leftTime);
         __instance.ButtonActive = false;
         __instance.StatusText.text = DestroyableSingleton<TranslationController>.Instance.GetString(StringNames.EmergencyNotReady);
         __instance.NumberText.text = DestroyableSingleton<TranslationController>.Instance.GetString(StringNames.SecondsAbbv, num);
@@ -214,7 +215,7 @@ public static class EmergencyUpdatePatch
     private static void OpenedButtonUpdate(EmergencyMinigame __instance) {
         if (__instance.state == 1) return;
         __instance.state = 1;
-        int remainingEmergencies = PlayerControl.LocalPlayer.RemainingEmergencies;
+        var remainingEmergencies = PlayerControl.LocalPlayer.RemainingEmergencies;
         __instance.StatusText.text = DestroyableSingleton<TranslationController>.Instance.GetString(StringNames.EmergencyCount, PlayerControl.LocalPlayer.Data.PlayerName);
         __instance.NumberText.text = remainingEmergencies.ToString();
         __instance.ButtonActive = (remainingEmergencies > 0);
@@ -245,7 +246,7 @@ public static class EmergencyUpdatePatch
 
     public static bool Prefix(EmergencyMinigame __instance)
     {
-        float Cooldown = Mathf.Max(GeneralConfigurations.EmergencyCooldownAtGameStart ? 15f - ShipStatus.Instance.Timer : 0f, ShipStatus.Instance.EmergencyCooldown);
+        var Cooldown = Mathf.Max(GeneralConfigurations.EmergencyCooldownAtGameStart ? 15f - ShipStatus.Instance.Timer : 0f, ShipStatus.Instance.EmergencyCooldown);
         //クールダウン中はボタンを押せない
         if (Cooldown > 0f)
             WaitingButtonUpdate(__instance, Cooldown);

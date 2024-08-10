@@ -28,11 +28,11 @@ public class Permission
 
     static internal PermissionResult PermissionTest(Permission permission, IEnumerable<PermissionVariable> permissions)
     {
-        PermissionResult result = PermissionResult.Undefined;
+        var result = PermissionResult.Undefined;
         foreach (var val in permissions)
         {
             var temp = val.permission.Test(permission);
-            if (val.inverse) temp = Permission.Inverse(temp);
+            if (val.inverse) temp = Inverse(temp);
 
             if (temp == PermissionResult.Denied) return PermissionResult.Denied;
 
@@ -56,8 +56,8 @@ public class PermissionHolder : IPermissionHolder
         this.permissions = permissions;
     }
 
-    bool IPermissionHolder.Test(Virial.Common.Permission permission) => Test(permission);
-    public bool Test(Virial.Common.Permission permission) => Permission.PermissionTest(permission, permissions) == PermissionResult.Accepted;
+    bool IPermissionHolder.Test(Permission permission) => Test(permission);
+    public bool Test(Permission permission) => Permission.PermissionTest(permission, permissions) == PermissionResult.Accepted;
 }
 
 public class VariablePermissionHolder : IPermissionHolder
@@ -66,7 +66,7 @@ public class VariablePermissionHolder : IPermissionHolder
 
     public VariablePermissionHolder(IEnumerable<Permission.PermissionVariable> permissions)
     {
-        this.permissions = new(permissions);
+        this.permissions = [..permissions];
     }
 
     public VariablePermissionHolder AddPermission(Permission permission, bool inverse = false)
@@ -75,6 +75,6 @@ public class VariablePermissionHolder : IPermissionHolder
         return this;
     }
 
-    bool IPermissionHolder.Test(Virial.Common.Permission permission) => Test(permission);
-    public bool Test(Virial.Common.Permission permission) => Permission.PermissionTest(permission, permissions) == PermissionResult.Accepted;
+    bool IPermissionHolder.Test(Permission permission) => Test(permission);
+    public bool Test(Permission permission) => Permission.PermissionTest(permission, permissions) == PermissionResult.Accepted;
 }

@@ -2,6 +2,7 @@
 using Virial.Events.Game;
 using Virial.Events.Game.Meeting;
 using Virial.Game;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Modules.ScriptComponents;
 
@@ -38,7 +39,7 @@ public class GameObjectBinding : INebulaScriptComponent, IGameOperator
     }
 
     void IGameOperator.OnReleased() {
-        if (MyObject) GameObject.Destroy(MyObject);
+        if (MyObject) Object.Destroy(MyObject);
         MyObject = null;
     }
 }
@@ -58,7 +59,7 @@ public class ComponentBinding<T> : INebulaScriptComponent, IGameOperator where T
     }
     void IGameOperator.OnReleased()
     {
-        if (MyObject) GameObject.Destroy(MyObject!.gameObject);
+        if (MyObject) Object.Destroy(MyObject!.gameObject);
     }
 }
 

@@ -8,7 +8,7 @@ namespace Nebula.Player;
 
 internal class LightInfo
 {
-    static private List<LightInfo> allLightInfo = new();
+    static private List<LightInfo> allLightInfo = [];
     static public IEnumerable<LightInfo> AllLightInfo => allLightInfo;
 
     private SpriteRenderer lightRenderer;

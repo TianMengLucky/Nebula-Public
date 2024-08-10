@@ -29,7 +29,7 @@ public class ReviveCommand : ICommand
                     new CommandClause("by", 1, args => args[0].AsValues<GamePlayer>(env).Do(p => healer = p).Discard<bool, ICommandToken>())
                     ], env)
                     .Action(_ => {
-                        int count = 0;
+                        var count = 0;
                         using (RPCRouter.CreateSection("reviveCommand"))
                         {
 

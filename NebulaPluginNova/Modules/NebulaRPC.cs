@@ -31,15 +31,15 @@ public class NebulaRPCInvoker
         this.hash = hash;
         this.sender = sender;
         this.localBodyProcess = localBodyProcess;
-        this.IsDummy = false;
+        IsDummy = false;
     }
 
     public NebulaRPCInvoker(Action localAction)
     {
-        this.hash = 0;
-        this.sender = null!;
-        this.localBodyProcess = localAction;
-        this.IsDummy = true;
+        hash = 0;
+        sender = null!;
+        localBodyProcess = localAction;
+        IsDummy = true;
     }
 
     public void Invoke(MessageWriter writer)
@@ -54,7 +54,7 @@ public class NebulaRPCInvoker
         if (IsDummy)
             RPCRouter.SendDummy(localBodyProcess);
         else
-            RPCRouter.SendRpc("Invoker", hash, (writer) => sender.Invoke(writer), () => localBodyProcess.Invoke());
+            RPCRouter.SendRpc("Invoker", hash, writer => sender.Invoke(writer), () => localBodyProcess.Invoke());
     }
 
     public void InvokeLocal()
@@ -97,7 +97,7 @@ public static class RPCRouter
     static public RPCSection CreateSection(string? label = null) => new RPCSection(label);
 
     static RPCSection? currentSection = null;
-    static List<NebulaRPCInvoker> evacuateds = new();
+    static List<NebulaRPCInvoker> evacuateds = [];
 
     public static void SendDummy(Action localProcess)
     {
@@ -111,7 +111,7 @@ public static class RPCRouter
     public static void SendRpc(string name, int hash, Action<MessageWriter> sender, Action localBodyProcess) {
         if(currentSection == null)
         {
-            MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, 128, Hazel.SendOption.Reliable, -1);
+            var writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, 128, SendOption.Reliable, -1);
             writer.Write(hash);
             sender.Invoke(writer);
             //NebulaPlugin.Log.Print("sent RPC:" + name + "(size:" + writer.Length + ")");
@@ -170,16 +170,16 @@ public class RemoteProcessBase
 
         //RPCを定義し、登録
 
-        List<(Action<MessageWriter, object> writer, Func<MessageReader, object> reader)> processList = new();
+        List<(Action<MessageWriter, object> writer, Func<MessageReader, object> reader)> processList = [];
         if (!method.IsStatic) processList.Add(RemoteProcessAsset.GetProcess(method.DeclaringType!));
         processList.AddRange(parameters.Select(p => RemoteProcessAsset.GetProcess(p.ParameterType)));
         
         RemoteProcess<object[]> rpc = new(method.DeclaringType!.FullName + "." + method.Name,
             (writer, args) =>
             {
-                for (int i = 0; i < processList.Count; i++) processList[i].writer(writer, args[i]);
+                for (var i = 0; i < processList.Count; i++) processList[i].writer(writer, args[i]);
             },
-            (reader) =>
+            reader =>
             {
                 return processList.Select(p => p.reader(reader)).ToArray();
             },
@@ -208,12 +208,12 @@ public class RemoteProcessBase
     {
         yield return preprocessor.SetLoadingText("Building Remote Procedure Calls");
 
-        var types = Assembly.GetAssembly(typeof(RemoteProcessBase))?.GetTypes().Where((type) => type.IsDefined(typeof(NebulaRPCHolder)));
+        var types = Assembly.GetAssembly(typeof(RemoteProcessBase))?.GetTypes().Where(type => type.IsDefined(typeof(NebulaRPCHolder)));
         if (types == null) yield break;
 
         foreach (var type in types)
         {
-            System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(type.TypeHandle);
+            RuntimeHelpers.RunClassConstructor(type.TypeHandle);
             foreach(var method in type.GetMethods().Where(m => m.IsDefined(typeof(NebulaRPC)))) WrapRpcMethod(NebulaPlugin.Harmony, method);
         }
 
@@ -222,7 +222,7 @@ public class RemoteProcessBase
         {
             foreach (var t in script.Assembly.GetTypes())
             {
-                System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(t.TypeHandle);
+                RuntimeHelpers.RunClassConstructor(t.TypeHandle);
                 foreach (var method in t.GetMethods().Where(m => m.IsDefined(typeof(NebulaRPC))))
                 {
                     //RPCを持つならハンドシェイクが必要
@@ -244,16 +244,16 @@ public static class RemoteProcessAsset
 
     static RemoteProcessAsset()
     {
-        defaultProcessDic[typeof(byte)] = ((writer, obj) => writer.Write((byte)obj), (reader) => reader.ReadByte());
-        defaultProcessDic[typeof(short)] = ((writer, obj) => writer.Write((short)obj), (reader) => reader.ReadInt16());
-        defaultProcessDic[typeof(int)] = ((writer, obj) => writer.Write((int)obj), (reader) => reader.ReadInt32());
-        defaultProcessDic[typeof(uint)] = ((writer, obj) => writer.Write((uint)obj), (reader) => reader.ReadUInt32());
-        defaultProcessDic[typeof(ulong)] = ((writer, obj) => writer.Write((ulong)obj), (reader) => reader.ReadUInt64());
-        defaultProcessDic[typeof(float)] = ((writer, obj) => writer.Write((float)obj), (reader) => reader.ReadSingle());
-        defaultProcessDic[typeof(bool)] = ((writer, obj) => writer.Write((bool)obj), (reader) => reader.ReadBoolean());
-        defaultProcessDic[typeof(string)] = ((writer, obj) => writer.Write((string)obj), (reader) => reader.ReadString());
-        defaultProcessDic[typeof(Vector2)] = ((writer, obj) => { var vec = (Vector2)obj; writer.Write(vec.x); writer.Write(vec.y); }, (reader) => new Vector2(reader.ReadSingle(), reader.ReadSingle()));
-        defaultProcessDic[typeof(Vector3)] = ((writer, obj) => { var vec = (Vector3)obj; writer.Write(vec.x); writer.Write(vec.y); writer.Write(vec.z); }, (reader) => new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle()));
+        defaultProcessDic[typeof(byte)] = ((writer, obj) => writer.Write((byte)obj), reader => reader.ReadByte());
+        defaultProcessDic[typeof(short)] = ((writer, obj) => writer.Write((short)obj), reader => reader.ReadInt16());
+        defaultProcessDic[typeof(int)] = ((writer, obj) => writer.Write((int)obj), reader => reader.ReadInt32());
+        defaultProcessDic[typeof(uint)] = ((writer, obj) => writer.Write((uint)obj), reader => reader.ReadUInt32());
+        defaultProcessDic[typeof(ulong)] = ((writer, obj) => writer.Write((ulong)obj), reader => reader.ReadUInt64());
+        defaultProcessDic[typeof(float)] = ((writer, obj) => writer.Write((float)obj), reader => reader.ReadSingle());
+        defaultProcessDic[typeof(bool)] = ((writer, obj) => writer.Write((bool)obj), reader => reader.ReadBoolean());
+        defaultProcessDic[typeof(string)] = ((writer, obj) => writer.Write((string)obj), reader => reader.ReadString());
+        defaultProcessDic[typeof(Vector2)] = ((writer, obj) => { var vec = (Vector2)obj; writer.Write(vec.x); writer.Write(vec.y); }, reader => new Vector2(reader.ReadSingle(), reader.ReadSingle()));
+        defaultProcessDic[typeof(Vector3)] = ((writer, obj) => { var vec = (Vector3)obj; writer.Write(vec.x); writer.Write(vec.y); writer.Write(vec.z); }, reader => new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle()));
         defaultProcessDic[typeof(Vector2[])] = ((writer, obj) => { 
             var ary = (Vector2[])obj;
             writer.Write(ary.Length);
@@ -261,10 +261,10 @@ public static class RemoteProcessAsset
             {
                 writer.Write(vec.x); writer.Write(vec.y);
             }
-        }, (reader) =>
+        }, reader =>
         {
-            Vector2[] ary = new Vector2[reader.ReadInt32()];
-            for (int i = 0; i < ary.Length; i++) ary[i] = new Vector2(reader.ReadSingle(), reader.ReadSingle());
+            var ary = new Vector2[reader.ReadInt32()];
+            for (var i = 0; i < ary.Length; i++) ary[i] = new Vector2(reader.ReadSingle(), reader.ReadSingle());
             return ary;
         }
         );
@@ -286,10 +286,10 @@ public static class RemoteProcessAsset
                 writer.Write(cand.Priority);
                 writer.Write(cand.SelfAware);
             },
-            (reader) => {
+            reader => {
                 NetworkedPlayerInfo.PlayerOutfit outfit = new() { PlayerName = reader.ReadString(), HatId = reader.ReadString(), SkinId = reader.ReadString(), VisorId = reader.ReadString(), PetId = reader.ReadString(), ColorId = reader.ReadInt32() };
                 OutfitTag[] tags = new OutfitTag[reader.ReadInt32()];
-                for (int i = 0; i < tags.Length; i++) tags[i] = OutfitTag.GetTagById(reader.ReadInt32());
+                for (var i = 0; i < tags.Length; i++) tags[i] = OutfitTag.GetTagById(reader.ReadInt32());
                 return new OutfitCandidate(reader.ReadString(), reader.ReadInt32(), reader.ReadBoolean(), outfit, tags);
             }
         );
@@ -334,13 +334,13 @@ public static class RemoteProcessAsset
                 
 
             },
-            (reader) =>
+            reader =>
             {
-                float timer = reader.ReadSingle();
-                bool canPassMeeting = reader.ReadBoolean();
-                int priority = reader.ReadInt32();
-                string dupTag = reader.ReadString();
-                int type = reader.ReadInt32();
+                var timer = reader.ReadSingle();
+                var canPassMeeting = reader.ReadBoolean();
+                var priority = reader.ReadInt32();
+                var dupTag = reader.ReadString();
+                var type = reader.ReadInt32();
 
                 if (type == 1)
                     return new SpeedModulator(reader.ReadSingle(), new(reader.ReadSingle(), reader.ReadSingle()), reader.ReadBoolean(), timer, canPassMeeting, priority, dupTag);
@@ -354,9 +354,9 @@ public static class RemoteProcessAsset
                 return null!;
             }
         );
-        defaultProcessDic[typeof(TranslatableTag)] = ((writer, obj) => writer.Write(((TranslatableTag)obj).Id), (reader) => TranslatableTag.ValueOf(reader.ReadInt32())!);
+        defaultProcessDic[typeof(TranslatableTag)] = ((writer, obj) => writer.Write(((TranslatableTag)obj).Id), reader => TranslatableTag.ValueOf(reader.ReadInt32())!);
         defaultProcessDic[typeof(CommunicableTextTag)] = defaultProcessDic[typeof(TranslatableTag)];
-        defaultProcessDic[typeof(PlayerModInfo)] = ((writer, obj) => writer.Write(((PlayerModInfo)obj).PlayerId), (reader) => NebulaGameManager.Instance?.GetPlayer(reader.ReadByte())!);
+        defaultProcessDic[typeof(PlayerModInfo)] = ((writer, obj) => writer.Write(((PlayerModInfo)obj).PlayerId), reader => NebulaGameManager.Instance?.GetPlayer(reader.ReadByte())!);
         defaultProcessDic[typeof(GamePlayer)] = defaultProcessDic[typeof(PlayerModInfo)];
     }
 
@@ -374,13 +374,13 @@ public static class RemoteProcessAsset
             {
                 var array = (param as Array)!;
                 writer.Write(array.Length);
-                for (int i = 0; i < array.Length; i++) process.Item1.Invoke(writer, array.GetValue(i)!);
+                for (var i = 0; i < array.Length; i++) process.Item1.Invoke(writer, array.GetValue(i)!);
             },
-            (reader) =>
+            reader =>
             {
-                int length = reader.ReadInt32();
+                var length = reader.ReadInt32();
                 var array = (constructor.Invoke([length]) as Array)!;
-                for (int i = 0; i < length; i++) array.SetValue(process.Item2.Invoke(reader), i);
+                for (var i = 0; i < length; i++) array.SetValue(process.Item2.Invoke(reader), i);
                 return array;
             }
             );
@@ -389,8 +389,8 @@ public static class RemoteProcessAsset
         //タプルの場合
         if (type.IsAssignableTo(typeof(ITuple)))
         {
-            int count = 0;
-            List<(Action<MessageWriter, object>, Func<MessageReader, object>)> processList = new();
+            var count = 0;
+            List<(Action<MessageWriter, object>, Func<MessageReader, object>)> processList = [];
             while (true)
             {
                 //フィールドの型を取得し、適切なプロセスを取得する。 (入れ子状のタプルでも大丈夫)
@@ -406,10 +406,10 @@ public static class RemoteProcessAsset
 
             return ((writer, param) =>
             {
-                ITuple tuple = (param as ITuple)!;
-                for (int i = 0; i < processAry.Length; i++) processAry[i].Item1.Invoke(writer, tuple[i]!);
+                var tuple = (param as ITuple)!;
+                for (var i = 0; i < processAry.Length; i++) processAry[i].Item1.Invoke(writer, tuple[i]!);
             },
-             (reader) => constructor.Invoke(processAry.Select(p => p.Item2.Invoke(reader)).ToArray())
+             reader => constructor.Invoke(processAry.Select(p => p.Item2.Invoke(reader)).ToArray())
             );
         }
 
@@ -423,15 +423,15 @@ public static class RemoteProcessAsset
 
     public static void GetMessageTreater<Parameter>(out Action<MessageWriter, Parameter> sender, out Func<MessageReader, Parameter> receiver)
     {
-        Type paramType = typeof(Parameter);
+        var paramType = typeof(Parameter);
 
-        var process = RemoteProcessAsset.GetProcess(paramType);
+        var process = GetProcess(paramType);
 
         sender = (writer, param) =>
         {
             process.Item1.Invoke(writer, param!);
         };
-        receiver = (reader) =>
+        receiver = reader =>
         {
             return (Parameter)process.Item2.Invoke(reader);
         };
@@ -446,7 +446,7 @@ public class RemoteProcess<Parameter> : RemoteProcessBase
     private Func<MessageReader, Parameter> Receiver { get; set; }
     private Process Body { get; set; }
 
-    public RemoteProcess(string name, Action<MessageWriter, Parameter> sender, Func<MessageReader, Parameter> receiver, RemoteProcess<Parameter>.Process process)
+    public RemoteProcess(string name, Action<MessageWriter, Parameter> sender, Func<MessageReader, Parameter> receiver, Process process)
     : base(name)
     {
         Sender = sender;
@@ -454,7 +454,7 @@ public class RemoteProcess<Parameter> : RemoteProcessBase
         Body = process;
     }
 
-    public RemoteProcess(string name, RemoteProcess<Parameter>.Process process) : base(name)  
+    public RemoteProcess(string name, Process process) : base(name)  
     {
         Body = process;
         RemoteProcessAsset.GetMessageTreater<Parameter>(out var sender,out var receiver);
@@ -464,12 +464,12 @@ public class RemoteProcess<Parameter> : RemoteProcessBase
     
     public void Invoke(Parameter parameter)
     {
-        RPCRouter.SendRpc(Name,Hash,(writer)=>Sender(writer,parameter),()=>Body.Invoke(parameter,true));
+        RPCRouter.SendRpc(Name,Hash,writer=>Sender(writer,parameter),()=>Body.Invoke(parameter,true));
     }
 
     public NebulaRPCInvoker GetInvoker(Parameter parameter)
     {
-        return new NebulaRPCInvoker(Hash, (writer) => Sender(writer, parameter), () => Body.Invoke(parameter, true));
+        return new NebulaRPCInvoker(Hash, writer => Sender(writer, parameter), () => Body.Invoke(parameter, true));
     }
 
     public void LocalInvoke(Parameter parameter)
@@ -492,12 +492,12 @@ public class RemoteProcess<Parameter> : RemoteProcessBase
 
 public static class RemotePrimitiveProcess
 {
-    public static RemoteProcess<int> OfInteger(string name, RemoteProcess<int>.Process process) => new(name, (writer, message) => writer.Write(message), (reader) => reader.ReadInt32(), process);
-    public static RemoteProcess<float> OfFloat(string name, RemoteProcess<float>.Process process) => new(name, (writer, message) => writer.Write(message), (reader) => reader.ReadSingle(), process);
-    public static RemoteProcess<string> OfString(string name, RemoteProcess<string>.Process process) => new(name, (writer, message) => writer.Write(message), (reader) => reader.ReadString(), process);
-    public static RemoteProcess<byte> OfByte(string name, RemoteProcess<byte>.Process process) => new(name, (writer, message) => writer.Write(message), (reader) => reader.ReadByte(), process);
-    public static RemoteProcess<Vector2> OfVector2(string name, RemoteProcess<Vector2>.Process process) => new(name, (writer, message) => { writer.Write(message.x); writer.Write(message.y); }, (reader) => new(reader.ReadSingle(), reader.ReadSingle()), process);
-    public static RemoteProcess<Vector3> OfVector3(string name, RemoteProcess<Vector3>.Process process) => new(name, (writer, message) => { writer.Write(message.x); writer.Write(message.y); writer.Write(message.z); }, (reader) => new(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle()), process);
+    public static RemoteProcess<int> OfInteger(string name, RemoteProcess<int>.Process process) => new(name, (writer, message) => writer.Write(message), reader => reader.ReadInt32(), process);
+    public static RemoteProcess<float> OfFloat(string name, RemoteProcess<float>.Process process) => new(name, (writer, message) => writer.Write(message), reader => reader.ReadSingle(), process);
+    public static RemoteProcess<string> OfString(string name, RemoteProcess<string>.Process process) => new(name, (writer, message) => writer.Write(message), reader => reader.ReadString(), process);
+    public static RemoteProcess<byte> OfByte(string name, RemoteProcess<byte>.Process process) => new(name, (writer, message) => writer.Write(message), reader => reader.ReadByte(), process);
+    public static RemoteProcess<Vector2> OfVector2(string name, RemoteProcess<Vector2>.Process process) => new(name, (writer, message) => { writer.Write(message.x); writer.Write(message.y); }, reader => new(reader.ReadSingle(), reader.ReadSingle()), process);
+    public static RemoteProcess<Vector3> OfVector3(string name, RemoteProcess<Vector3>.Process process) => new(name, (writer, message) => { writer.Write(message.x); writer.Write(message.y); writer.Write(message.z); }, reader => new(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle()), process);
 }
 
 [NebulaRPCHolder]
@@ -508,14 +508,14 @@ public class CombinedRemoteProcess : RemoteProcessBase
 
     public override void Receive(MessageReader reader)
     {
-        int num = reader.ReadInt32();
+        var num = reader.ReadInt32();
 
-        for (int i = 0; i < num; i++)
+        for (var i = 0; i < num; i++)
         {
             Tuple<double, double, double, double, double, double> a;
 
-            int id = reader.ReadInt32();
-            if (RemoteProcessBase.AllNebulaProcess.TryGetValue(id,out var rpc)){
+            var id = reader.ReadInt32();
+            if (AllNebulaProcess.TryGetValue(id,out var rpc)){
                 rpc.Receive(reader);
             }
             else
@@ -528,7 +528,7 @@ public class CombinedRemoteProcess : RemoteProcessBase
 
     public void Invoke(params NebulaRPCInvoker[] invokers)
     {
-        RPCRouter.SendRpc(Name, Hash, (writer) =>
+        RPCRouter.SendRpc(Name, Hash, writer =>
         {
             writer.Write(invokers.Count(i=>!i.IsDummy));
             foreach (var invoker in invokers)
@@ -555,12 +555,12 @@ public class RemoteProcess : RemoteProcessBase
 
     public void Invoke()
     {
-        RPCRouter.SendRpc(Name, Hash, (writer) => { }, () => Body.Invoke(true));
+        RPCRouter.SendRpc(Name, Hash, writer => { }, () => Body.Invoke(true));
     }
 
     public NebulaRPCInvoker GetInvoker()
     {
-        return new NebulaRPCInvoker(Hash, (writer) => { }, () => Body.Invoke(true));
+        return new NebulaRPCInvoker(Hash, writer => { }, () => Body.Invoke(true));
     }
 
     public override void Receive(MessageReader reader)
@@ -585,7 +585,7 @@ public class DivisibleRemoteProcess<Parameter, DividedParameter> : RemoteProcess
     private Func<MessageReader, DividedParameter> Receiver { get; set; }
     private Process Body { get; set; }
 
-    public DivisibleRemoteProcess(string name, Func<Parameter,IEnumerator<DividedParameter>> divider, Action<MessageWriter, DividedParameter> dividedSender, Func<MessageReader, DividedParameter> receiver, DivisibleRemoteProcess<Parameter, DividedParameter>.Process process)
+    public DivisibleRemoteProcess(string name, Func<Parameter,IEnumerator<DividedParameter>> divider, Action<MessageWriter, DividedParameter> dividedSender, Func<MessageReader, DividedParameter> receiver, Process process)
     : base(name)
     {
         Divider = divider;
@@ -594,7 +594,7 @@ public class DivisibleRemoteProcess<Parameter, DividedParameter> : RemoteProcess
         Body = process;
     }
 
-    public DivisibleRemoteProcess(string name, Func<Parameter, IEnumerator<DividedParameter>> divider, DivisibleRemoteProcess<Parameter, DividedParameter>.Process process)
+    public DivisibleRemoteProcess(string name, Func<Parameter, IEnumerator<DividedParameter>> divider, Process process)
     : base(name)
     {
         Divider = divider;
@@ -608,7 +608,7 @@ public class DivisibleRemoteProcess<Parameter, DividedParameter> : RemoteProcess
     {
         void dividedSend(DividedParameter param)
         {
-            RPCRouter.SendRpc(Name, Hash, (writer) => DividedSender(writer, param), () => Body.Invoke(param, true));
+            RPCRouter.SendRpc(Name, Hash, writer => DividedSender(writer, param), () => Body.Invoke(param, true));
         }
         var enumerator = Divider.Invoke(parameter);
         while (enumerator.MoveNext()) dividedSend(enumerator.Current);
@@ -684,7 +684,7 @@ public static class PropertyRPC
             writer.Write(message.isSuccess);
             objWriter.Invoke(writer, message.obj);
         },
-        (reader) => {
+        reader => {
             var requestId = reader.ReadInt32();
             var isSuccess = reader.ReadBoolean();
             if (MyRequests.TryGetValue(requestId, out var request))
@@ -747,7 +747,7 @@ public static class PropertyRPC
 
     private static IEnumerator CoGetProperty(byte targetPlayerId, string propertyId, RequestType propertyType, Action<object>? callBack, Action? errorAction)
     {
-        int id = System.Random.Shared.Next(int.MaxValue >> 1);
+        var id = System.Random.Shared.Next(int.MaxValue >> 1);
         PropertyRequest request = new() { Callback = callBack, ErrorCallback = errorAction, type = propertyType };
         MyRequests[id] = request;
 
@@ -759,7 +759,7 @@ public static class PropertyRPC
     }
 
     public static IEnumerator CoGetProperty<T>(byte targetPlayerId, string propertyId, Action<T>? callBack, Action? errorCallBack) =>
-        CoGetProperty(targetPlayerId, propertyId, RequestTypeMap.First(entry=>entry.Value == typeof(T)).Key, (obj)=>callBack?.Invoke((T)obj), errorCallBack);
+        CoGetProperty(targetPlayerId, propertyId, RequestTypeMap.First(entry=>entry.Value == typeof(T)).Key, obj=>callBack?.Invoke((T)obj), errorCallBack);
 }
 
 public class RPCScheduler
@@ -776,7 +776,7 @@ public class RPCScheduler
         List<NebulaRPCInvoker>? list;
         if (!allDic.TryGetValue(trigger, out list))
         {
-            list = new();
+            list = [];
             allDic[trigger] = list;
         }
 
@@ -801,7 +801,7 @@ class NebulaRPCHandlerPatch
     {
         if (callId != 128) return;
 
-        int id = reader.ReadInt32();
+        var id = reader.ReadInt32();
         if (RemoteProcessBase.AllNebulaProcess.TryGetValue(id,out var rpc))
         {
             rpc.Receive(reader);

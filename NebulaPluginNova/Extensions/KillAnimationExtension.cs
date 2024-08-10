@@ -1,4 +1,5 @@
 ﻿using Virial.Events.Game;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Extensions;
 
@@ -6,12 +7,12 @@ public static class KillAnimationExtension
 {
     static public IEnumerator CoPerformModKill(this KillAnimation killAnim, PlayerControl source, PlayerControl target,bool blink)
     {
-        FollowerCamera cam = Camera.main.GetComponent<FollowerCamera>();
-        bool isParticipant = PlayerControl.LocalPlayer == source || PlayerControl.LocalPlayer == target;
-        PlayerPhysics sourcePhys = source.MyPhysics;
+        var cam = Camera.main.GetComponent<FollowerCamera>();
+        var isParticipant = PlayerControl.LocalPlayer == source || PlayerControl.LocalPlayer == target;
+        var sourcePhys = source.MyPhysics;
         if (blink) KillAnimation.SetMovement(source, false);
         KillAnimation.SetMovement(target, false);
-        DeadBody deadBody = GameObject.Instantiate<DeadBody>(GameManager.Instance.DeadBodyPrefab);
+        var deadBody = Object.Instantiate<DeadBody>(GameManager.Instance.DeadBodyPrefab);
         deadBody.enabled = false;
         deadBody.ParentId = target.PlayerId;
         foreach(var r in deadBody.bodyRenderers) target.SetPlayerMaterialColors(r);
@@ -22,7 +23,7 @@ public static class KillAnimationExtension
         Vector2 deadBodyPlayerPos = target.transform.position;
         if(target.inMovingPlat || target.onLadder) deadBodyPlayerPos = target.GetModInfo()?.Unbox().GoalPos ?? deadBodyPlayerPos;
 
-        Vector3 vector = (Vector3)deadBodyPlayerPos + killAnim.BodyOffset;
+        var vector = (Vector3)deadBodyPlayerPos + killAnim.BodyOffset;
         vector.z = vector.y / 1000f;
         deadBody.transform.position = vector;
         if (isParticipant)

@@ -4,6 +4,7 @@ using Nebula.Behaviour;
 using Nebula.Game.Statistics;
 using UnityEngine;
 using static Il2CppSystem.Xml.XmlWellFormedWriter.AttributeValueCache;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Utilities;
 
@@ -87,7 +88,7 @@ public static class AmongUsUtil
     public static UiElement CurrentUiElement => ControllerManager.Instance.CurrentUiState.CurrentSelection;
     public static bool InMeeting => MeetingHud.Instance == null && ExileController.Instance == null;
     public static byte CurrentMapId => GameOptionsManager.Instance.CurrentGameOptions.MapId;
-    private static string[] mapName = new string[] { "skeld", "mira", "polus", "undefined", "airship", "fungle" };
+    private static string[] mapName = ["skeld", "mira", "polus", "undefined", "airship", "fungle"];
     public static string ToMapName(byte mapId) => mapName[mapId];
     public static string ToDisplayString(SystemTypes room, byte? mapId = null) => Language.Translate("location." + mapName[mapId ?? CurrentMapId] + "." + Enum.GetName(typeof(SystemTypes), room)!.HeadLower());
     public static float VanillaKillCoolDown => GameOptionsManager.Instance.CurrentGameOptions.GetFloat(FloatOptionNames.KillCooldown);
@@ -97,7 +98,7 @@ public static class AmongUsUtil
     public static PoolablePlayer PoolablePrefab => HudManager.Instance.IntroPrefab.PlayerPrefab;
     public static PoolablePlayer GetPlayerIcon(NetworkedPlayerInfo.PlayerOutfit outfit, Transform? parent,Vector3 position,Vector3 scale,bool flip = false, bool includePet = true)
     {
-        var player = GameObject.Instantiate(PoolablePrefab);
+        var player = Object.Instantiate(PoolablePrefab);
 
         if(parent != null)player.transform.SetParent(parent);
 
@@ -114,7 +115,7 @@ public static class AmongUsUtil
 
     public static PoolablePlayer SetAlpha(this PoolablePlayer player, float alpha)
     {
-        foreach (SpriteRenderer r in player.gameObject.GetComponentsInChildren<SpriteRenderer>())
+        foreach (var r in player.gameObject.GetComponentsInChildren<SpriteRenderer>())
             r.color = new Color(r.color.r, r.color.g, r.color.b, alpha);
         return player;
     }
@@ -134,9 +135,9 @@ public static class AmongUsUtil
     }
     public static void PlayCustomFlash(Color color, float fadeIn, float fadeOut, float maxAlpha = 0.5f, float maxDuration = 0f)
     {
-        float duration = fadeIn + fadeOut;
+        var duration = fadeIn + fadeOut;
 
-        var flash = GameObject.Instantiate(HudManager.Instance.FullScreen, HudManager.Instance.transform);
+        var flash = Object.Instantiate(HudManager.Instance.FullScreen, HudManager.Instance.transform);
         flash.color = color.AlphaMultiplied(0f);
         flash.enabled = true;
         flash.gameObject.active = true;
@@ -165,7 +166,7 @@ public static class AmongUsUtil
             }
 
             flash.enabled = false;
-            GameObject.Destroy(flash.gameObject);
+            Object.Destroy(flash.gameObject);
         }
 
         NebulaManager.Instance.StartCoroutine(CoPlayFlash().WrapToIl2Cpp());
@@ -195,12 +196,12 @@ public static class AmongUsUtil
             writer.Write(message.TargetId);
             writer.Write(message.RelatedTag?.Id ?? -1);
         },
-        (reader)=> {
+        reader=> {
             return new() { SourceId = reader.ReadByte(), TargetId = reader.ReadByte(), RelatedTag = TranslatableTag.ValueOf(reader.ReadInt32()) };
         },
         (message, _) =>
         {
-            foreach (var d in Helpers.AllDeadBodies()) if (d.ParentId == message.TargetId) GameObject.Destroy(d.gameObject);
+            foreach (var d in Helpers.AllDeadBodies()) if (d.ParentId == message.TargetId) Object.Destroy(d.gameObject);
 
             if (message.SourceId != byte.MaxValue)
                 NebulaGameManager.Instance?.GameStatistics.RecordEvent(new GameStatistics.Event(GameStatistics.EventVariation.CleanBody, message.SourceId, 1 << message.TargetId) { RelatedTag = message.RelatedTag });
@@ -214,7 +215,7 @@ public static class AmongUsUtil
 
     internal static GamePlayer? GetHolder(this DeadBody body)
     {
-        return NebulaGameManager.Instance?.AllPlayerInfo().FirstOrDefault((p) => p.HoldingAnyDeadBody && p.HoldingDeadBody?.PlayerId == body.ParentId);
+        return NebulaGameManager.Instance?.AllPlayerInfo().FirstOrDefault(p => p.HoldingAnyDeadBody && p.HoldingDeadBody?.PlayerId == body.ParentId);
     }
 
 
@@ -242,12 +243,12 @@ public static class AmongUsUtil
             yield return new WaitForSeconds(duration);
             while (renderer.color.a > 0f)
             {
-                Color col = renderer.color;
+                var col = renderer.color;
                 col.a = Mathf.Clamp01(col.a - Time.deltaTime * 0.8f);
                 renderer.color = col;
                 yield return null;
             }
-            GameObject.Destroy(renderer.gameObject);
+            Object.Destroy(renderer.gameObject);
         }
 
         NebulaManager.Instance.StartCoroutine(CoShowFootprint().WrapToIl2Cpp());
@@ -284,7 +285,7 @@ public static class AmongUsUtil
     
 
     public static readonly string[] AllVanillaOptions =
-    {
+    [
         "vanilla.map",
         "vanilla.impostors",
         "vanilla.killDistance",
@@ -298,7 +299,7 @@ public static class AmongUsUtil
         "vanilla.visualTasks",
         "vanilla.confirmImpostor",
         "vanilla.anonymousVotes"
-    };
+    ];
 
     public static void ChangeOptionAs(string name,string value)
     {
@@ -390,9 +391,9 @@ public static class AmongUsUtil
 
     public static R? GetRolePrefab<R>() where R : RoleBehaviour
     {
-        foreach (RoleBehaviour role in RoleManager.Instance.AllRoles)
+        foreach (var role in RoleManager.Instance.AllRoles)
         {
-            R? r = role.TryCast<R>();
+            var r = role.TryCast<R>();
             if (r != null)
             {
                 return r;
@@ -411,11 +412,11 @@ public static class AmongUsUtil
         ShipStatus.Instance.EmergencyCooldown = coolDown;
     }
 
-    public static void AddLobbyNotification(string message,UnityEngine.Color? color, Sprite? sprite = null,bool playSound = true)
+    public static void AddLobbyNotification(string message,Color? color, Sprite? sprite = null,bool playSound = true)
     {
         var notifier = HudManager.Instance.Notifier;
 
-        LobbyNotificationMessage newMessage = GameObject.Instantiate<LobbyNotificationMessage>(notifier.notificationMessageOrigin, Vector3.zero, Quaternion.identity, notifier.transform);
+        var newMessage = Object.Instantiate<LobbyNotificationMessage>(notifier.notificationMessageOrigin, Vector3.zero, Quaternion.identity, notifier.transform);
         newMessage.transform.localPosition = new Vector3(0f, 0f, -2f);
         newMessage.SetUp(message, sprite ?? notifier.settingsChangeSprite, color ?? notifier.settingsChangeColor, (Il2CppSystem.Action)(()=> notifier.OnMessageDestroy(newMessage)));
         notifier.ShiftMessages();
@@ -427,7 +428,7 @@ public static class AmongUsUtil
 
     public static (GameObject obj, NoisemakerArrow arrow) InstantiateNoisemakerArrow(Vector2 targetPos, bool withSound = false, float? hue = null)
     {
-        var noisemaker = AmongUsUtil.GetRolePrefab<NoisemakerRole>();
+        var noisemaker = GetRolePrefab<NoisemakerRole>();
         if (noisemaker != null)
         {
             if (withSound && Constants.ShouldPlaySfx())
@@ -440,12 +441,12 @@ public static class AmongUsUtil
                         return;
                     }
                     source.volume = 1f;
-                    Vector2 truePosition = PlayerControl.LocalPlayer.GetTruePosition();
+                    var truePosition = PlayerControl.LocalPlayer.GetTruePosition();
                     source.volume = SoundManager.GetSoundVolume(targetPos, truePosition, 7f, 50f, 0.5f);
                 }), SoundManager.Instance.SfxChannel);
                 VibrationManager.Vibrate(1f, PlayerControl.LocalPlayer.GetTruePosition(), 7f, 1.2f, VibrationManager.VibrationFalloff.None, null, false);
             }
-            GameObject gameObject = GameObject.Instantiate<GameObject>(noisemaker.deathArrowPrefab, Vector3.zero, Quaternion.identity);
+            var gameObject = Object.Instantiate<GameObject>(noisemaker.deathArrowPrefab, Vector3.zero, Quaternion.identity);
             var deathArrow = gameObject.GetComponent<NoisemakerArrow>();
             deathArrow.SetDuration(3f);
             deathArrow.gameObject.SetActive(true);
@@ -472,10 +473,10 @@ public static class AmongUsUtil
         var prefab = GameManagerCreator.Instance.HideAndSeekManagerPrefab.PingPool.Prefab.CastFast<PingBehaviour>();
 
         PingBehaviour[] pings = new PingBehaviour[pos.Length];
-        int i = 0;
+        var i = 0;
         foreach (var p in pos)
         {
-            var ping = GameObject.Instantiate(prefab);
+            var ping = Object.Instantiate(prefab);
             ping.target = p;
             ping.AmSeeker = smallenNearPing;
             ping.UpdatePosition();
@@ -491,7 +492,7 @@ public static class AmongUsUtil
         {
             yield return new WaitForSeconds(2f);
 
-            foreach (var p in pings) GameObject.Destroy(p.gameObject);
+            foreach (var p in pings) Object.Destroy(p.gameObject);
         }
 
         HudManager.Instance.StartCoroutine(GetEnumarator().WrapToIl2Cpp());

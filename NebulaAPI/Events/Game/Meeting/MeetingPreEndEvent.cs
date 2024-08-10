@@ -12,7 +12,7 @@ namespace Virial.Events.Game.Meeting;
 /// </summary>
 public class MeetingPreEndEvent : Event
 {
-    internal List<IEnumerator> Coroutines = new();
+    internal List<IEnumerator> Coroutines = [];
 
     /// <summary>
     /// 実行されるコルーチンを追加します。

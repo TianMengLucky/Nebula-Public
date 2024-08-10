@@ -28,7 +28,7 @@ using Cpp2IL.Core.Extensions;
 using System.Reflection;
 using System.Reflection.Metadata;
 
-[assembly: System.Reflection.AssemblyFileVersionAttribute(Nebula.NebulaPlugin.PluginEpochStr + "."  + Nebula.NebulaPlugin.PluginBuildNumStr)]
+[assembly: AssemblyFileVersionAttribute(Nebula.NebulaPlugin.PluginEpochStr + "."  + Nebula.NebulaPlugin.PluginBuildNumStr)]
 
 namespace Nebula;
 
@@ -64,7 +64,7 @@ public class NebulaPlugin
     static private HttpClient? httpClient = null;
 
     
-    public static new NebulaLog Log { get; private set; } = new();
+    public static NebulaLog Log { get; private set; } = new();
 
 
     public static string GetNebulaVersionString()
@@ -77,7 +77,8 @@ public class NebulaPlugin
 
     public bool IsPreferential => Log.IsPreferential;
     public static NebulaPlugin MyPlugin { get; private set; } = null!;
-
+    
+    
     static public void Load()
     {
         Assembly.Load(StreamHelper.OpenFromResource("Nebula.Resources.API.NAudio.Core.dll")!.ReadBytes());

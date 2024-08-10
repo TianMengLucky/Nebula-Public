@@ -2,6 +2,7 @@
 using UnityEngine.Rendering;
 using Virial.Compat;
 using Virial.Media;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Modules.MetaWidget;
 
@@ -20,12 +21,12 @@ public class GUIFixedView : AbstractGUIWidget
         {
             this.screen = screen;
             this.innerSize = innerSize;
-            this.myAnchor = new(new(0f, 1f), new(-innerSize.Width * 0.5f, innerSize.Height * 0.5f, -0.01f));
+            myAnchor = new(new(0f, 1f), new(-innerSize.Width * 0.5f, innerSize.Height * 0.5f, -0.01f));
         }
 
         public void SetWidget(Virial.Media.GUIWidget? widget, out Size actualSize)
         {
-            screen.ForEachChild((Il2CppSystem.Action<GameObject>)(obj => GameObject.Destroy(obj)));
+            screen.ForEachChild((Il2CppSystem.Action<GameObject>)(obj => Object.Destroy(obj)));
 
             if (widget != null)
             {
@@ -47,13 +48,13 @@ public class GUIFixedView : AbstractGUIWidget
 
     public GUIWidgetSupplier? Inner { get; init; } = null;
 
-    public GUIFixedView(Virial.Media.GUIAlignment alignment, UnityEngine.Vector2 size, GUIWidgetSupplier? inner) : base(alignment)
+    public GUIFixedView(GUIAlignment alignment, UnityEngine.Vector2 size, GUIWidgetSupplier? inner) : base(alignment)
     {
-        this.Size = size;
+        Size = size;
 
-        this.InnerArtifact = new();
-        this.Artifact = new GeneralizedArtifact<GUIScreen, InnerScreen>(InnerArtifact);
-        this.Inner = inner;
+        InnerArtifact = new();
+        Artifact = new GeneralizedArtifact<GUIScreen, InnerScreen>(InnerArtifact);
+        Inner = inner;
     }
 
 
@@ -75,7 +76,7 @@ public class GUIFixedView : AbstractGUIWidget
         InnerArtifact.Values.Add(innerScreen);
 
         innerScreen.SetWidget(Inner?.Invoke(), out var innerActualSize);
-        float height = innerActualSize.Height;
+        var height = innerActualSize.Height;
 
         actualSize = new(Size.x + 0.15f, Size.y + 0.08f);
 

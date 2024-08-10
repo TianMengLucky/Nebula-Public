@@ -1,4 +1,6 @@
-﻿namespace Nebula.Patches;
+﻿using Object = UnityEngine.Object;
+
+namespace Nebula.Patches;
 
 [HarmonyPatch(typeof(PlayerTab), nameof(PlayerTab.OnEnable))]
 public static class ColorTabEnablePatch
@@ -14,8 +16,8 @@ public static class ColorTabEnablePatch
 
         if (!__instance.gameObject.TryGetComponent<NebulaPlayerTab>(out var tab))
         {
-            __instance.gameObject.ForEachChild((Il2CppSystem.Action<UnityEngine.GameObject>)((obj) => { 
-                if(obj.name.StartsWith("ColorChip"))GameObject.Destroy(obj);
+            __instance.gameObject.ForEachChild((Il2CppSystem.Action<GameObject>)(obj => { 
+                if(obj.name.StartsWith("ColorChip"))Object.Destroy(obj);
             }));
             
             __instance.gameObject.AddComponent<NebulaPlayerTab>().playerTab = __instance;

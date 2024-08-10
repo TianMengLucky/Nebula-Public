@@ -76,7 +76,7 @@ public class FormulaCommand : ICommand
             List<FRule> list = null!;
             if (!AllRule.TryGetValue(type, out list!))
             {
-                list = new();
+                list = [];
                 AllRule[type] = list;
             }
 
@@ -95,7 +95,7 @@ public class FormulaCommand : ICommand
             {
                 var val1 = tokens[0].Task!.Invoke(env);
                 var val2 = tokens[2].Task!.Invoke(env);
-                T1 v1 = default(T1)!;
+                var v1 = default(T1)!;
                 return val1.Chain(c => c.AsValue<T1>(env)).Chain(t =>
                 {
                     v1 = t;
@@ -128,7 +128,7 @@ public class FormulaCommand : ICommand
         AddRule(FTokenType.LFactor, [FTokenType.AExpr, FTokenType.SEqual, FTokenType.AExpr], BinaryFunc<int, int>((v1, v2) => new BooleanCommandToken(v1 == v2)));
         AddRule(FTokenType.LFactor, [FTokenType.AExpr, FTokenType.SNotEqual, FTokenType.AExpr], BinaryFunc<int, int>((v1, v2) => new BooleanCommandToken(v1 != v2)));
 
-        AddRule(FTokenType.LFactor, [FTokenType.SNot, FTokenType.LFactor], MonoFunc<bool>((v) => new BooleanCommandToken(!v)));
+        AddRule(FTokenType.LFactor, [FTokenType.SNot, FTokenType.LFactor], MonoFunc<bool>(v => new BooleanCommandToken(!v)));
         AddRule(FTokenType.LXorTerm, [FTokenType.LXorTerm, FTokenType.SXor, FTokenType.LOrTerm], BinaryFunc<bool, bool>((v1, v2) => new BooleanCommandToken(v1 ^ v2)));
         AddRule(FTokenType.LOrTerm, [FTokenType.LOrTerm, FTokenType.SOr, FTokenType.LTerm], BinaryFunc<bool, bool>((v1, v2) => new BooleanCommandToken(v1 || v2)));
         AddRule(FTokenType.LTerm, [FTokenType.LTerm, FTokenType.SAnd, FTokenType.LFactor], BinaryFunc<bool, bool>((v1, v2) => new BooleanCommandToken(v1 && v2)));
@@ -139,7 +139,7 @@ public class FormulaCommand : ICommand
         foreach (FTokenType type in Enum.GetValues(typeof(FTokenType))) {
             HashSet<FTokenType> types = [type];
             FTokenType[] newAdded = [type];
-            HashSet<FTokenType> temp = new();
+            HashSet<FTokenType> temp = [];
 
             //新たに追加された記号に対して繰り返す
             while (newAdded.Length > 0)
@@ -227,12 +227,12 @@ public class FormulaCommand : ICommand
         //各ルールごとに最後まで到達できるかどうか試す
         follower = tokens;
         tokensOnRule = new FToken[rule.rule.Length];
-        bool withoutFirst = firstToken != null;
-        bool generated = true;
+        var withoutFirst = firstToken != null;
+        var generated = true;
 
         if (withoutFirst) tokensOnRule[0] = firstToken!;
 
-        for (int i = withoutFirst ? 1 : 0; i < rule.rule.Length; i++)
+        for (var i = withoutFirst ? 1 : 0; i < rule.rule.Length; i++)
         {
             //フォロワー集合は次の記号のフォロワー集合か、呼び出し元が指定しているフォロワー集合と同じ記号を繰り返す場合のフォロワー集合の和集合
             var result = SyntaxAnalyze(rule.rule[i],

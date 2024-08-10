@@ -15,11 +15,11 @@ public class ModAnimator : MonoBehaviour
 
     private IEnumerator CoPlay(IDividedSpriteLoader sprite, float fps, bool insertEmptyFrameAtLast)
     {
-        int length = sprite.Length;
+        var length = sprite.Length;
 
-        float secondsPerFrame = 1f / fps;
+        var secondsPerFrame = 1f / fps;
 
-        for(int i = 0;i< length; i++)
+        for(var i = 0;i< length; i++)
         {
             renderer.sprite = sprite.GetSprite(i);
             yield return new WaitForSeconds(secondsPerFrame);

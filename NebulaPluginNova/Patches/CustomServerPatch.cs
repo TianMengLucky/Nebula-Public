@@ -21,15 +21,15 @@ public static class RegionMenuOpenPatch
 
     public static void UpdateRegions()
     {
-        ServerManager serverManager = DestroyableSingleton<ServerManager>.Instance;
-        IRegionInfo[] regions = defaultRegions;
+        var serverManager = DestroyableSingleton<ServerManager>.Instance;
+        var regions = defaultRegions;
 
         //var CustomRegion = new DnsRegionInfo(SaveIp.Value, "Custom", StringNames.NoTranslation, SaveIp.Value, (ushort)SavePort.Value, false);
         
         CustomRegion = new StaticHttpRegionInfo("Custom", StringNames.NoTranslation, SaveIp.Value,
-            new ServerInfo[] { new ServerInfo("Custom", SaveIp.Value, (ushort)SavePort.Value, false) });
+            new[] { new ServerInfo("Custom", SaveIp.Value, (ushort)SavePort.Value, false) });
         
-        regions = regions.Concat(new IRegionInfo[] { CustomRegion.Cast<IRegionInfo>() }).ToArray();
+        regions = regions.Concat(new[] { CustomRegion.Cast<IRegionInfo>() }).ToArray();
         //マージ時、DefaultRegionsに含まれている要素のほうが優先される(重複時に生き残る方)
         ServerManager.DefaultRegions = regions;
         serverManager.LoadServers();
@@ -49,7 +49,7 @@ public static class RegionMenuOpenPatch
     {
 
         DestroyableSingleton<ServerManager>.Instance.SetRegion(region);
-        __instance.RegionText.text = DestroyableSingleton<TranslationController>.Instance.GetStringWithDefault(region.TranslateName, region.Name, new Il2CppReferenceArray<Il2CppSystem.Object>(new Il2CppSystem.Object[0]));
+        __instance.RegionText.text = DestroyableSingleton<TranslationController>.Instance.GetStringWithDefault(region.TranslateName, region.Name, new Il2CppReferenceArray<Il2CppSystem.Object>([]));
     }
 
     public static void Postfix(RegionMenu __instance)
@@ -62,14 +62,14 @@ public static class RegionMenuOpenPatch
             var widget = new MetaWidgetOld.TextInput(1, 2f, new(2.8f, 0.3f))
             {
                 TextFieldRef = ipRef,
-                TextPredicate = (c) => ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9') || c is '?' or '!' or ',' or '.' or '/' or ':',
+                TextPredicate = c => ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9') || c is '?' or '!' or ',' or '.' or '/' or ':',
                 Hint = "Server IP".Color(Color.gray),
                 DefaultText = SaveIp.Value
             };
             widget.Generate(__instance.gameObject, new Vector3(0f, -1.2f, -100f),out _);
 
             ipField = ipRef.Value!;
-            ipField.LostFocusAction = (text) =>
+            ipField.LostFocusAction = text =>
             {
                 while (text.EndsWith('/')) text = text.Substring(0, text.Length - 1);
                 ipField.SetText(text);
@@ -85,14 +85,14 @@ public static class RegionMenuOpenPatch
             var widget = new MetaWidgetOld.TextInput(1, 2f, new(2.8f, 0.3f))
             {
                 TextFieldRef = portRef,
-                TextPredicate = (c) => '0' <= c && c <= '9',
+                TextPredicate = c => '0' <= c && c <= '9',
                 Hint = "Server Port".Color(Color.gray),
                 DefaultText = SavePort.Value.ToString()
             };
             widget.Generate(__instance.gameObject, new Vector3(0f, -1.8f, -100f), out _);
 
             portField = portRef.Value!;
-            portField.LostFocusAction = (text) =>
+            portField.LostFocusAction = text =>
             {
                 SavePort.Value = ushort.TryParse(text, out var port) ? port : (ushort)22023;
                 UpdateRegions();

@@ -10,8 +10,8 @@ public static class EnumerableHelper
 {
     static public IEnumerable<T> Delimit<T>(this IEnumerable<T> enumerable, T delimiter)
     {
-        bool isFirst = true;
-        foreach (T item in enumerable)
+        var isFirst = true;
+        foreach (var item in enumerable)
         {
             if (!isFirst) yield return delimiter;
             yield return item;

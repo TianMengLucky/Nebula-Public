@@ -33,15 +33,17 @@ public class ModNews
 
     public Announcement ToAnnouncement()
     {
-        var result = new Announcement();
-        result.Number = id;
-        result.Title = title;
-        result.SubTitle = subTitle;
-        result.ShortTitle = shortTitle;
-        result.Text = detail;
-        result.Language = (uint)DataManager.Settings.Language.CurrentLanguage;
-        result.Date = date ?? "";
-        result.Id = "ModNews";
+        var result = new Announcement
+        {
+            Number = id,
+            Title = title,
+            SubTitle = subTitle,
+            ShortTitle = shortTitle,
+            Text = detail,
+            Language = (uint)DataManager.Settings.Language.CurrentLanguage,
+            Date = date ?? "",
+            Id = "ModNews"
+        };
 
         return result;
     }
@@ -51,7 +53,7 @@ public class ModNews
 [HarmonyPatch]
 public class ModNewsHistory
 {
-    public static List<ModNews> AllModNews = new List<ModNews>();
+    public static List<ModNews> AllModNews = [];
 
     private static Regex RoleRegex = new Regex("%ROLE:[A-Z]+\\([^)]+\\)%");
     private static Regex OptionRegex = new Regex("%LANG\\([a-zA-Z\\.0-9]+\\)\\,\\([^)]+\\)%");
@@ -79,9 +81,9 @@ public class ModNewsHistory
 
             var lang = Language.GetCurrentLanguage();
 
-            HttpClient http = new HttpClient();
+            var http = new HttpClient();
             http.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue { NoCache = true };
-            System.Uri uri;
+            Uri uri;
             try
             {
                 uri = new($"https://raw.githubusercontent.com/Dolly1016/Nebula/master/Announcement_{lang}.json");
@@ -101,7 +103,7 @@ public class ModNewsHistory
                 yield break;
             }
 
-            AllModNews = JsonStructure.Deserialize<List<ModNews>>(response.Content.ReadAsStringAsync().Result) ?? new();
+            AllModNews = JsonStructure.Deserialize<List<ModNews>>(response.Content.ReadAsStringAsync().Result) ?? [];
 
             foreach(var news in AllModNews)
             {
@@ -131,7 +133,7 @@ public class ModNewsHistory
     [HarmonyPatch(typeof(PlayerAnnouncementData), nameof(PlayerAnnouncementData.SetAnnouncements)), HarmonyPrefix]
     public static bool SetModAnnouncements(PlayerAnnouncementData __instance, [HarmonyArgument(0)] ref Il2CppReferenceArray<Announcement> aRange)
     {        
-        List<Announcement> temp = new(aRange);
+        List<Announcement> temp = [..aRange];
         temp.AddRange(AllModNews.Where(m => !m.debug).Select(m => m.ToAnnouncement()));
         temp.Sort((a1, a2) => { return string.Compare(a2.Date, a1.Date); });
         aRange = temp.ToArray();
@@ -145,8 +147,10 @@ public class ModNewsHistory
     public static void SetUpPanel(AnnouncementPanel __instance, [HarmonyArgument(0)] Announcement announcement)
     {
         if (announcement.Number < 100000) return;
-        var obj = new GameObject("ModLabel");
-        obj.layer = LayerExpansion.GetUILayer();
+        var obj = new GameObject("ModLabel")
+        {
+            layer = LayerExpansion.GetUILayer()
+        };
         obj.transform.SetParent(__instance.transform);
         obj.transform.localPosition = new Vector3(-0.8f, 0.13f, 0.5f);
         obj.transform.localScale = new Vector3(0.9f, 0.9f, 0.9f);

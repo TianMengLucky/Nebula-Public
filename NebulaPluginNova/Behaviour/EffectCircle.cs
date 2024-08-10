@@ -36,7 +36,7 @@ public class EffectCircle : MonoBehaviour
             {
                 if (outerCircle)
                 {
-                    GameObject.Destroy(outerCircle!.gameObject);
+                    Destroy(outerCircle!.gameObject);
                     outerCircle = null;
                 }
             }
@@ -58,7 +58,7 @@ public class EffectCircle : MonoBehaviour
             {
                 if (innerCircle)
                 {
-                    GameObject.Destroy(innerCircle!.gameObject);
+                    Destroy(innerCircle!.gameObject);
                     innerCircle = null;
                 }
             }
@@ -80,7 +80,7 @@ public class EffectCircle : MonoBehaviour
 
     public void DestroyFast()
     {
-        GameObject.Destroy(gameObject);
+        Destroy(gameObject);
     }
 
     public void Disappear()
@@ -103,7 +103,7 @@ public class EffectCircle : MonoBehaviour
                 yield return null;
             }
 
-            GameObject.Destroy(gameObject);
+            Destroy(gameObject);
         }
 
         StartCoroutine(CoDisappear().WrapToIl2Cpp());

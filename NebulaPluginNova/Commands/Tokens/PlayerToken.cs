@@ -30,7 +30,7 @@ public class PlayerCommandToken : ICommandToken
         }
         else if(type == typeof(string))
         {
-            string name = player.Name;
+            var name = player.Name;
             return new CoImmediateTask<T>(Unsafe.As<string, T>(ref name));
         }
         else if (type == typeof(int))
@@ -40,7 +40,7 @@ public class PlayerCommandToken : ICommandToken
         }
         else if (type == typeof(byte))
         {
-            byte id = player.PlayerId;
+            var id = player.PlayerId;
             return new CoImmediateTask<T>(Unsafe.As<byte, T>(ref id));
         }
 

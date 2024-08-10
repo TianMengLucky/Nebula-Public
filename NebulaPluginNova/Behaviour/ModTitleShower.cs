@@ -23,7 +23,7 @@ public class ModTitleShower : MonoBehaviour
     {
         if (!TryGetComponent<PlayerControl>(out player)) TryGetComponent<PoolablePlayer>(out poolablePlayer);
 
-        text = GameObject.Instantiate(OrigText, OrigText.transform.parent);
+        text = Instantiate(OrigText, OrigText.transform.parent);
         text.transform.localPosition = new Vector3(0, player ? 0.245f : 0.155f, -0.01f);
         text.fontSize = player ? 1.7f : 1.2f;
 
@@ -46,7 +46,7 @@ public class ModTitleShower : MonoBehaviour
             if (AmOwner)
             {
                 VanillaAsset.PlaySelectSE();
-                HelpScreen.TryOpenHelpScreen(HelpTab.Achievements);
+                TryOpenHelpScreen(HelpTab.Achievements);
             }
         });
 
@@ -75,7 +75,7 @@ public class ModTitleShower : MonoBehaviour
             collider.size = text.bounds.size;
             text.color = Color.gray;
             this.achievement = null;
-            this.time = -1f;
+            time = -1f;
         }
         else
         {
@@ -90,7 +90,7 @@ public class ModTitleShower : MonoBehaviour
     float time = 1f;
     public void Update()
     {
-        if (this.achievement != null)
+        if (achievement != null)
         {
             time -= Time.deltaTime;
             if (time < 0f)
@@ -102,8 +102,8 @@ public class ModTitleShower : MonoBehaviour
 
         if (player && ShipStatus.Instance)
         {
-            GameObject.Destroy(text.gameObject);
-            GameObject.Destroy(this);
+            Destroy(text.gameObject);
+            Destroy(this);
         }
     }
 }

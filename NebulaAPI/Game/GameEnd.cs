@@ -47,16 +47,16 @@ public static class NebulaGameEnds
 public class EndState
 {
 
-    public BitMask<Virial.Game.Player> Winners { get; private init; }
+    public BitMask<Player> Winners { get; private init; }
     public BitMask<ExtraWin> ExtraWins { get; private init; }
     public GameEndReason EndReason { get; private init; }
     public GameEnd EndCondition { get; private init; }
 
-    public EndState(BitMask<Virial.Game.Player> winners, GameEnd endCondition, GameEndReason reason, BitMask<ExtraWin> extraWins)
+    public EndState(BitMask<Player> winners, GameEnd endCondition, GameEndReason reason, BitMask<ExtraWin> extraWins)
     {
-        this.Winners = winners;
-        this.EndCondition = endCondition;
-        this.ExtraWins = extraWins;
+        Winners = winners;
+        EndCondition = endCondition;
+        ExtraWins = extraWins;
         EndReason = reason;
     }
 }

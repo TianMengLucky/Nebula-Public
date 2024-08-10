@@ -52,8 +52,8 @@ public class LetsCommand : ICommand
 
         IEnumerator CoExecute(CoBuiltInTask<ICommandToken> myResult)
         {
-            int i = 0;
-            List<(string argument, ICommandToken token)> args = new();
+            var i = 0;
+            List<(string argument, ICommandToken token)> args = [];
             while (i + 1 < arguments.Count)
             {
                 var task = arguments[i].AsValue<string>(env);

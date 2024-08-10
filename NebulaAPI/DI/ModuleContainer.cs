@@ -43,7 +43,7 @@ public abstract class AbstractModule<Container> : IGenericModule<Container>, IIn
 
 internal abstract class AbstractModuleContainer : IModuleContainer
 {
-    private List<object> allModules = new();
+    private List<object> allModules = [];
     private Dictionary<Type, object> fastModulesMap = new();
 
     T? IModuleContainer.GetModule<T>() where T : class
@@ -104,7 +104,7 @@ public class DIManager
 
         var implAsContainer = (impl as IModuleContainer)!;
 
-        HashSet<Type> types = new();
+        HashSet<Type> types = [];
         void InjectFromInterface(Type myType)
         {
             foreach (var t in myType.GetInterfaces())
@@ -130,7 +130,7 @@ public class DIManager
     {
         var type = typeof(Container);
 
-        if (!allInterfaces.ContainsKey(type)) allInterfaces[type] = new();
+        if (!allInterfaces.ContainsKey(type)) allInterfaces[type] = [];
         allInterfaces[type].Add(supplier);
         return true;
     }

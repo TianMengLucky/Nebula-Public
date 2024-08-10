@@ -14,6 +14,7 @@ using Virial.Events.Game.Minimap;
 using Virial.Events.Player;
 using Virial.Game;
 using Virial.Helpers;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Roles.Impostor;
 
@@ -27,12 +28,14 @@ public class TrackerTaskMapLayer : MonoBehaviour
 
     public void Awake()
     {
-        iconPool = new(ShipStatus.Instance.MapPrefab.taskOverlay.icons.Prefab.GetComponent<PooledMapIcon>(), transform);
-        iconPool.OnInstantiated = icon =>
-        {
-            icon.rend.color = Color.yellow;
-            icon.alphaPulse.enabled = false;
-        };
+        iconPool = new(ShipStatus.Instance.MapPrefab.taskOverlay.icons.Prefab.GetComponent<PooledMapIcon>(), transform)
+            {
+                OnInstantiated = icon =>
+                {
+                    icon.rend.color = Color.yellow;
+                    icon.alphaPulse.enabled = false;
+                }
+            };
     }
 
     public void SetIcons(Vector2[] locations)
@@ -58,8 +61,10 @@ public class TrackerPlayerMapLayer : MonoBehaviour
 
     public void Awake()
     {
-        iconPool = new(ShipStatus.Instance.MapPrefab.HerePoint, transform);
-        iconPool.OnInstantiated = icon => PlayerMaterial.SetColors(Target?.PlayerId ?? 0, icon);
+        iconPool = new(ShipStatus.Instance.MapPrefab.HerePoint, transform)
+        {
+            OnInstantiated = icon => PlayerMaterial.SetColors(Target?.PlayerId ?? 0, icon)
+        };
     }
 
     public void ClearPool()
@@ -126,7 +131,7 @@ public class EvilTracker : DefinedRoleTemplate, HasCitation, DefinedRole
 
         AchievementToken<(Vector2[]? locs, byte target, bool cleared)>? challengeToken = null;
 
-        List<TrackingArrowAbility> impostorArrows = new();
+        List<TrackingArrowAbility> impostorArrows = [];
 
         private void TryRegisterArrow(GamePlayer player) { if(!impostorArrows.Any(a => a.MyPlayer == player)) impostorArrows.Add(Bind(new TrackingArrowAbility(player.Unbox(), 0f, Palette.ImpostorRed)).Register()); }
 
@@ -149,7 +154,7 @@ public class EvilTracker : DefinedRoleTemplate, HasCitation, DefinedRole
         {
             trackingTarget = target;
 
-            if (TrackingIcon) GameObject.Destroy(TrackingIcon?.gameObject);
+            if (TrackingIcon) Object.Destroy(TrackingIcon?.gameObject);
             if (trackingTarget != null)
             {
                 TrackingIcon = trackButton!.GeneratePlayerIcon(trackingTarget);
@@ -198,9 +203,9 @@ public class EvilTracker : DefinedRoleTemplate, HasCitation, DefinedRole
 
                 trackButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability);
                 trackButton.SetSprite(buttonSprite.GetSprite());
-                trackButton.Availability = (button) => trackTracker.CurrentTarget != null && MyPlayer.CanMove;
-                trackButton.Visibility = (button) => !MyPlayer.IsDead && (CanChangeTargetOption || trackingTarget == null);
-                trackButton.OnClick = (button) =>
+                trackButton.Availability = button => trackTracker.CurrentTarget != null && MyPlayer.CanMove;
+                trackButton.Visibility = button => !MyPlayer.IsDead && (CanChangeTargetOption || trackingTarget == null);
+                trackButton.OnClick = button =>
                 {
                     trackButton.StartCoolDown();
                     ChangeTrackingTarget(trackTracker.CurrentTarget!);
@@ -212,9 +217,9 @@ public class EvilTracker : DefinedRoleTemplate, HasCitation, DefinedRole
                 {
                     var mapButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.SecondaryAbility);
                     mapButton.SetSprite(taskButtonSprite.GetSprite());
-                    mapButton.Availability = (button) => MyPlayer.CanMove;
-                    mapButton.Visibility = (button) => mapLayer;
-                    mapButton.OnClick = (button) =>
+                    mapButton.Availability = button => MyPlayer.CanMove;
+                    mapButton.Visibility = button => mapLayer;
+                    mapButton.OnClick = button =>
                     {
                         MapBehaviour.Instance.ShowNormalMap();
                         MapBehaviour.Instance.taskOverlay.gameObject.SetActive(false);
@@ -235,11 +240,11 @@ public class EvilTracker : DefinedRoleTemplate, HasCitation, DefinedRole
         [Local]
         void OnMeetingStart(MeetingStartEvent ev)
         {
-            int optionValue = TaskTrackingOption.GetValue();
+            var optionValue = TaskTrackingOption.GetValue();
             if (optionValue > 0)
             {
                 GamePlayer? isChecked = null;
-                NebulaAPI.CurrentGame?.GetModule<MeetingPlayerButtonManager>()?.RegisterMeetingAction(new Behaviour.MeetingPlayerAction(
+                NebulaAPI.CurrentGame?.GetModule<MeetingPlayerButtonManager>()?.RegisterMeetingAction(new MeetingPlayerAction(
                     trackSprite,
                     p =>
                     {
@@ -266,7 +271,7 @@ public class EvilTracker : DefinedRoleTemplate, HasCitation, DefinedRole
         {
             if (mapLayer)
             {
-                GameObject.Destroy(mapLayer!.gameObject);
+                Object.Destroy(mapLayer!.gameObject);
                 mapLayer = null;
             }
         }
@@ -330,7 +335,7 @@ public class EvilTracker : DefinedRoleTemplate, HasCitation, DefinedRole
             q => q.targetId == PlayerControl.LocalPlayer.PlayerId,
             q =>
             {
-                List<Vector2> list = new();
+                List<Vector2> list = [];
                 foreach(var t in PlayerControl.LocalPlayer.myTasks.GetFastEnumerator().Where(t => !t.IsComplete && t.HasLocation))
                 {
                     foreach (var l in t.Locations) list.Add(l);
@@ -345,7 +350,7 @@ public class EvilTracker : DefinedRoleTemplate, HasCitation, DefinedRole
                     if (MapBehaviour.Instance.IsOpen) MapBehaviour.Instance.Close();
                     MapBehaviour.Instance.ShowNormalMap();
 
-                    if(NebulaGameManager.Instance?.LocalPlayerInfo.Role is EvilTracker.Instance eTracker)
+                    if(NebulaGameManager.Instance?.LocalPlayerInfo.Role is Instance eTracker)
                     {
                         if (!eTracker.mapLayer)
                         {

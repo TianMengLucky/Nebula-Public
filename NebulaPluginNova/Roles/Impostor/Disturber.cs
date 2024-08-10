@@ -15,6 +15,7 @@ using Virial.Events.Player;
 using Virial.Game;
 using Virial.Helpers;
 using static Nebula.Roles.Crewmate.Cannon;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Roles.Impostor;
 
@@ -64,15 +65,15 @@ public class Disturber : DefinedRoleTemplate, DefinedRole
 
         static DisturbPole()
         {
-            NebulaSyncObject.RegisterInstantiater(MyTag, (args) => new DisturbPole(new(args[0], args[1])));
+            RegisterInstantiater(MyTag, args => new DisturbPole(new(args[0], args[1])));
         }
 
         static public DisturbPole GeneratePole(Vector2 pos)
         {
-            return (NebulaSyncObject.RpcInstantiate(MyTag, new float[] { pos.x, pos.y }) as DisturbPole)!;
+            return (RpcInstantiate(MyTag, [pos.x, pos.y]) as DisturbPole)!;
         }
 
-        static public RemoteProcess<int> RpcActivate = new("ActivatePole", (id, _) => NebulaSyncObject.GetObject<DisturbPole>(id)?.Activate());
+        static public RemoteProcess<int> RpcActivate = new("ActivatePole", (id, _) => GetObject<DisturbPole>(id)?.Activate());
     }
 
     private Disturber() : base("disturber", new(Palette.ImpostorRed), RoleCategory.ImpostorRole, Impostor.MyTeam, [PlaceCoolDownOption, DisturbCoolDownOption, DisturbDurationOption, MaxNumOfPolesOption, MaxDistanceBetweenPolesOption]) {
@@ -104,22 +105,22 @@ public class Disturber : DefinedRoleTemplate, DefinedRole
         private SpriteRenderer poleRenderer;
         public List<(Vector3 minimapPos, Vector3 worldPos, DisturbPole pole)> Positions;
         private PassiveButton clickButton;
-        private Disturber.Instance disturber;
+        private Instance disturber;
 
         static private Image whiteCircleSprite = SpriteLoader.FromResource("Nebula.Resources.WhiteCircle.png", 100f);
 
         private int CurrentPolesIncludingUnactivated => MaxNumOfPolesOption - disturber.CurrentPoles - (Positions?.Count ?? 0);
-        public void SetDisturber(Disturber.Instance disturber)
+        public void SetDisturber(Instance disturber)
         {
             this.disturber = disturber;
             disturber.UpdatePoleText(CurrentPolesIncludingUnactivated);
         }
         void Awake()
         {
-            poles = new();
-            Positions = new();
+            poles = [];
+            Positions = [];
 
-            float scale = MaxDistanceBetweenPolesOption / VanillaAsset.GetMapScale(AmongUsUtil.CurrentMapId);
+            var scale = MaxDistanceBetweenPolesOption / VanillaAsset.GetMapScale(AmongUsUtil.CurrentMapId);
             collider = UnityHelper.CreateObject<CircleCollider2D>("Click", transform, new(0f, 0f, -5f));
             collider.radius = scale;
             collider.isTrigger = true;
@@ -166,7 +167,7 @@ public class Disturber : DefinedRoleTemplate, DefinedRole
                 worldPosOnMinimap.z = -5f;
                 var worldPos = VanillaAsset.ConvertFromMinimapPosToWorld(worldPosOnMinimap, AmongUsUtil.CurrentMapId);
 
-                bool canPlace = MapData.GetCurrentMapData().CheckMapArea(worldPos, 0.06f);
+                var canPlace = MapData.GetCurrentMapData().CheckMapArea(worldPos, 0.06f);
                 if (canPlace)
                 {
                     Positions.Add((worldPosOnMinimap, worldPos.AsVector3(0f), DisturbPole.GeneratePole(worldPos)));
@@ -218,7 +219,7 @@ public class Disturber : DefinedRoleTemplate, DefinedRole
                 collider.transform.localPosition = ((Vector2)Positions[Positions.Count - 1].minimapPos).AsVector3(-5f);
             }
 
-            bool canPlace = MapData.GetCurrentMapData().CheckMapArea(worldPos, 0.06f);
+            var canPlace = MapData.GetCurrentMapData().CheckMapArea(worldPos, 0.06f);
             poleRenderer.color = (canPlace ? Color.Lerp(Color.cyan, Color.green, 0.3f) : Color.red).AlphaMultiplied(0.5f);
         }
 
@@ -236,7 +237,7 @@ public class Disturber : DefinedRoleTemplate, DefinedRole
             var renderer = UnityHelper.SetUpLineRenderer("PoleLine", transform, new(0f, 0f, -8f), LayerExpansion.GetUILayer(), width: 0.035f);
             renderer.positionCount = poles.Length;
             renderer.SetPositions(positions.Select(p => p.AsVector3(0f)).ToArray());
-            Color col = Color.green.RGBMultiplied(0.65f);
+            var col = Color.green.RGBMultiplied(0.65f);
             renderer.SetColors(col, col);
 
             var collider = UnityHelper.CreateObject<EdgeCollider2D>("LineButton", renderer.transform, new(0f, 0f, -4f));
@@ -247,7 +248,7 @@ public class Disturber : DefinedRoleTemplate, DefinedRole
             collider.edgeRadius = 0.1f;
 
             var button = collider.gameObject.SetUpButton(true);
-            Color hovered = Color.Lerp(Color.green.RGBMultiplied(0.9f), Color.yellow, 0.5f);
+            var hovered = Color.Lerp(Color.green.RGBMultiplied(0.9f), Color.yellow, 0.5f);
             button.OnMouseOver.AddListener(() =>
             {
                 renderer.SetColors(hovered, hovered);
@@ -266,7 +267,7 @@ public class Disturber : DefinedRoleTemplate, DefinedRole
                     poles.Do(p => NebulaSyncObject.RpcDestroy(p.ObjectId));
                 }
                 list.Remove(poles);
-                GameObject.Destroy(renderer.gameObject);
+                Destroy(renderer.gameObject);
 
                 disturber.UpdatePoleText(CurrentPolesIncludingUnactivated);
             });
@@ -274,7 +275,7 @@ public class Disturber : DefinedRoleTemplate, DefinedRole
 
         void OnDestroy()
         {
-            if (camera) GameObject.Destroy(camera.gameObject);
+            if (camera) Destroy(camera.gameObject);
             Clear(true);
         }
 
@@ -369,7 +370,7 @@ public class Disturber : DefinedRoleTemplate, DefinedRole
         private AchievementToken<(IHudOverrideTask? cmTask, ElectricTask? elTask, float time, int dead, bool ability, bool isCleared)>? acTokenChallenge = null;
         private ModAbilityButton? disturbButton = null;
 
-        List<DisturbPole[]> poles = new();
+        List<DisturbPole[]> poles = [];
         public int CurrentPoles => poles.Sum(p => p.Length);
         private TextMeshPro poleText;
         public void UpdatePoleText(int num) => poleText.text = num.ToString();
@@ -396,8 +397,8 @@ public class Disturber : DefinedRoleTemplate, DefinedRole
 
                 var openMapButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability, "disturber.place");
                 openMapButton.SetSprite(placeButtonSprite.GetSprite());
-                openMapButton.Availability = (button) => (MyPlayer.CanMove || MeetingHud.Instance) && !disturbButton!.EffectActive;
-                openMapButton.Visibility = (button) => !MyPlayer.IsDead && (!MapBehaviour.Instance || !MapBehaviour.Instance.IsOpen);
+                openMapButton.Availability = button => (MyPlayer.CanMove || MeetingHud.Instance) && !disturbButton!.EffectActive;
+                openMapButton.Visibility = button => !MyPlayer.IsDead && (!MapBehaviour.Instance || !MapBehaviour.Instance.IsOpen);
                 openMapButton.OnClick = button => {
                     NebulaManager.Instance.ScheduleDelayAction(() =>
                     {
@@ -410,8 +411,8 @@ public class Disturber : DefinedRoleTemplate, DefinedRole
 
                 var placeButton = Bind(new ModAbilityButton(alwaysShow: true)).KeyBind(Virial.Compat.VirtualKeyInput.Ability, "disturber.place");
                 placeButton.SetSprite(placeButtonSprite.GetSprite());
-                placeButton.Availability = (button) => true && mapLayer.Positions.Count >= 2;
-                placeButton.Visibility = (button) => !MyPlayer.IsDead && MapBehaviour.Instance && MapBehaviour.Instance.IsOpen && mapLayer && mapLayer.gameObject.active;
+                placeButton.Availability = button => true && mapLayer.Positions.Count >= 2;
+                placeButton.Visibility = button => !MyPlayer.IsDead && MapBehaviour.Instance && MapBehaviour.Instance.IsOpen && mapLayer && mapLayer.gameObject.active;
                 placeButton.OnClick = button =>
                 {
                     PlacePoles();
@@ -462,12 +463,12 @@ public class Disturber : DefinedRoleTemplate, DefinedRole
 
                 disturbButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.SecondaryAbility, "disturber.disturb");
                 disturbButton.SetSprite(disturbButtonSprite.GetSprite());
-                disturbButton.Availability = (button) => poles.Count > 0 && (!MapBehaviour.Instance || !MapBehaviour.Instance.IsOpen);
-                disturbButton.Visibility = (button) => !MyPlayer.IsDead;
-                disturbButton.OnClick = (button) => {
+                disturbButton.Availability = button => poles.Count > 0 && (!MapBehaviour.Instance || !MapBehaviour.Instance.IsOpen);
+                disturbButton.Visibility = button => !MyPlayer.IsDead;
+                disturbButton.OnClick = button => {
                     button.ActivateEffect();
                 };
-                disturbButton.OnEffectStart = (button) =>
+                disturbButton.OnEffectStart = button =>
                 {
                     new StaticAchievementToken("disturber.common1");
 
@@ -479,7 +480,7 @@ public class Disturber : DefinedRoleTemplate, DefinedRole
                     if (acTokenChallenge != null) acTokenChallenge.Value.ability = true;
                     CheckChallengeAchievement();
                 };
-                disturbButton.OnEffectEnd = (button) =>
+                disturbButton.OnEffectEnd = button =>
                 {
                     button.StartCoolDown();
                 };
@@ -512,9 +513,9 @@ public class Disturber : DefinedRoleTemplate, DefinedRole
 
         static private void InstantiateCollider(Vector2 pos1, Vector2 pos2, float duration)
         {
-            float absX = Mathf.Abs(pos1.x - pos2.x);
-            float absY = Mathf.Abs(pos1.y - pos2.y);
-            bool isVertical = absX > 0f ? (absY / absX) > 1.75f : true;
+            var absX = Mathf.Abs(pos1.x - pos2.x);
+            var absY = Mathf.Abs(pos1.y - pos2.y);
+            var isVertical = absX > 0f ? (absY / absX) > 1.75f : true;
 
             if(isVertical ? pos1.y > pos2.y : pos1.x > pos2.x) {
                 var temp = pos1;
@@ -536,8 +537,8 @@ public class Disturber : DefinedRoleTemplate, DefinedRole
             //UV座標を更新
             void UpdateUV(int num)
             {
-                float fNum1 = (float)num / 3f;
-                float fNum2 = (float)(num + 1) / 3f;
+                var fNum1 = (float)num / 3f;
+                var fNum2 = (float)(num + 1) / 3f;
 
                 meshFilter.mesh.SetUVs(0, (Vector2[])[new(fNum1, 0f), new(fNum2, 0f), new(fNum2, 1f), new(fNum1, 1f)]);
             }
@@ -547,8 +548,8 @@ public class Disturber : DefinedRoleTemplate, DefinedRole
             colliderPos.z = Mathf.Max(pos1.y, pos2.y) / 1000f;
             obj.transform.localPosition = colliderPos;
 
-            Vector2 pos1Rel = pos1 - (Vector2)colliderPos;
-            Vector2 pos2Rel = pos2 - (Vector2)colliderPos;
+            var pos1Rel = pos1 - (Vector2)colliderPos;
+            var pos2Rel = pos2 - (Vector2)colliderPos;
 
             meshFilter.mesh = new();
 
@@ -585,8 +586,8 @@ public class Disturber : DefinedRoleTemplate, DefinedRole
             
             IEnumerator CoUpdate()
             {
-                float timer = 0f;
-                int counter = 0;
+                var timer = 0f;
+                var counter = 0;
                 while(duration > 0f)
                 {
                     duration -= Time.deltaTime;
@@ -602,7 +603,7 @@ public class Disturber : DefinedRoleTemplate, DefinedRole
                     yield return null;
                 }
 
-                GameObject.Destroy(obj);
+                Object.Destroy(obj);
                 yield break;
             }
 
@@ -612,7 +613,7 @@ public class Disturber : DefinedRoleTemplate, DefinedRole
         static public RemoteProcess<Vector2[]> RpcDisturb = new("Disturb", (message, _) =>
         {
             float duration = DisturbDurationOption;
-            for (int i = 0; i < message.Length - 1; i++) InstantiateCollider(message[i], message[i + 1], duration);
+            for (var i = 0; i < message.Length - 1; i++) InstantiateCollider(message[i], message[i + 1], duration);
         });
     }
 }

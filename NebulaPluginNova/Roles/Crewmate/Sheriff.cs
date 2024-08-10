@@ -7,6 +7,7 @@ using Virial.Events.Game;
 using Virial.Events.Game.Meeting;
 using Virial.Game;
 using Virial.Helpers;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Roles.Crewmate;
 
@@ -52,7 +53,7 @@ public class Sheriff : DefinedRoleTemplate, HasCitation, DefinedRole
         [Local]
         void OnGameStart(GameStartEvent ev)
         {
-            int impostors = NebulaGameManager.Instance?.AllPlayerInfo().Count(p => p.Role.Role.Category == RoleCategory.ImpostorRole) ?? 0;
+            var impostors = NebulaGameManager.Instance?.AllPlayerInfo().Count(p => p.Role.Role.Category == RoleCategory.ImpostorRole) ?? 0;
             if (impostors > 0) acTokenChallenge = new("sheriff.challenge", impostors, (val, _) => val == 0);
         }
 
@@ -77,7 +78,7 @@ public class Sheriff : DefinedRoleTemplate, HasCitation, DefinedRole
                 acTokenCommon2 = new("sheriff.common2", (byte.MaxValue,false), (val,_) => val.Item2);
                 acTokenAnother2 = new("sheriff.another2", true, (val, _) => val && NebulaGameManager.Instance?.EndState?.EndCondition == NebulaGameEnds.CrewmateGameEnd && !MyPlayer.IsDead);
 
-                var killTracker = Bind(ObjectTrackers.ForPlayer(null, MyPlayer, (p) => ObjectTrackers.StandardPredicate(p), null, CanKillHidingPlayerOption));
+                var killTracker = Bind(ObjectTrackers.ForPlayer(null, MyPlayer, p => ObjectTrackers.StandardPredicate(p), null, CanKillHidingPlayerOption));
                 killButton = Bind(new ModAbilityButton(isArrangedAsKillButton: true)).KeyBind(Virial.Compat.VirtualKeyInput.Kill);
 
                 var leftText = killButton.ShowUsesIcon(3);
@@ -92,9 +93,9 @@ public class Sheriff : DefinedRoleTemplate, HasCitation, DefinedRole
                     lockSprite = killButton.VanillaButton.AddLockedOverlay();
                 }
 
-                killButton.Availability = (button) => killTracker.CurrentTarget != null && MyPlayer.CanMove && lockSprite == null;
-                killButton.Visibility = (button) => !MyPlayer.IsDead && leftShots > 0;
-                killButton.OnClick = (button) => {
+                killButton.Availability = button => killTracker.CurrentTarget != null && MyPlayer.CanMove && lockSprite == null;
+                killButton.Visibility = button => !MyPlayer.IsDead && leftShots > 0;
+                killButton.OnClick = button => {
                     acTokenAnother2.Value = false;
                     if (CanKill(killTracker.CurrentTarget!))
                     {
@@ -102,11 +103,11 @@ public class Sheriff : DefinedRoleTemplate, HasCitation, DefinedRole
                         acTokenCommon2.Value.Item2 |= acTokenCommon2.Value.Item1 == killTracker.CurrentTarget!.PlayerId;
                         if (acTokenChallenge != null && killTracker.CurrentTarget!.IsImpostor) acTokenChallenge!.Value--;
 
-                        MyPlayer.MurderPlayer(killTracker.CurrentTarget!, PlayerState.Dead, EventDetail.Kill, Virial.Game.KillParameter.NormalKill);
+                        MyPlayer.MurderPlayer(killTracker.CurrentTarget!, PlayerState.Dead, EventDetail.Kill, KillParameter.NormalKill);
                     }
                     else
                     {
-                        MyPlayer.Suicide(PlayerState.Misfired, null, Virial.Game.KillParameter.NormalKill);
+                        MyPlayer.Suicide(PlayerState.Misfired, null, KillParameter.NormalKill);
                         NebulaGameManager.Instance?.GameStatistics.RpcRecordEvent(GameStatistics.EventVariation.Kill, EventDetail.Misfire, MyPlayer.VanillaPlayer, killTracker.CurrentTarget!.VanillaPlayer);
 
                         new StaticAchievementToken("sheriff.another1");
@@ -121,7 +122,7 @@ public class Sheriff : DefinedRoleTemplate, HasCitation, DefinedRole
                 {
                     if(lockSprite && NebulaGameManager.Instance!.AllPlayerInfo().Any(p => p.IsDead))
                     {
-                        GameObject.Destroy(lockSprite!.gameObject);
+                        Object.Destroy(lockSprite!.gameObject);
                         lockSprite = null;
                     }
                 };

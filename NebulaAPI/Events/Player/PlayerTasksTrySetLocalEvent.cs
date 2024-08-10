@@ -15,7 +15,7 @@ public class PlayerTasksTrySetLocalEvent : AbstractPlayerEvent
         
         internal Task(NetworkedPlayerInfo.TaskInfo task)
         {
-            this.MyTask = task;
+            MyTask = task;
         }
     }
 
@@ -29,7 +29,7 @@ public class PlayerTasksTrySetLocalEvent : AbstractPlayerEvent
     public int AddExtraQuota(int extraQuota) => ExtraQuota += extraQuota;
     internal PlayerTasksTrySetLocalEvent(Virial.Game.Player player, IEnumerable<NetworkedPlayerInfo.TaskInfo> tasks):base(player)
     {
-        Tasks = new(tasks.Select(t => new Task(t)));
+        Tasks = [..tasks.Select(t => new Task(t))];
     }
 
     internal IEnumerable<NetworkedPlayerInfo.TaskInfo> VanillaTasks => Tasks.Select(t => t.MyTask);

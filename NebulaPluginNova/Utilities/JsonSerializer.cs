@@ -30,7 +30,7 @@ public class JsonRawStructure
     {
         if (structure.ContentsAsList != null)
         {
-            ContentsAsList ??= new();
+            ContentsAsList ??= [];
             foreach (var c in structure.ContentsAsList!) ContentsAsList.Add(c);
         }
 
@@ -92,21 +92,21 @@ public static class JsonStructure
     private static object? DeserializeCollection(string json,Type type)
     {
         var addMethod = type.GetMethod("Add");
-        var constructor = type.GetConstructor(new Type[0]);
+        var constructor = type.GetConstructor([]);
 
         if (addMethod == null || constructor == null) throw new Exception("Collection can not be substituted to Non-Collection field.");
         var containedType = addMethod.GetParameters()[0].ParameterType;
 
-        object? instance = constructor.Invoke(new object[0]);
+        var instance = constructor.Invoke([]);
 
         json = json.Substring(1).TrimStart();
 
         while (true)
         {
-            SplitObject(json, out var current, out string? follower);
+            SplitObject(json, out var current, out var follower);
             if (current == null) break;
 
-            addMethod.Invoke(instance, new object?[] { Deserialize(current, containedType) });
+            addMethod.Invoke(instance, [Deserialize(current, containedType)]);
             
             if (follower == null) break;
             json = follower;
@@ -146,7 +146,7 @@ public static class JsonStructure
         Dictionary<string, string> textMap = new();
         Dictionary<string, string> ignoreCaseMap = new();
         while (true) {
-            Split(json, out var current, out string? follower);
+            Split(json, out var current, out var follower);
             if (current == null) break;
 
             textMap.Add(current.Item1,current.Item2);
@@ -156,7 +156,7 @@ public static class JsonStructure
             json = follower;
         }
 
-        object? instance = type.GetConstructor(new Type[0])?.Invoke(new object[0]);
+        var instance = type.GetConstructor([])?.Invoke([]);
         if (instance == null) throw new Exception("Constructor is not found.");
 
         if (type.IsAssignableTo(typeof(IDictionary)))
@@ -167,7 +167,8 @@ public static class JsonStructure
             if(entryType[0] != typeof(string)) throw new Exception("Deserializable dictionary must have string key.");
 
             var addMethod = type.GetMethod("Add");
-            foreach (var entry in textMap) addMethod!.Invoke(instance, new object?[] { entry.Key, DeserializeTrimmed(entry.Value, entryType[1]) });
+            foreach (var entry in textMap) addMethod!.Invoke(instance, [entry.Key, DeserializeTrimmed(entry.Value, entryType[1])
+            ]);
         }
         else
         {
@@ -237,11 +238,13 @@ public static class JsonStructure
         {
             json = json.Substring(1).TrimStart();
 
-            JsonRawStructure structure = new JsonRawStructure();
-            structure.ContentsAsList = new();
+            var structure = new JsonRawStructure
+            {
+                ContentsAsList = []
+            };
             while (true)
             {
-                SplitObject(json, out var current, out string? follower);
+                SplitObject(json, out var current, out var follower);
                 if (current == null) break;
 
                 structure.ContentsAsList.Add(current);
@@ -261,7 +264,7 @@ public static class JsonStructure
         Dictionary<string, string> textMap = new();
         while (true)
         {
-            Split(json, out var current, out string? follower);
+            Split(json, out var current, out var follower);
             if (current == null) break;
 
             textMap.Add(current.Item1, current.Item2);
@@ -271,8 +274,10 @@ public static class JsonStructure
         }
 
         {
-            JsonRawStructure structure = new JsonRawStructure();
-            structure.StructiveContents = new();
+            var structure = new JsonRawStructure
+            {
+                StructiveContents = new()
+            };
             foreach (var entry in textMap) structure.StructiveContents.Add(entry.Key, DeserializeRaw(entry.Value)!);
             return structure;
         }
@@ -282,8 +287,8 @@ public static class JsonStructure
     {
         var valType = obj.GetType().GenericTypeArguments[1];
 
-        string result = "{";
-        bool isFirst = true;
+        var result = "{";
+        var isFirst = true;
         foreach (var key in obj.Keys)
         {
             if (!isFirst) result += ",";
@@ -303,8 +308,8 @@ public static class JsonStructure
 
     private static string SerializeEnumerable(IEnumerable obj)
     {
-        string result = "[";
-        bool isFirst = true;
+        var result = "[";
+        var isFirst = true;
         foreach (var val in obj)
         {
             if (!isFirst) result += ",";
@@ -322,7 +327,7 @@ public static class JsonStructure
         {
             if(structure.ContentsAsList != null)
             {
-                string json = "";
+                var json = "";
                 foreach(var item in structure.ContentsAsList) { if (json.Length > 0) json += ","; json += "\n" + item; }
                 return $"[{json}\n]";
             }
@@ -341,8 +346,8 @@ public static class JsonStructure
             return SerializeEnumerable((IEnumerable)obj);
     
 
-        string result = "{";
-        bool isFirst = true;
+        var result = "{";
+        var isFirst = true;
         foreach (var f in obj.GetType().GetFields())
         {
             if (!f.IsDefined(typeof(JsonSerializableField))) continue;
@@ -372,9 +377,9 @@ public static class JsonStructure
         follower = null;
         
         if (!json.StartsWith("\"")) return;
-        int index = 1;
+        var index = 1;
         while (index < json.Length && json[index] != '"') index++;
-        string label = json.Substring(1, index - 1);
+        var label = json.Substring(1, index - 1);
 
         json = json.Substring(index + 1).Trim();
         if (json[0] != ':') return;
@@ -387,10 +392,10 @@ public static class JsonStructure
     {
         current = null;
         follower = null;
-        int index = 0;
+        var index = 0;
 
-        bool inStr = false;
-        int nested = 0;
+        var inStr = false;
+        var nested = 0;
         while (index < json.Length)
         {
             if (json[index] is '"' && (index == 0 || json[index - 1] is not '\\')) inStr = !inStr;
@@ -408,14 +413,14 @@ public static class JsonStructure
 
     static public string ShapeJsonString(string json)
     {
-        string result = "";
+        var result = "";
 
         int read = 0, advanced = 0;
-        int scopes = 0;
+        var scopes = 0;
 
         string getCurrentString(bool requireAdvance = true)
         {
-            string str = json.Substring(read, advanced).Trim();
+            var str = json.Substring(read, advanced).Trim();
             if (requireAdvance) advance();
             return str;
         }
@@ -423,7 +428,7 @@ public static class JsonStructure
         void appendNewLine()
         {
             result += "\n";
-            for (int i = 0; i < scopes; i++) result += "\t";
+            for (var i = 0; i < scopes; i++) result += "\t";
         }
 
         bool readIgnored(bool requireAdvance = true)
@@ -450,7 +455,7 @@ public static class JsonStructure
 
         bool readPrimitive()
         {
-            char first = json[read + advanced];
+            var first = json[read + advanced];
             if (first is ',' or '{' or '}' or '[' or ']' or ':' or '\"') return false;
 
             while (!(json[read + advanced] is ',' or '}' or ']')) advanced++;

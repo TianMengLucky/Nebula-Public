@@ -20,7 +20,7 @@ static public class GlobalProperties
         }, () => 0f);
 
         new NebulaGlobalFunctionProperty("addons", () => "" , () => 0f,
-            (arg) => {
+            arg => {
                 var addon = NebulaAddon.GetAddon(arg);
                 return new NebulaInstantProperty() { IntegerProperty = addon?.Build ?? -1, StringProperty = addon?.Build.ToString() ?? "-" };
             });

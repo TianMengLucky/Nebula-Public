@@ -44,9 +44,9 @@ public class EndCriteriaMetEvent : Event
 
     internal EndCriteriaMetEvent(GameEnd end, GameEndReason reason)
     {
-        this.GameEnd = end;
-        this.EndReason = reason;
-        this.OverwrittenGameEnd = end;
-        this.OverwrittenEndReason = reason;
+        GameEnd = end;
+        EndReason = reason;
+        OverwrittenGameEnd = end;
+        OverwrittenEndReason = reason;
     }
 }

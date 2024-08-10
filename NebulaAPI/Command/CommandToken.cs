@@ -62,7 +62,7 @@ public class ArrayCommandToken : ICommandToken
     /// <param name="text"></param>
     public ArrayCommandToken(IReadOnlyArray<ICommandToken> arguments)
     {
-        this.tokens = arguments ?? new ReadOnlyArray<ICommandToken>(Array.Empty<ICommandToken>());
+        tokens = arguments ?? new ReadOnlyArray<ICommandToken>(Array.Empty<ICommandToken>());
     }
 
     CoTask<ICommandToken> ICommandToken.EvaluateHere(CommandEnvironment env)
@@ -83,7 +83,7 @@ public class ArrayCommandToken : ICommandToken
             .Select(token => token.AsEnumerable(env))
             .Chain(result =>
             {
-                List<ICommandToken> list = new();
+                List<ICommandToken> list = [];
                 foreach (var r in result) if(r != null) list.AddRange(r);
                 return new CoImmediateTask<IEnumerable<ICommandToken>>(list);
             });

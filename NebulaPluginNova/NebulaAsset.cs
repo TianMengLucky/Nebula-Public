@@ -4,6 +4,7 @@ using Nebula.Utilities;
 using System.Reflection;
 using Virial.Runtime;
 using Virial.Text;
+using Object = UnityEngine.Object;
 
 namespace Nebula;
 
@@ -88,11 +89,11 @@ public static class NebulaAsset
 
     public static Sprite GetMapSprite(byte mapId, Int32 mask, Vector2? size = null)
     {
-        GameObject prefab = DivMap[mapId];
+        var prefab = DivMap[mapId];
         if (prefab == null) return null!;
         if (size == null) size = prefab.transform.GetChild(0).GetChild(0).GetComponent<SpriteRenderer>().sprite.bounds.size * 100f;
-        var obj = GameObject.Instantiate(prefab);
-        Camera cam = obj.AddComponent<Camera>();
+        var obj = Object.Instantiate(prefab);
+        var cam = obj.AddComponent<Camera>();
         cam.orthographic = true;
         cam.orthographicSize = size.Value.y / 200;
         cam.transform.localScale = Vector3.one;
@@ -103,8 +104,8 @@ public static class NebulaAsset
 
         try
         {
-            int children = obj.transform.childCount;
-            for (int i = 0; i < children; i++)
+            var children = obj.transform.childCount;
+            for (var i = 0; i < children; i++)
             {
                 var c = obj.transform.GetChild(i);
                 c.GetChild(0).gameObject.SetActive((mask & 1) == 0);
@@ -118,21 +119,21 @@ public static class NebulaAsset
         }
 
 
-        RenderTexture rt = new RenderTexture((int)size.Value.x, (int)size.Value.y, 16);
+        var rt = new RenderTexture((int)size.Value.x, (int)size.Value.y, 16);
         rt.Create();
 
         cam.targetTexture = rt;
         cam.Render();
 
         RenderTexture.active = cam.targetTexture;
-        Texture2D texture2D = new Texture2D(rt.width, rt.height, TextureFormat.ARGB32, false, false);
+        var texture2D = new Texture2D(rt.width, rt.height, TextureFormat.ARGB32, false, false);
         texture2D.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
         texture2D.Apply();
 
         RenderTexture.active = null;
         cam.targetTexture = null;
-        GameObject.Destroy(rt);
-        GameObject.Destroy(obj);
+        Object.Destroy(rt);
+        Object.Destroy(obj);
 
         return texture2D.ToSprite(100f);
     }
@@ -158,7 +159,7 @@ public static class NebulaAsset
 
     static public SpriteRenderer CreateSharpBackground(SpriteRenderer renderer, Color color, Vector2 size)
     {
-        renderer.sprite = NebulaAsset.SharpWindowBackgroundSprite.GetSprite();
+        renderer.sprite = SharpWindowBackgroundSprite.GetSprite();
         renderer.drawMode = SpriteDrawMode.Sliced;
         renderer.tileMode = SpriteTileMode.Continuous;
         renderer.color = color;
@@ -180,7 +181,7 @@ public static class NebulaAsset
     {
         var audioSource = UnityHelper.CreateObject<AudioSource>("SEPlayer", null, pos);
 
-        float v = (SoundManager.SfxVolume + 80) / 80f;
+        var v = (SoundManager.SfxVolume + 80) / 80f;
         v = 1f - v;
         v = v * v;
         v = 1f - v;
@@ -194,14 +195,14 @@ public static class NebulaAsset
         audioSource.playOnAwake = false;
         audioSource.maxDistance = maxDistance;
         audioSource.minDistance = minDistance;
-        audioSource.rolloffMode = UnityEngine.AudioRolloffMode.Linear;
+        audioSource.rolloffMode = AudioRolloffMode.Linear;
         audioSource.PlayOneShot(audioSource.clip);
 
         IEnumerator CoPlay()
         {
             yield return new WaitForSeconds(audioSource.clip.length);
             while (audioSource.isPlaying) yield return null;
-            GameObject.Destroy(audioSource.gameObject);
+            Object.Destroy(audioSource.gameObject);
             yield break;
         }
 
@@ -213,7 +214,7 @@ public static class NebulaAsset
         (message, _) => PlaySE(message.clip, message.pos, message.minDistance, message.maxDistance)
     );
 
-    public static TextMeshNoS InstantiateText(string objName, Transform? parent, Vector3 localPos, FontAssetNoS font, float size, Virial.Text.TextAlignment textAlignment, Vector2 pivot,string text,UnityEngine.Color color, bool showOnlyInMask = false)
+    public static TextMeshNoS InstantiateText(string objName, Transform? parent, Vector3 localPos, FontAssetNoS font, float size, Virial.Text.TextAlignment textAlignment, Vector2 pivot,string text,Color color, bool showOnlyInMask = false)
     {
         var textObj = UnityHelper.CreateObject<TextMeshNoS>(objName, parent, localPos);
         textObj.Font = font;

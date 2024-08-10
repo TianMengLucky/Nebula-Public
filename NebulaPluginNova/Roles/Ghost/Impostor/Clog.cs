@@ -50,12 +50,12 @@ public class Clog : DefinedGhostRoleTemplate, DefinedGhostRole
                     }catch (Exception ex) { }
                 }, this);
 
-                int left = NumOfGhostsOption.GetValue();
+                var left = NumOfGhostsOption.GetValue();
                 var ghostButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability);
                 ghostButton.SetSprite(buttonSprite.GetSprite());
-                ghostButton.Availability = (button) => MyPlayer.CanMove;
-                ghostButton.Visibility = (button) => MyPlayer.IsDead;
-                ghostButton.OnClick = (button) =>
+                ghostButton.Availability = button => MyPlayer.CanMove;
+                ghostButton.Visibility = button => MyPlayer.IsDead;
+                ghostButton.OnClick = button =>
                 {
                     RpcSpawnGhost.Invoke(MyPlayer.VanillaPlayer.transform.position);
 
@@ -81,7 +81,7 @@ public class Clog : DefinedGhostRoleTemplate, DefinedGhostRole
             var ghost = new Nebula.Roles.Crewmate.Ghost(pos, GhostDurationOption, null, Seer.CanSeeGhostsInShadowOption, GhostSizeOption);
             if (calledBeMe)
             {
-                bool achieved = false;
+                var achieved = false;
                 GameOperatorManager.Instance?.Register<GameUpdateEvent>(ev => { 
                     if(!achieved && NebulaGameManager.Instance!.AllPlayerInfo().Any(p => !p.IsDead && !p.AmOwner && p.IsImpostor && pos.Distance(p.Position) < 0.75f))
                     {

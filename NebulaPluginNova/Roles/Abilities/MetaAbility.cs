@@ -15,8 +15,8 @@ public record EffectCircleInfo(string translationKey, Func<float> outerRadious, 
 [NebulaPreprocess(PreprocessPhase.BuildNoSModule)]
 public class MetaAbility : ComponentHolder, IGameOperator, IModule
 {
-    static MetaAbility() => DIManager.Instance.RegisterGeneralModule<Virial.Game.IGameModeFreePlay>(() => new MetaAbility());
-    static private List<EffectCircleInfo> allEffectCircleInfo = new();
+    static MetaAbility() => DIManager.Instance.RegisterGeneralModule<IGameModeFreePlay>(() => new MetaAbility());
+    static private List<EffectCircleInfo> allEffectCircleInfo = [];
     static public void RegisterCircle(EffectCircleInfo info) => allEffectCircleInfo.Add(info);
     public MetaAbility()
     {
@@ -25,9 +25,9 @@ public class MetaAbility : ComponentHolder, IGameOperator, IModule
 
         var roleButton = Bind(new ModAbilityButton(true, false, 100)).KeyBind(new VirtualInput(KeyCode.Z));
         roleButton.SetSprite(buttonSprite.GetSprite());
-        roleButton.Availability = (button) => true;
-        roleButton.Visibility = (button) => true;
-        roleButton.OnClick = (button) =>
+        roleButton.Availability = button => true;
+        roleButton.Visibility = button => true;
+        roleButton.OnClick = button =>
         {
             OpenRoleWindow();
         };
@@ -35,18 +35,18 @@ public class MetaAbility : ComponentHolder, IGameOperator, IModule
 
         var reviveButton = Bind(new ModAbilityButton(true, false, 98));
         reviveButton.SetSprite(reviveSprite.GetSprite());
-        reviveButton.Availability = (button) => true;
-        reviveButton.Visibility = (button) => PlayerControl.LocalPlayer.Data.IsDead;
-        reviveButton.OnClick = (button) =>
+        reviveButton.Availability = button => true;
+        reviveButton.Visibility = button => PlayerControl.LocalPlayer.Data.IsDead;
+        reviveButton.OnClick = button =>
         {
             NebulaManager.Instance.ScheduleDelayAction(() => NebulaGameManager.Instance?.LocalPlayerInfo.Revive(null, new(PlayerControl.LocalPlayer.transform.position), true, false));
         };
         reviveButton.SetLabel("revive");
 
         var suicideButton = Bind(new ModAbilityButton(true, false, 98));
-        suicideButton.Availability = (button) => true;
-        suicideButton.Visibility = (button) => !PlayerControl.LocalPlayer.Data.IsDead;
-        suicideButton.OnClick = (button) =>
+        suicideButton.Availability = button => true;
+        suicideButton.Visibility = button => !PlayerControl.LocalPlayer.Data.IsDead;
+        suicideButton.OnClick = button =>
         {
             NebulaManager.Instance.ScheduleDelayAction(()=> NebulaGameManager.Instance?.LocalPlayerInfo.Suicide(PlayerState.Suicide, null, KillParameter.WithDeadBody));
         };
@@ -54,9 +54,9 @@ public class MetaAbility : ComponentHolder, IGameOperator, IModule
 
         var circleButton = Bind(new ModAbilityButton(true, false, 99));
         circleButton.SetSprite(circleButtonSprite.GetSprite());
-        circleButton.Availability = (button) => true;
-        circleButton.Visibility = (button) => true;
-        circleButton.OnClick = (button) =>
+        circleButton.Availability = button => true;
+        circleButton.Visibility = button => true;
+        circleButton.OnClick = button =>
         {
             OpenCircleWindow();
         };
@@ -71,7 +71,7 @@ public class MetaAbility : ComponentHolder, IGameOperator, IModule
     private void OpenCircleWindow()
     {
         var window = MetaScreen.GenerateWindow(new Vector2(4f, 3.8f), HudManager.Instance.transform, new Vector3(0, 0, -400f), true, false);
-        var maskedTittleAttr = new TextAttribute(GUI.API.GetAttribute(Virial.Text.AttributeAsset.MetaRoleButton)) { Size = new(3f, 0.26f) };
+        var maskedTittleAttr = new TextAttribute(GUI.API.GetAttribute(AttributeAsset.MetaRoleButton)) { Size = new(3f, 0.26f) };
 
         window.SetWidget(GUI.API.ScrollView(Virial.Media.GUIAlignment.Center, new(3.8f, 3.8f), "circleMenu", GUI.API.VerticalHolder(Virial.Media.GUIAlignment.Center,
             allEffectCircleInfo.Select(info => GUI.API.Button(Virial.Media.GUIAlignment.Center, maskedTittleAttr, GUI.API.ColorTextComponent(new(info.color), GUI.API.LocalizedTextComponent(info.translationKey)), button =>
@@ -89,15 +89,15 @@ public class MetaAbility : ComponentHolder, IGameOperator, IModule
 
         //widget.Append(new MetaWidgetOld.Text(TextAttributeOld.TitleAttr) { RawText = Language.Translate("role.metaRole.ui.roles") });
 
-        var roleMaskedTittleAttr = GUI.API.GetAttribute(Virial.Text.AttributeAsset.MetaRoleButton);
-        var roleTittleAttr = new Virial.Text.TextAttribute(roleMaskedTittleAttr) { Font = GUI.API.GetFont(Virial.Text.FontAsset.Gothic) };
+        var roleMaskedTittleAttr = GUI.API.GetAttribute(AttributeAsset.MetaRoleButton);
+        var roleTittleAttr = new TextAttribute(roleMaskedTittleAttr) { Font = GUI.API.GetFont(FontAsset.Gothic) };
         
         void SetWidget(int tab) {
 
             var holder = GUI.API.HorizontalHolder(Virial.Media.GUIAlignment.Center,
-                GUI.API.LocalizedButton(Virial.Media.GUIAlignment.Center, roleTittleAttr, "game.metaAbility.tabs.roles", (button) => SetWidget(0), color: tab == 0 ? Virial.Color.Yellow : null),
-                GUI.API.LocalizedButton(Virial.Media.GUIAlignment.Center, roleTittleAttr, "game.metaAbility.tabs.modifiers", (button) => SetWidget(1), color: tab == 1 ? Virial.Color.Yellow : null),
-                GUI.API.LocalizedButton(Virial.Media.GUIAlignment.Center, roleTittleAttr, "game.metaAbility.tabs.ghostRoles", (button) => SetWidget(2), color: tab == 2 ? Virial.Color.Yellow : null)
+                GUI.API.LocalizedButton(Virial.Media.GUIAlignment.Center, roleTittleAttr, "game.metaAbility.tabs.roles", button => SetWidget(0), color: tab == 0 ? Virial.Color.Yellow : null),
+                GUI.API.LocalizedButton(Virial.Media.GUIAlignment.Center, roleTittleAttr, "game.metaAbility.tabs.modifiers", button => SetWidget(1), color: tab == 1 ? Virial.Color.Yellow : null),
+                GUI.API.LocalizedButton(Virial.Media.GUIAlignment.Center, roleTittleAttr, "game.metaAbility.tabs.ghostRoles", button => SetWidget(2), color: tab == 2 ? Virial.Color.Yellow : null)
                 );
 
             GUIWidget inner = GUIEmptyWidget.Default;

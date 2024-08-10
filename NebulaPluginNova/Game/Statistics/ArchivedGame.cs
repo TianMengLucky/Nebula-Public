@@ -64,7 +64,7 @@ internal record ArchivedAssignmentHistory(float Time, RoleType Type, string Assi
 internal class ArchivedTaskPhase
 {
     public bool IsClosed { get; set; } = false;
-    public List<ArchivedMoment> Moments { get; init; } = new();
+    public List<ArchivedMoment> Moments { get; init; } = [];
     public float Start { get; set; } = 0f;
     public float End { get; set; } = float.MaxValue;
     public void CaptureCurrent()
@@ -102,7 +102,7 @@ internal record ArchivedPlayer(string Name, byte Id, Color32 MainColor, Color32 
     public static ArchivedPlayer FromPlayer(GamePlayer player)
     {
         var outfit = player.DefaultOutfit.outfit;
-        byte id = player.PlayerId;
+        var id = player.PlayerId;
         return new ArchivedPlayer(player.Name, id, Palette.PlayerColors[id], Palette.ShadowColors[id], DynamicPalette.VisorColors[id], outfit.HatId, outfit.VisorId, outfit.SkinId);
     }
 
@@ -224,49 +224,49 @@ internal class ArchivedGame
 
     private static ArchivedMoment DeserializeMomentV1(SerializedDataReader reader, int players)
     {
-        float time = reader.ReadSingle();
+        var time = reader.ReadSingle();
         ArchivedPlayerMoment[] trackedPlayers = new ArchivedPlayerMoment[players];
-        for (int p = 0; p < trackedPlayers.Length; p++)
+        for (var p = 0; p < trackedPlayers.Length; p++)
             trackedPlayers[p] = new(new(reader.ReadSingle(), reader.ReadSingle()), (PlayerTrackingFlags)reader.ReadByte());
         return new() { Time = time, PlayerData = trackedPlayers };
     }
 
     private static ArchivedGame DeserializeV1(SerializedDataReader reader)
     {
-        byte mapId = reader.ReadByte();
+        var mapId = reader.ReadByte();
 
         ArchivedPlayer[] players = new ArchivedPlayer[reader.ReadInt32()];
-        for (int p = 0; p < players.Length; p++)
+        for (var p = 0; p < players.Length; p++)
         {
             players[p] = new(reader.ReadString(), (byte)p, reader.ReadColor32(), reader.ReadColor32(), reader.ReadColor32(), reader.ReadString(), reader.ReadString(), reader.ReadString());
         }
 
         ArchivedAssignmentHistory[] assignmentHistory = new ArchivedAssignmentHistory[reader.ReadInt32()];
-        for (int a = 0; a < assignmentHistory.Length; a++)
+        for (var a = 0; a < assignmentHistory.Length; a++)
         {
-            float time = reader.ReadSingle();
-            byte playerId =reader.ReadByte();
-            RoleType type = (RoleType)reader.ReadByte();
-            string assignableId = reader.ReadString();
-            int[] arguments = new int[reader.ReadInt32()];
-            for(int i = 0;i<arguments.Length;i++) arguments[i] = reader.ReadInt32();
+            var time = reader.ReadSingle();
+            var playerId =reader.ReadByte();
+            var type = (RoleType)reader.ReadByte();
+            var assignableId = reader.ReadString();
+            var arguments = new int[reader.ReadInt32()];
+            for(var i = 0;i<arguments.Length;i++) arguments[i] = reader.ReadInt32();
 
             assignmentHistory[a] = new(time, type, assignableId, playerId, arguments);
         }
 
         ArchivedTaskPhase[] taskPhases = new ArchivedTaskPhase[reader.ReadInt32()];
-        for (int t = 0; t < taskPhases.Length; t++)
+        for (var t = 0; t < taskPhases.Length; t++)
         {
-            float start = reader.ReadSingle();
-            float end = reader.ReadSingle();
+            var start = reader.ReadSingle();
+            var end = reader.ReadSingle();
             ArchivedMoment[] moments = new ArchivedMoment[reader.ReadInt32()];
-            for (int m = 0; m < moments.Length; m++)
+            for (var m = 0; m < moments.Length; m++)
                 moments[m] = DeserializeMomentV1(reader, players.Length);
-            taskPhases[t] = new() { Start = start, End = end, Moments = new(moments), IsClosed = true };
+            taskPhases[t] = new() { Start = start, End = end, Moments = [..moments], IsClosed = true };
         }
 
         ArchivedEvent[] events = new ArchivedEvent[reader.ReadInt32()];
-        for (int e = 0; e < events.Length; e++)
+        for (var e = 0; e < events.Length; e++)
         {
             events[e] = new(DeserializeMomentV1(reader, players.Length), reader.ReadString(), reader.ReadString(), reader.ReadInt32(), reader.ReadInt32());
         }
@@ -293,12 +293,12 @@ internal class TrackedEventImage
         ImagesDic[id] = this;
     }
 
-    static public List<TrackedEventImage> AllImages = new();
+    static public List<TrackedEventImage> AllImages = [];
     static public Dictionary<string, TrackedEventImage> ImagesDic = new();
 
     static void Preproces(NebulaPreprocessor preprocessor)
     {
-        int num = 0;
+        var num = 0;
         foreach (var i in AllImages.OrderBy(i => i.TextId))
         {
             i.Id = num;

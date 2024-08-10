@@ -54,13 +54,13 @@ public class Provocateur : DefinedRoleTemplate, DefinedRole
             {
                 embroilButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability);
                 embroilButton.SetSprite(buttonSprite.GetSprite());
-                embroilButton.Availability = (button) => MyPlayer.CanMove;
-                embroilButton.Visibility = (button) => !MyPlayer.IsDead;
-                embroilButton.OnClick = (button) => {
+                embroilButton.Availability = button => MyPlayer.CanMove;
+                embroilButton.Visibility = button => !MyPlayer.IsDead;
+                embroilButton.OnClick = button => {
                     button.ActivateEffect();
                 };
                 var coolDownTimer = Bind(new Timer(0f, EmbroilCoolDownOption).SetAsAbilityCoolDown().Start());
-                embroilButton.OnEffectEnd = (button) =>
+                embroilButton.OnEffectEnd = button =>
                 {
                     coolDownTimer.Expand(EmbroilAdditionalCoolDownOption);
                     embroilButton.StartCoolDown();

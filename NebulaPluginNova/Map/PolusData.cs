@@ -2,8 +2,8 @@
 
 public class PolusData : MapData
 {
-    static private Vector2[] MapPositions = new Vector2[]
-    {
+    static private Vector2[] MapPositions =
+    [
         //ドロップシップ
         new(16.7f, -2.6f),
         //ドロップシップ下
@@ -46,9 +46,10 @@ public class PolusData : MapData
         new(24.2f, -4.5f),
         //ストレージ・ラボ下・オフィス右
         new(24f, -14.6f), new(26f, -12.2f), new(29.8f, -15.7f)
-    };
+    ];
 
     protected override Vector2[] MapArea => MapPositions;
     protected override Vector2[] NonMapArea => [];
-    protected override SystemTypes[] SabotageTypes => new SystemTypes[] { SystemTypes.Laboratory, SystemTypes.Comms, SystemTypes.Electrical };
+    protected override SystemTypes[] SabotageTypes => [SystemTypes.Laboratory, SystemTypes.Comms, SystemTypes.Electrical
+    ];
 }

@@ -28,14 +28,14 @@ public class DefinedAssignableTemplate : DefinedAssignable
     protected string LocalizedName { get; private init; }
     string DefinedAssignable.LocalizedName => LocalizedName;
 
-    protected Virial.Color RoleColor { get; private init; }
+    protected Color RoleColor { get; private init; }
     internal UnityEngine.Color UnityColor { get; private init; }
 
     Color DefinedAssignable.Color => RoleColor;
     UnityEngine.Color DefinedAssignable.UnityColor => UnityColor;
     int IRoleID.Id { get; set; } = -1;
 
-    public DefinedAssignableTemplate(string localizedName, Virial.Color color, ConfigurationTab? tab = null, Func<bool>? optionHolderPredicate = null, Func<ConfigurationHolderState>? optionHolderState = null)
+    public DefinedAssignableTemplate(string localizedName, Color color, ConfigurationTab? tab = null, Func<bool>? optionHolderPredicate = null, Func<ConfigurationHolderState>? optionHolderState = null)
     {
         ConfigurationHolder = null;
         LocalizedName = localizedName;
@@ -44,7 +44,7 @@ public class DefinedAssignableTemplate : DefinedAssignable
         NebulaAPI.Preprocessor?.RegisterAssignable(this);
 
         if(tab != null)
-            ConfigurationHolder = NebulaAPI.Configurations.Holder(NebulaAPI.GUI.TextComponent(this.RoleColor, "role." + this.LocalizedName + ".name"), NebulaAPI.GUI.LocalizedTextComponent("options.role." + this.LocalizedName + ".detail"), [tab], GameModes.AllGameModes, optionHolderPredicate, optionHolderState);
+            ConfigurationHolder = NebulaAPI.Configurations.Holder(NebulaAPI.GUI.TextComponent(RoleColor, "role." + LocalizedName + ".name"), NebulaAPI.GUI.LocalizedTextComponent("options.role." + LocalizedName + ".detail"), [tab], GameModes.AllGameModes, optionHolderPredicate, optionHolderState);
         
     }
 }
@@ -68,7 +68,7 @@ public class DefinedSingleAssignableTemplate : DefinedAssignableTemplate, Define
             roleChanceEditor = NebulaAPI.Configurations.Configuration(
                 () =>
                 {
-                    string str = NebulaAPI.Language.Translate("options.role.chance") + ": " + roleChanceEntry.CurrentValue + NebulaAPI.Language.Translate("options.percentage");
+                    var str = NebulaAPI.Language.Translate("options.role.chance") + ": " + roleChanceEntry.CurrentValue + NebulaAPI.Language.Translate("options.percentage");
                     if (roleCountOption.GetValue() > 1 && roleSecondaryChanceEntry.CurrentValue > 0) str += (" (" + roleSecondaryChanceEntry.CurrentValue + NebulaAPI.Language.Translate("options.percentage") + ")").Color(UnityEngine.Color.gray);
                     return str;
                 },
@@ -76,30 +76,30 @@ public class DefinedSingleAssignableTemplate : DefinedAssignableTemplate, Define
                     var gui = NebulaAPI.GUI;
                     if (roleCountOption.GetValue() <= 1)
                     {
-                        return gui.HorizontalHolder(Media.GUIAlignment.Left,
-                        gui.LocalizedText(Media.GUIAlignment.Center, gui.GetAttribute(Text.AttributeAsset.OptionsTitleHalf), "options.role.chance"),
+                        return gui.HorizontalHolder(GUIAlignment.Left,
+                        gui.LocalizedText(GUIAlignment.Center, gui.GetAttribute(AttributeAsset.OptionsTitleHalf), "options.role.chance"),
                         gui.HorizontalMargin(0.1f),
-                        gui.RawText(GUIAlignment.Center, gui.GetAttribute(Text.AttributeAsset.OptionsFlexible), ":"),
+                        gui.RawText(GUIAlignment.Center, gui.GetAttribute(AttributeAsset.OptionsFlexible), ":"),
                         gui.HorizontalMargin(0.1f),
-                        gui.RawText(GUIAlignment.Center, gui.GetAttribute(Text.AttributeAsset.OptionsValueShorter), roleChanceEntry.CurrentValue + NebulaAPI.Language.Translate("options.percentage")),
+                        gui.RawText(GUIAlignment.Center, gui.GetAttribute(AttributeAsset.OptionsValueShorter), roleChanceEntry.CurrentValue + NebulaAPI.Language.Translate("options.percentage")),
                         gui.SpinButton(GUIAlignment.Center, v => { roleChanceEntry.ChangeValue(v, true); NebulaAPI.Configurations.RequireUpdateSettingScreen(); })
                         );
                     }
                     else
                     {
-                        return gui.HorizontalHolder(Media.GUIAlignment.Left,
-                        gui.LocalizedText(Media.GUIAlignment.Center, gui.GetAttribute(Text.AttributeAsset.OptionsTitleHalf), "options.role.chance"),
+                        return gui.HorizontalHolder(GUIAlignment.Left,
+                        gui.LocalizedText(GUIAlignment.Center, gui.GetAttribute(AttributeAsset.OptionsTitleHalf), "options.role.chance"),
                         gui.HorizontalMargin(0.1f),
-                        gui.RawText(GUIAlignment.Center, gui.GetAttribute(Text.AttributeAsset.OptionsFlexible), ":"),
+                        gui.RawText(GUIAlignment.Center, gui.GetAttribute(AttributeAsset.OptionsFlexible), ":"),
                         gui.HorizontalMargin(0.1f),
-                        gui.RawText(GUIAlignment.Center, gui.GetAttribute(Text.AttributeAsset.OptionsValueShorter), roleChanceEntry.CurrentValue + NebulaAPI.Language.Translate("options.percentage")),
+                        gui.RawText(GUIAlignment.Center, gui.GetAttribute(AttributeAsset.OptionsValueShorter), roleChanceEntry.CurrentValue + NebulaAPI.Language.Translate("options.percentage")),
                         gui.SpinButton(GUIAlignment.Center, v => { roleChanceEntry.ChangeValue(v, true); NebulaAPI.Configurations.RequireUpdateSettingScreen(); }),
                         gui.HorizontalMargin(0.3f),
-                        gui.LocalizedText(Media.GUIAlignment.Center, gui.GetAttribute(Text.AttributeAsset.OptionsTitleHalf), "options.role.secondaryChance"),
+                        gui.LocalizedText(GUIAlignment.Center, gui.GetAttribute(AttributeAsset.OptionsTitleHalf), "options.role.secondaryChance"),
                         gui.HorizontalMargin(0.1f),
-                        gui.RawText(GUIAlignment.Center, gui.GetAttribute(Text.AttributeAsset.OptionsFlexible), ":"),
+                        gui.RawText(GUIAlignment.Center, gui.GetAttribute(AttributeAsset.OptionsFlexible), ":"),
                         gui.HorizontalMargin(0.1f),
-                        gui.RawText(GUIAlignment.Center, gui.GetAttribute(Text.AttributeAsset.OptionsValueShorter), roleSecondaryChanceEntry.CurrentValue > 0 ? (roleSecondaryChanceEntry.CurrentValue + NebulaAPI.Language.Translate("options.percentage")) : "-"),
+                        gui.RawText(GUIAlignment.Center, gui.GetAttribute(AttributeAsset.OptionsValueShorter), roleSecondaryChanceEntry.CurrentValue > 0 ? (roleSecondaryChanceEntry.CurrentValue + NebulaAPI.Language.Translate("options.percentage")) : "-"),
                         gui.SpinButton(GUIAlignment.Center, v => { roleSecondaryChanceEntry.ChangeValue(v, true); NebulaAPI.Configurations.RequireUpdateSettingScreen(); })
                         );
                     }
@@ -130,10 +130,10 @@ public class DefinedSingleAssignableTemplate : DefinedAssignableTemplate, Define
     protected RoleTeam Team { get; private init; }
     RoleTeam DefinedSingleAssignable.Team => Team;
 
-    public DefinedSingleAssignableTemplate(string localizedName, Virial.Color color, RoleCategory category, RoleTeam team, bool withAssignmentOption = true, ConfigurationTab? tab = null, Func<bool>? optionHolderPredicate = null) : base(localizedName, color, tab, optionHolderPredicate)
+    public DefinedSingleAssignableTemplate(string localizedName, Color color, RoleCategory category, RoleTeam team, bool withAssignmentOption = true, ConfigurationTab? tab = null, Func<bool>? optionHolderPredicate = null) : base(localizedName, color, tab, optionHolderPredicate)
     {
-        this.Category = category;
-        this.Team = team;
+        Category = category;
+        Team = team;
 
         if (withAssignmentOption)
         {
@@ -180,7 +180,7 @@ public class DefinedRoleTemplate : DefinedSingleAssignableTemplate, IGuessed, As
     /// <returns></returns>
     bool AssignableFilterHolder.CanLoad(DefinedAssignable assignable)
     {
-        AssignableFilterHolder filterHolder = this as AssignableFilterHolder;
+        var filterHolder = this as AssignableFilterHolder;
         if (!filterHolder.CanLoadDefault(assignable)) return false;
 
         if (assignable is DefinedModifier dm)
@@ -191,7 +191,7 @@ public class DefinedRoleTemplate : DefinedSingleAssignableTemplate, IGuessed, As
         return false;
     }
 
-    public DefinedRoleTemplate(string localizedName, Virial.Color color, RoleCategory category, RoleTeam team, IEnumerable<IConfiguration>? configurations = null, bool withAssignmentOption = true, bool withOptionHolder = true, Func<bool>? optionHolderPredicate = null) : base(localizedName, color, category, team, withAssignmentOption, withOptionHolder ? category : null, optionHolderPredicate)
+    public DefinedRoleTemplate(string localizedName, Color color, RoleCategory category, RoleTeam team, IEnumerable<IConfiguration>? configurations = null, bool withAssignmentOption = true, bool withOptionHolder = true, Func<bool>? optionHolderPredicate = null) : base(localizedName, color, category, team, withAssignmentOption, withOptionHolder ? category : null, optionHolderPredicate)
     {
         if ((this as IGuessed).CanBeGuessDefault)
             (this as IGuessed).CanBeGuessVariable = NebulaAPI.Configurations.SharableVariable("role." + (this as DefinedAssignable).InternalName + ".canBeGuess", true);
@@ -208,7 +208,7 @@ public class DefinedRoleTemplate : DefinedSingleAssignableTemplate, IGuessed, As
 
 public class DefinedModifierTemplate : DefinedAssignableTemplate
 {
-    public DefinedModifierTemplate(string localizedName, Virial.Color color, IEnumerable<IConfiguration>? configurations = null,bool withConfigurationHolder = true, Func<bool>? optionHolderPredicate = null) : base(localizedName, color, withConfigurationHolder ? ConfigurationTab.Modifiers : null, optionHolderPredicate)
+    public DefinedModifierTemplate(string localizedName, Color color, IEnumerable<IConfiguration>? configurations = null,bool withConfigurationHolder = true, Func<bool>? optionHolderPredicate = null) : base(localizedName, color, withConfigurationHolder ? ConfigurationTab.Modifiers : null, optionHolderPredicate)
     {
         if (withConfigurationHolder)
         {
@@ -223,9 +223,9 @@ public class ByCategoryAllocatorOptions : IAssignToCategorizedRole
     {
         public int CalcedRandomAssignment { get
             {
-                int num = 0;
-                float chanceF = Chance.Value / 100f;
-                for (int i = 0; i < RandomAssignment.Value; i++) if (!(chanceF < 1f) || (float)System.Random.Shared.NextDouble() < chanceF) num++;
+                var num = 0;
+                var chanceF = Chance.Value / 100f;
+                for (var i = 0; i < RandomAssignment.Value; i++) if (!(chanceF < 1f) || (float)System.Random.Shared.NextDouble() < chanceF) num++;
                 return num;
             } }
 
@@ -254,19 +254,19 @@ public class ByCategoryAllocatorOptions : IAssignToCategorizedRole
             List<GUIWidget> GetWidgets()
             {
                 List<GUIWidget> widgets = [
-                gui.Text(Media.GUIAlignment.Center, gui.GetAttribute(Text.AttributeAsset.OptionsTitleHalf), assignmentText),
-                gui.RawText(GUIAlignment.Center, gui.GetAttribute(Text.AttributeAsset.OptionsFlexible), ":"),
+                gui.Text(GUIAlignment.Center, gui.GetAttribute(AttributeAsset.OptionsTitleHalf), assignmentText),
+                gui.RawText(GUIAlignment.Center, gui.GetAttribute(AttributeAsset.OptionsFlexible), ":"),
                 gui.HorizontalMargin(0.1f),
-                gui.Text(GUIAlignment.Center, gui.GetAttribute(Text.AttributeAsset.OptionsValueShorter), gui.FunctionalTextComponent(()=> Assignment.CurrentValue.ToString())),
+                gui.Text(GUIAlignment.Center, gui.GetAttribute(AttributeAsset.OptionsValueShorter), gui.FunctionalTextComponent(()=> Assignment.CurrentValue.ToString())),
                 gui.SpinButton(GUIAlignment.Center, v => { Assignment.ChangeValue(v, true); NebulaAPI.Configurations.RequireUpdateSettingScreen(); }),
                 gui.HorizontalMargin(0.5f),
-                gui.LocalizedText(Media.GUIAlignment.Center, gui.GetAttribute(Text.AttributeAsset.OptionsTitleShortest), "options.role.randomCount"),
-                gui.RawText(GUIAlignment.Center, gui.GetAttribute(Text.AttributeAsset.OptionsFlexible), ":"),
+                gui.LocalizedText(GUIAlignment.Center, gui.GetAttribute(AttributeAsset.OptionsTitleShortest), "options.role.randomCount"),
+                gui.RawText(GUIAlignment.Center, gui.GetAttribute(AttributeAsset.OptionsFlexible), ":"),
                 gui.HorizontalMargin(0.1f),
-                gui.Text(GUIAlignment.Center, gui.GetAttribute(Text.AttributeAsset.OptionsValueShorter), gui.FunctionalTextComponent(()=> RandomAssignment.CurrentValue.ToString())),
+                gui.Text(GUIAlignment.Center, gui.GetAttribute(AttributeAsset.OptionsValueShorter), gui.FunctionalTextComponent(()=> RandomAssignment.CurrentValue.ToString())),
                 gui.SpinButton(GUIAlignment.Center, v => { RandomAssignment.ChangeValue(v, true); NebulaAPI.Configurations.RequireUpdateSettingScreen(); }),
                 gui.HorizontalMargin(0.2f),
-                gui.Text(GUIAlignment.Center, gui.GetAttribute(Text.AttributeAsset.OptionsValueShorter), gui.FunctionalTextComponent(()=> Chance.CurrentValue.ToString() + "%")),
+                gui.Text(GUIAlignment.Center, gui.GetAttribute(AttributeAsset.OptionsValueShorter), gui.FunctionalTextComponent(()=> Chance.CurrentValue.ToString() + "%")),
                 gui.SpinButton(GUIAlignment.Center, v => { Chance.ChangeValue(v, true); NebulaAPI.Configurations.RequireUpdateSettingScreen(); }),
                 ];
 
@@ -275,7 +275,7 @@ public class ByCategoryAllocatorOptions : IAssignToCategorizedRole
 
             string GetValueString()
             {
-                string str = assignmentText.GetString() + ": " + Assignment.Value;
+                var str = assignmentText.GetString() + ": " + Assignment.Value;
                 if (RandomAssignment.CurrentValue > 0)
                 {
                     str += $" + {RandomAssignment.Value}({Chance.Value}%)";
@@ -283,12 +283,12 @@ public class ByCategoryAllocatorOptions : IAssignToCategorizedRole
                 return str;
             }
 
-            return NebulaAPI.Configurations.Configuration(GetValueString, () => gui.HorizontalHolder(Media.GUIAlignment.Center, GetWidgets()));
+            return NebulaAPI.Configurations.Configuration(GetValueString, () => gui.HorizontalHolder(GUIAlignment.Center, GetWidgets()));
         }
     }
     private IntegerConfiguration? maxCount = null;
     private CategoryOption? impostors = null, neutral = null, crewmates = null;
-    public int MaxCount { get { int count = maxCount?.GetValue() ?? 0; return count == 0 ? -1 : count; } }
+    public int MaxCount { get { var count = maxCount?.GetValue() ?? 0; return count == 0 ? -1 : count; } }
 
 
     /// <summary>
@@ -300,7 +300,7 @@ public class ByCategoryAllocatorOptions : IAssignToCategorizedRole
     public CategoryOption? GetOptions(RoleCategory roleCategory) => roleCategory switch { RoleCategory.ImpostorRole => impostors, RoleCategory.CrewmateRole => crewmates, RoleCategory.NeutralRole => neutral, _ => null };
     internal bool CanAssignTo(RoleCategory category) => GetOptions(category) != null;
 
-    void IAssignToCategorizedRole.GetAssignProperties(Virial.Assignable.RoleCategory category, out int assign100, out int assignRandom, out int assignChance)
+    void IAssignToCategorizedRole.GetAssignProperties(RoleCategory category, out int assign100, out int assignRandom, out int assignChance)
     {
         var options = GetOptions(category);
         assign100 = options?.Assignment.Value ?? 0;
@@ -357,10 +357,10 @@ public class DefinedAllocatableModifierTemplate : DefinedModifierTemplate, HasAs
     /// <param name="category"></param>
     /// <returns></returns>
     public bool CanAssignOnThisGameByConfiguration(RoleCategory category) => allocatorOptions.CanAssignOnThisGameByConfiguration(category);
-    public DefinedAllocatableModifierTemplate(string localizedName, string codeName, Virial.Color color, IEnumerable<IConfiguration>? configurations = null, bool allocateToCrewmate = true, bool allocateToImpostor = true, bool allocateToNeutral = true) : base(localizedName, color)
+    public DefinedAllocatableModifierTemplate(string localizedName, string codeName, Color color, IEnumerable<IConfiguration>? configurations = null, bool allocateToCrewmate = true, bool allocateToImpostor = true, bool allocateToNeutral = true) : base(localizedName, color)
     {
         this.codeName = codeName;
-        string internalName = (this as DefinedAssignable).InternalName;
+        var internalName = (this as DefinedAssignable).InternalName;
 
         allocatorOptions = new(internalName, ConfigurationHolder!, allocateToCrewmate, allocateToImpostor, allocateToNeutral);
 
@@ -370,7 +370,7 @@ public class DefinedAllocatableModifierTemplate : DefinedModifierTemplate, HasAs
         if (configurations != null)ConfigurationHolder?.AppendConfigurations(configurations);
     }
 
-    void HasAssignmentRoutine.TryAssign(Virial.Assignable.IRoleTable roleTable)
+    void HasAssignmentRoutine.TryAssign(IRoleTable roleTable)
     {
         // 0を下回らないように、最大値の中に納まるよう値を減少させる。戻り値は余剰。
         int LessenRandomly(int[] num, int max)
@@ -378,17 +378,18 @@ public class DefinedAllocatableModifierTemplate : DefinedModifierTemplate, HasAs
             //最大値が0を下回るものは無視する。
             if (max < 0) return max;
 
-            int left = num.Sum() - max;
+            var left = num.Sum() - max;
             if (left <= 0) return -left;
 
-            List<int> moreThanZeroIndex = new();
-            for (int i = 0; i < num.Length; i++) if (num[i] > 0) moreThanZeroIndex.Add(i);
+            List<int> moreThanZeroIndex = [];
+            for (var i = 0; i < num.Length; i++) if (num[i] > 0) moreThanZeroIndex.Add(i);
 
             while (true)
             {
                 if (left <= 0) return 0;
 
-                int targetIndex = moreThanZeroIndex[System.Random.Shared.Next(moreThanZeroIndex.Count)];
+                var next = System.Random.Shared.Next(moreThanZeroIndex.Count);
+                var targetIndex = moreThanZeroIndex[next];
                 num[targetIndex]--;
                 if (num[targetIndex] == 0) moreThanZeroIndex.Remove(targetIndex);
 
@@ -397,21 +398,21 @@ public class DefinedAllocatableModifierTemplate : DefinedModifierTemplate, HasAs
         }
         RoleCategory[] categories = [RoleCategory.CrewmateRole, RoleCategory.ImpostorRole, RoleCategory.NeutralRole];
         var players = categories.Select(c => roleTable.GetPlayers(c).Where(tuple => tuple.role.CanLoad(this)).OrderBy(_ => Guid.NewGuid()).ToArray()).ToArray();
-        int[] assignables = players.Select(p => p.Count()).ToArray();
-        int[] num = categories.Select(c => allocatorOptions.GetOptions(c)?.Assignment.Value ?? 0).ToArray();
-        for (int i = 0; i < categories.Length; i++) if (num[i] > assignables[i]) num[i] = assignables[i];
-        int randomMax = LessenRandomly(num, allocatorOptions.MaxCount);
+        var assignables = players.Select(p => p.Count()).ToArray();
+        var num = categories.Select(c => allocatorOptions.GetOptions(c)?.Assignment.Value ?? 0).ToArray();
+        for (var i = 0; i < categories.Length; i++) if (num[i] > assignables[i]) num[i] = assignables[i];
+        var randomMax = LessenRandomly(num, allocatorOptions.MaxCount);
 
         if (randomMax > 0)
         {
-            int[] randomNum = categories.Select(c => allocatorOptions.GetOptions(c)?.CalcedRandomAssignment ?? 0).ToArray();
-            for (int i = 0; i < categories.Length; i++) if (num[i] + randomNum[i] > assignables[i]) randomNum[i] = assignables[i] - num[i];
+            var randomNum = categories.Select(c => allocatorOptions.GetOptions(c)?.CalcedRandomAssignment ?? 0).ToArray();
+            for (var i = 0; i < categories.Length; i++) if (num[i] + randomNum[i] > assignables[i]) randomNum[i] = assignables[i] - num[i];
 
             LessenRandomly(randomNum, randomMax);
-            for(int i = 0;i< num.Length;i++) num[i] += randomNum[i];
+            for(var i = 0;i< num.Length;i++) num[i] += randomNum[i];
         }
 
-        for (int i = 0; i < categories.Length; i++) for (int p = 0; p < num[i]; p++) SetModifier(roleTable, players[i][p].playerId);
+        for (var i = 0; i < categories.Length; i++) for (var p = 0; p < num[i]; p++) SetModifier(roleTable, players[i][p].playerId);
     }
 
     protected virtual void SetModifier(IRoleTable roleTable, byte playerId) => roleTable.SetModifier(playerId, (this as DefinedModifier)!);
@@ -485,7 +486,7 @@ public class DefinedGhostRoleTemplate : DefinedAssignableTemplate, DefinedCatego
     protected RoleCategory Category { get; private init; }
     RoleCategory DefinedCategorizedAssignable.Category => Category;
     ByCategoryAllocatorOptions allocatorOptions;
-    public DefinedGhostRoleTemplate(string localizedName, Virial.Color color, RoleCategory category, IConfiguration[]? configurations = null) : base(localizedName, color, ConfigurationTab.GhostRoles)
+    public DefinedGhostRoleTemplate(string localizedName, Color color, RoleCategory category, IConfiguration[]? configurations = null) : base(localizedName, color, ConfigurationTab.GhostRoles)
     {
         Category = category;
 
@@ -503,9 +504,9 @@ public class DefinedGhostRoleTemplate : DefinedAssignableTemplate, DefinedCatego
 /// </summary>
 public class RuntimeAssignableTemplate : ComponentHolder, IBindPlayer
 {
-    protected Virial.Game.Player MyPlayer { get; private init; }
+    protected Player MyPlayer { get; private init; }
     protected bool AmOwner => MyPlayer.AmOwner;
-    Virial.Game.Player IBindPlayer.MyPlayer => MyPlayer;
+    Player IBindPlayer.MyPlayer => MyPlayer;
 
     public RuntimeAssignableTemplate(Player myPlayer)
     {

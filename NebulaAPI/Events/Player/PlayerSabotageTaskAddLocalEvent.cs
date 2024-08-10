@@ -12,6 +12,6 @@ public class PlayerSabotageTaskAddLocalEvent : AbstractPlayerEvent
 
     internal PlayerSabotageTaskAddLocalEvent(Virial.Game.Player player, PlayerTask systemTask) : base(player)
     {
-        this.SystemTask = systemTask;
+        SystemTask = systemTask;
     }
 }

@@ -12,6 +12,6 @@ public class PlayerOutfitChangeEvent : AbstractPlayerEvent
 
     public PlayerOutfitChangeEvent(Virial.Game.Player player, Virial.Game.Outfit outfit) : base(player)
     {
-        this.Outfit = outfit;
+        Outfit = outfit;
     }
 }

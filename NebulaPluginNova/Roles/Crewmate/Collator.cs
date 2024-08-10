@@ -44,15 +44,15 @@ public class Collator : DefinedRoleTemplate, HasCitation, DefinedRole
 
         public Instance(GamePlayer player, int[] arguments) : base(player){}
 
-        private List<(GamePlayer player, RoleTeam team)> sampledPlayers = new();
+        private List<(GamePlayer player, RoleTeam team)> sampledPlayers = [];
         private (SpriteRenderer tube, SpriteRenderer sample)[] allSamples = null!;
         private int ActualSampledPlayers => sampledPlayers.DistinctBy(p => p.player.PlayerId).Count();
         private int trials = MaxTrialsOption;
         void UpdateSamples()
         {
-            for(int i = 0; i < allSamples.Length; i++)
+            for(var i = 0; i < allSamples.Length; i++)
             {
-                GamePlayer? player = sampledPlayers.Count > i ? sampledPlayers[i].player : null;
+                var player = sampledPlayers.Count > i ? sampledPlayers[i].player : null;
                 if (player != null)
                 {
                     allSamples[i].sample.gameObject.SetActive(true);
@@ -65,15 +65,15 @@ public class Collator : DefinedRoleTemplate, HasCitation, DefinedRole
         
         void RegisterResult((GamePlayer player, RoleTeam team) player1, (GamePlayer player, RoleTeam team) player2)
         {
-            bool matched = player1.team == player2.team;
+            var matched = player1.team == player2.team;
 
             if (player1.player.IsImpostor && player2.player.IsImpostor) new StaticAchievementToken("collator.common4");
             if (!matched) new StaticAchievementToken("collator.common3");
             if (acTokenChallenge != null) acTokenChallenge.Value.Add(player1.player).Add(player2.player);
 
             NebulaAPI.CurrentGame?.GetModule<MeetingOverlayHolder>()?.RegisterOverlay(GUI.API.VerticalHolder(Virial.Media.GUIAlignment.Left,
-                new NoSGUIText(Virial.Media.GUIAlignment.Left, GUI.API.GetAttribute(Virial.Text.AttributeAsset.OverlayTitle), new TranslateTextComponent("role.collator.ui.title")),
-                new NoSGUIText(Virial.Media.GUIAlignment.Left, GUI.API.GetAttribute(Virial.Text.AttributeAsset.OverlayContent), 
+                new NoSGUIText(Virial.Media.GUIAlignment.Left, GUI.API.GetAttribute(AttributeAsset.OverlayTitle), new TranslateTextComponent("role.collator.ui.title")),
+                new NoSGUIText(Virial.Media.GUIAlignment.Left, GUI.API.GetAttribute(AttributeAsset.OverlayContent), 
                 new RawTextComponent(
                     Language.Translate("role.collator.ui.target") + ":<br>"
                     + "  " + player1.player.Unbox().ColoredDefaultName + "<br>"
@@ -162,7 +162,7 @@ public class Collator : DefinedRoleTemplate, HasCitation, DefinedRole
         private IEnumerator CoShakeTube(int index)
         {
             var tube = allSamples[index].tube;
-            float p = 0f;
+            var p = 0f;
             while (p < 1f) {
                 p += Time.deltaTime * 1.15f;
                 tube.transform.localEulerAngles = new(0f, 0f, 24f * Mathf.Sin(p * 29.2f) * (1f - p));
@@ -202,7 +202,7 @@ public class Collator : DefinedRoleTemplate, HasCitation, DefinedRole
                 };
 
                 allSamples = new (SpriteRenderer tube, SpriteRenderer sample)[SelectiveCollatingOption ? NumOfTubesOption : 2];
-                for(int i = 0;i<allSamples.Length;i++)
+                for(var i = 0;i<allSamples.Length;i++)
                 {
                     var tube = UnityHelper.CreateObject<SpriteRenderer>("SampleTube", ajust.transform, Vector3.zero, LayerExpansion.GetUILayer());
                     tube.sprite = tubeSprite.GetSprite(0);
@@ -218,16 +218,16 @@ public class Collator : DefinedRoleTemplate, HasCitation, DefinedRole
 
                 UpdateSamples();
 
-                var sampleTracker = Bind(ObjectTrackers.ForPlayer(null, MyPlayer, (p) => ObjectTrackers.StandardPredicate(p) && ((CanTakeDuplicateSampleOption && (sampledPlayers.Count + 1 < allSamples.Length || ActualSampledPlayers >= 2)) || !sampledPlayers.Any(s => s.player.PlayerId == p.PlayerId))));
+                var sampleTracker = Bind(ObjectTrackers.ForPlayer(null, MyPlayer, p => ObjectTrackers.StandardPredicate(p) && ((CanTakeDuplicateSampleOption && (sampledPlayers.Count + 1 < allSamples.Length || ActualSampledPlayers >= 2)) || !sampledPlayers.Any(s => s.player.PlayerId == p.PlayerId))));
                 var sampleButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability);
 
                 AchievementToken<int> achCommon1Token = new("collator.common1", 0, (val, _) => val >= 5);
                 AchievementToken<int> achCommon2Token = new("collator.common2", 0, (val, _) => val);
 
                 sampleButton.SetSprite(buttonSprite.GetSprite());
-                sampleButton.Availability = (button) => sampleTracker.CurrentTarget != null && MyPlayer.CanMove && sampledPlayers.Count < allSamples.Length;
-                sampleButton.Visibility = (button) => !MyPlayer.IsDead && trials > 0;
-                sampleButton.OnClick = (button) => {
+                sampleButton.Availability = button => sampleTracker.CurrentTarget != null && MyPlayer.CanMove && sampledPlayers.Count < allSamples.Length;
+                sampleButton.Visibility = button => !MyPlayer.IsDead && trials > 0;
+                sampleButton.OnClick = button => {
                     var p = sampleTracker.CurrentTarget;
                     sampledPlayers.Add((p,CheckTeam(p)));
                     NebulaManager.Instance.StartCoroutine(CoShakeTube(sampledPlayers.Count - 1).WrapToIl2Cpp());
@@ -240,7 +240,7 @@ public class Collator : DefinedRoleTemplate, HasCitation, DefinedRole
                     acTokenAnother1.Value.player = p;
                     acTokenAnother1.Value.time = NebulaGameManager.Instance!.CurrentTime;
                 };
-                sampleButton.OnStartTaskPhase = (button) => { if (!SelectiveCollatingOption || !CarringOverSamplesOption) sampledPlayers.Clear(); UpdateSamples(); };
+                sampleButton.OnStartTaskPhase = button => { if (!SelectiveCollatingOption || !CarringOverSamplesOption) sampledPlayers.Clear(); UpdateSamples(); };
                 sampleButton.CoolDownTimer = Bind(new Timer(SampleCoolDownOption).SetAsAbilityCoolDown().Start());
                 sampleButton.SetLabel("collatorSample");
             }

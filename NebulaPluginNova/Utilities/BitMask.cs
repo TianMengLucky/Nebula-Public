@@ -77,7 +77,7 @@ public class FunctionalMask<T> : BitMask<T>
 
 public class HashSetMask<T> : EditableBitMask<T>
 {
-    HashSet<T> set = new();
+    HashSet<T> set = [];
 
     public HashSetMask(){}
 

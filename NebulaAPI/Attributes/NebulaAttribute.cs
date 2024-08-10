@@ -140,7 +140,7 @@ public class AddonDocumentAttribute : Attribute
     public object[] Arguments { get; private init; }
     public AddonDocumentAttribute(string documentId, params object[] args)
     {
-        this.DocumentId = documentId;
-        this.Arguments = args;
+        DocumentId = documentId;
+        Arguments = args;
     }
 }

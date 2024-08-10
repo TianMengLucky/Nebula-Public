@@ -29,12 +29,12 @@ public static class HqCommSabotageTextPatch
         if (NebulaGameManager.Instance?.LocalFakeSabotage?.HasFakeSabotage(SystemTypes.Comms) ?? false)
         {
             __instance.even = !__instance.even;
-            Color color = __instance.even ? Color.yellow : Color.red;
+            var color = __instance.even ? Color.yellow : Color.red;
             sb.Append(color.ToTextColor());
             sb.Append(DestroyableSingleton<TranslationController>.Instance.GetString(TaskTypes.FixComms));
             sb.Append(" (0/2)");
             sb.Append("</color>");
-            for (int i = 0; i < __instance.Arrows.Length; i++) __instance.Arrows[i].image.color = color;
+            for (var i = 0; i < __instance.Arrows.Length; i++) __instance.Arrows[i].image.color = color;
             
             return false;
         }
@@ -239,7 +239,7 @@ public static class SwitchSabotagePatch
         if (!(__instance.Timer > 0f) && !MeetingHud.Instance && (SystemTypes)msgReader.PeekByte() == SystemTypes.Electrical && AmongUsClient.Instance.AmHost)
         {
             __instance.IsDirty = true;
-            byte b = (byte)(System.Random.Shared.Next((1 << 6) - 1) + 1);
+            var b = (byte)(System.Random.Shared.Next((1 << 6) - 1) + 1);
             ShipStatus.Instance.RpcUpdateSystem(SystemTypes.Electrical, (byte)(b | 128));
             __instance.Timer = 30f;
             __instance.IsDirty = true;

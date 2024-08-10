@@ -6,15 +6,15 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<LangVersion>latest</LangVersion>
+    <Platforms>AnyCPU;x86;x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
-	<Reference Include="$(AmongUs)\BepInEx\core\*.dll" />
+    <PackageReference Include="BepInEx.IL2CPP.MSBuild" Version="2.1.0-rc.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="BepInEx.Unity.IL2CPP" Version="6.0.0-be.692" />
   </ItemGroup>
 
-  <Target Name="CopyCustomContent" AfterTargets="AfterBuild">
-	<Message Text="Second occurrence" />
-	<Copy SourceFiles="bin\Release\net6.0\NebulaLoader.dll" DestinationFolder="$(AmongUsRelease)\Nebula\BepInEx\plugins" />
-	<Copy SourceFiles="bin\Release\net6.0\NebulaLoader.dll" DestinationFolder="$(AmongUsMod)\BepInEx\plugins\" />
-  </Target>
 </Project>

@@ -10,8 +10,8 @@ public static class ArrayHelper
 {
     public static float[] Selection(float min,float max, float step)
     {
-        List<float> result = new();
-        float val = min;
+        List<float> result = [];
+        var val = min;
         while(val < max)
         {
             result.Add(val);
@@ -23,8 +23,8 @@ public static class ArrayHelper
 
     public static int[] Selection(int min, int max, int step = 1)
     {
-        List<int> result = new();
-        int val = min;
+        List<int> result = [];
+        var val = min;
         while (val < max)
         {
             result.Add(val);

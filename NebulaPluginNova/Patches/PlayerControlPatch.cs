@@ -4,6 +4,7 @@ using Nebula.Behaviour;
 using Nebula.Game.Statistics;
 using PowerTools;
 using Virial.Events.Player;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Patches;
 
@@ -87,7 +88,7 @@ public static class PlayerUpdatePatch
         if (NebulaGameManager.Instance == null) return;
         if (NebulaGameManager.Instance.GameState == NebulaGameStates.NotStarted)
         {
-            bool showVanillaColor = ClientOption.AllOptions[ClientOption.ClientOptionType.ShowVanillaColor].Value == 1;
+            var showVanillaColor = ClientOption.AllOptions[ClientOption.ClientOptionType.ShowVanillaColor].Value == 1;
             try
             {
                 if (showVanillaColor) __instance.cosmetics.nameText.text = __instance.Data.PlayerName + " ■".Color(DynamicPalette.VanillaColorsPalette[__instance.PlayerId]);
@@ -172,7 +173,7 @@ public static class PlayerStartMeetingPatch
 {
     public static void Prefix(PlayerControl __instance, [HarmonyArgument(0)] NetworkedPlayerInfo info)
     {
-        TranslatableTag tag = info == null ? EventDetail.EmergencyButton : EventDetail.Report;
+        var tag = info == null ? EventDetail.EmergencyButton : EventDetail.Report;
 
         if (info != null)
         {
@@ -207,7 +208,7 @@ class OverlayKillAnimationPatch
     {
         if (__instance.killerParts)
         {
-            NetworkedPlayerInfo.PlayerOutfit? currentOutfit = NebulaGameManager.Instance?.GetPlayer(kInfo.PlayerId)?.Unbox().CurrentOutfit;
+            var currentOutfit = NebulaGameManager.Instance?.GetPlayer(kInfo.PlayerId)?.Unbox().CurrentOutfit;
             if (currentOutfit != null)
             {
                 __instance.killerParts.SetBodyType(PlayerBodyTypes.Normal);
@@ -219,7 +220,7 @@ class OverlayKillAnimationPatch
         }
         if (vInfo != null && __instance.victimParts)
         {
-            NetworkedPlayerInfo.PlayerOutfit? defaultOutfit = NebulaGameManager.Instance?.GetPlayer(vInfo.PlayerId)?.Unbox().DefaultOutfit;
+            var defaultOutfit = NebulaGameManager.Instance?.GetPlayer(vInfo.PlayerId)?.Unbox().DefaultOutfit;
             if (defaultOutfit != null)
             {
                 __instance.victimHat = defaultOutfit.HatId;
@@ -242,7 +243,7 @@ class SetTaskPAtch
         if (!__instance.AmOwner) return true;
 
         var info = __instance.GetModInfo();
-        int num = tasks.Count;
+        var num = tasks.Count;
 
         GameOperatorManager.Instance?.Update(); //イベントがあれば追加する(ゲーム開始の瞬間と被って、ホストでは通常のタイミングでの作用素の追加では間に合わない)
         var result = GameOperatorManager.Instance!.Run(new PlayerTasksTrySetLocalEvent(info, tasks.ToArray()));
@@ -258,14 +259,14 @@ class SetTaskPAtch
 
             HudManager.Instance.TaskStuff.SetActive(true);
 
-            for (int i = 0; i < __instance.myTasks.Count; i++) GameObject.Destroy(__instance.myTasks[i].gameObject);
+            for (var i = 0; i < __instance.myTasks.Count; i++) Object.Destroy(__instance.myTasks[i].gameObject);
             __instance.myTasks.Clear();
 
             __instance.Data.Role.SpawnTaskHeader(__instance);
-            for (int i = 0; i < tasksList.Length; i++)
+            for (var i = 0; i < tasksList.Length; i++)
             {
-                NetworkedPlayerInfo.TaskInfo taskInfo = tasksList[i];
-                NormalPlayerTask normalPlayerTask = GameObject.Instantiate<NormalPlayerTask>(ShipStatus.Instance.GetTaskById(taskInfo.TypeId), __instance.transform);
+                var taskInfo = tasksList[i];
+                var normalPlayerTask = Object.Instantiate<NormalPlayerTask>(ShipStatus.Instance.GetTaskById(taskInfo.TypeId), __instance.transform);
                 normalPlayerTask.Id = taskInfo.Id;
                 normalPlayerTask.Owner = __instance;
                 normalPlayerTask.Initialize();
@@ -322,12 +323,12 @@ class WalkPatch
         if (info == null) return;
 
         var orig = __result;
-        Vector2 temp = Vector2.zero;
+        var temp = Vector2.zero;
         IEnumerator CoWalk()
         {
             while (true)
             {
-                float speed = info.CalcSpeed(ref temp);
+                var speed = info.CalcSpeed(ref temp);
                 if (speed < 0f) speed *= -1f;
                 __instance.Speed = speed;
 
@@ -359,8 +360,8 @@ class PlayerPhysicsFixedUpdatePatch
 {
     public static bool Prefix(PlayerPhysics __instance)
     {
-        NetworkedPlayerInfo data = __instance.myPlayer.Data;
-        bool amDead = data != null && data.IsDead;
+        var data = __instance.myPlayer.Data;
+        var amDead = data != null && data.IsDead;
         __instance.HandleAnimation(amDead);
         if (__instance.AmOwner)
         {
@@ -399,7 +400,7 @@ public static class OverlayKillAnimationInitializePatch
             __instance.transform.GetChild(0).gameObject.SetActive(false);
             __instance.transform.GetChild(2).gameObject.SetActive(false);
 
-            float x = 0.6f;
+            var x = 0.6f;
             var victim = __instance.transform.GetChild(1);
             victim.localPosition = new(x, 0f, 0f);
             var pet = __instance.transform.GetChild(3);
@@ -428,8 +429,8 @@ public static class LoadVictimSkinPatch
     public static bool Prefix(OverlayKillAnimation __instance, [HarmonyArgument(0)] NetworkedPlayerInfo.PlayerOutfit victimOutfit)
     {
         var script = __instance.victimParts.gameObject.AddComponent<ScriptBehaviour>();
-        SkinViewData skin = ShipStatus.Instance.CosmeticsCache.GetSkin(victimOutfit.SkinId);
-        SpriteAnim skinSpriteAnim = __instance.victimParts.GetSkinSpriteAnim();
+        var skin = ShipStatus.Instance.CosmeticsCache.GetSkin(victimOutfit.SkinId);
+        var skinSpriteAnim = __instance.victimParts.GetSkinSpriteAnim();
 
         script.ActiveHandler += () =>
         {
@@ -466,8 +467,8 @@ public static class LoadKillerSkinPatch
     public static bool Prefix(OverlayKillAnimation __instance, [HarmonyArgument(0)] NetworkedPlayerInfo.PlayerOutfit killerOutfit)
     {
         var script = __instance.killerParts.gameObject.AddComponent<ScriptBehaviour>();
-        SkinViewData skin = ShipStatus.Instance.CosmeticsCache.GetSkin(killerOutfit.SkinId);
-        SpriteAnim skinSpriteAnim = __instance.killerParts.GetSkinSpriteAnim();
+        var skin = ShipStatus.Instance.CosmeticsCache.GetSkin(killerOutfit.SkinId);
+        var skinSpriteAnim = __instance.killerParts.GetSkinSpriteAnim();
 
         script.ActiveHandler += () =>
         {

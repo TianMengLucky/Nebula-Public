@@ -7,7 +7,7 @@ namespace Nebula.Utilities;
 [NebulaPreprocess(PreprocessPhase.FixStructure)]
 public class TranslatableTag : CommunicableTextTag
 {
-    static public List<TranslatableTag> AllTag = new();
+    static public List<TranslatableTag> AllTag = [];
 
     public string TranslateKey { get; private set; }
     string CommunicableTextTag.TranslationKey => TranslateKey;
@@ -19,7 +19,7 @@ public class TranslatableTag : CommunicableTextTag
     static void Preprocess(NebulaPreprocessor preprocessor)
     {
         AllTag.Sort((tag1,tag2 )=> tag1.TranslateKey.CompareTo(tag2.TranslateKey));
-        for (int i = 0; i < AllTag.Count; i++) AllTag[i].Id = i;
+        for (var i = 0; i < AllTag.Count; i++) AllTag[i].Id = i;
     }
 
     public TranslatableTag(string translateKey)

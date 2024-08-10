@@ -43,10 +43,10 @@ public abstract class TimeLimitedModulator
 
     public TimeLimitedModulator(float timer, bool canPassMeeting, int priority, string? duplicateTag)
     {
-        this.MaxTime = this.Timer = timer;
-        this.CanPassMeeting = canPassMeeting;
-        this.Priority = priority;
-        this.DuplicateTag = duplicateTag ?? "";
+        MaxTime = Timer = timer;
+        CanPassMeeting = canPassMeeting;
+        Priority = priority;
+        DuplicateTag = duplicateTag ?? "";
     }
 }
 
@@ -115,17 +115,17 @@ public class SpeedModulator : TimeLimitedModulator
         else
             speed += Num;
 
-        directionalPlayerSpeed *= this.DirectionalNum;
+        directionalPlayerSpeed *= DirectionalNum;
     }
 
 
     public SpeedModulator(float? num, Vector2 dirNum, bool isMultiplier, float timer, bool canPassMeeting, int priority, string? duplicateTag = null) : base(timer, canPassMeeting, priority, duplicateTag)
     {
-        this.Num = num ?? 10000f;
-        this.AbsNum = Mathf.Abs(this.Num);
-        this.DirectionalNum = dirNum;
-        this.AbsDirectionalNum = new(Mathf.Abs(dirNum.x), Mathf.Abs(dirNum.y));
-        this.IsMultiplier = isMultiplier;
+        Num = num ?? 10000f;
+        AbsNum = Mathf.Abs(Num);
+        DirectionalNum = dirNum;
+        AbsDirectionalNum = new(Mathf.Abs(dirNum.x), Mathf.Abs(dirNum.y));
+        IsMultiplier = isMultiplier;
     }
 
     public bool IsAccelModulator => (IsMultiplier ? AbsNum > 1f : AbsNum > 0f) || AbsDirectionalNum.x > 1f || AbsDirectionalNum.y > 1f;

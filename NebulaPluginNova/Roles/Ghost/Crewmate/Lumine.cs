@@ -3,6 +3,7 @@ using Virial.Assignable;
 using Virial.Configuration;
 using Virial.Game;
 using Virial.Helpers;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Roles.Ghost.Crewmate;
 
@@ -33,9 +34,9 @@ public class Lumine : DefinedGhostRoleTemplate, DefinedGhostRole
             {
                 var lumineButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability);
                 lumineButton.SetSprite(buttonSprite.GetSprite());
-                lumineButton.Availability = (button) => MyPlayer.CanMove;
-                lumineButton.Visibility = (button) => MyPlayer.IsDead;
-                lumineButton.OnClick = (button) =>
+                lumineButton.Availability = button => MyPlayer.CanMove;
+                lumineButton.Visibility = button => MyPlayer.IsDead;
+                lumineButton.OnClick = button =>
                 {
                     RpcLumineLight.Invoke(MyPlayer.VanillaPlayer.transform.position);
 
@@ -56,10 +57,10 @@ public class Lumine : DefinedGhostRoleTemplate, DefinedGhostRole
 
     static private IEnumerator CoLight(Vector2 pos)
     {
-        SpriteRenderer lightRenderer = AmongUsUtil.GenerateCustomLight(pos);
+        var lightRenderer = AmongUsUtil.GenerateCustomLight(pos);
         lightRenderer.transform.localScale *= LightSizeOption;
 
-        float p = 0f;
+        var p = 0f;
         while (p < 1f)
         {
             p += Time.deltaTime * 0.85f;
@@ -76,7 +77,7 @@ public class Lumine : DefinedGhostRoleTemplate, DefinedGhostRole
             yield return null;
         }
 
-        GameObject.Destroy(lightRenderer.gameObject);
+        Object.Destroy(lightRenderer.gameObject);
 
         yield break;
     }

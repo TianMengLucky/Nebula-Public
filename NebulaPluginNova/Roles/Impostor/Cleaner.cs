@@ -50,13 +50,13 @@ public class Cleaner : DefinedRoleTemplate, HasCitation, DefinedRole
             {
                 acTokenChallenge = new("cleaner.challenge",(false,0),(val,_)=>val.cleared);
 
-                var cleanTracker = Bind(ObjectTrackers.ForDeadBody(null, MyPlayer, (d) => true));
+                var cleanTracker = Bind(ObjectTrackers.ForDeadBody(null, MyPlayer, d => true));
 
                 cleanButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability, "cleaner.clean");
                 cleanButton.SetSprite(buttonSprite.GetSprite());
-                cleanButton.Availability = (button) => cleanTracker.CurrentTarget != null && MyPlayer.VanillaPlayer.CanMove;
-                cleanButton.Visibility = (button) => !MyPlayer.IsDead;
-                cleanButton.OnClick = (button) => {
+                cleanButton.Availability = button => cleanTracker.CurrentTarget != null && MyPlayer.VanillaPlayer.CanMove;
+                cleanButton.Visibility = button => !MyPlayer.IsDead;
+                cleanButton.OnClick = button => {
                     if (cleanTracker.CurrentTarget?.MyKiller == MyPlayer) new StaticAchievementToken("cleaner.common2");
                     AmongUsUtil.RpcCleanDeadBody(cleanTracker.CurrentTarget!.PlayerId,MyPlayer.PlayerId,EventDetail.Clean);
                     if (SyncKillAndCleanCoolDownOption) PlayerControl.LocalPlayer.killTimer = GameOptionsManager.Instance.CurrentGameOptions.GetFloat(FloatOptionNames.KillCooldown);

@@ -38,7 +38,7 @@ internal class FakeInformation : AbstractModule<Virial.Game.Game>, IGameOperator
 
     public FakeInformation()
     {
-        this.Register(Virial.NebulaAPI.CurrentGame!);
+        this.Register(NebulaAPI.CurrentGame!);
     }
 
     void HudUpdate(GameHudUpdateEvent ev)
@@ -71,7 +71,7 @@ internal class FakeInformation : AbstractModule<Virial.Game.Game>, IGameOperator
 
     static public FakeAdmin AdminFromActuals { get
         {
-            List<FakeAdminParam> param = new();
+            List<FakeAdminParam> param = [];
             foreach(var d in Helpers.AllDeadBodies()) param.Add(new(d.ParentId, d.TruePosition, false, true));
             foreach (var p in NebulaGameManager.Instance!.AllPlayerInfo()) if (!p.IsDead) param.Add(new(p.PlayerId, p.VanillaPlayer.GetTruePosition(), p.Role.Role.Category == Virial.Assignable.RoleCategory.ImpostorRole, false));
             return new(param.ToArray());
@@ -81,11 +81,11 @@ internal class FakeInformation : AbstractModule<Virial.Game.Game>, IGameOperator
     {
         get
         {
-            List<FakeVitalsParam> param = new();
+            List<FakeVitalsParam> param = [];
             var deadBodies = Helpers.AllDeadBodies();
             foreach (var p in NebulaGameManager.Instance!.AllPlayerInfo())
             {
-                VitalsState state = VitalsState.Alive;
+                var state = VitalsState.Alive;
                 if(p.IsDead)
                     state = deadBodies.Any(d => d.ParentId == p.PlayerId) ? VitalsState.Dead : VitalsState.Disconnected;
 

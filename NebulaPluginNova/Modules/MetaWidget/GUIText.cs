@@ -1,5 +1,6 @@
 ﻿using Nebula.Compat;
 using TMPro;
+using UnityEngine.Events;
 using Virial.Compat;
 using Virial.Media;
 using Virial.Text;
@@ -9,25 +10,25 @@ namespace Nebula.Modules.GUIWidget;
 
 public class NoSGUIText : AbstractGUIWidget
 {
-    protected Virial.Text.TextAttribute Attr;
+    protected TextAttribute Attr;
     protected TextComponent? Text;
     public GUIWidgetSupplier? OverlayWidget { get; init; } = null;
-    public (Action action, bool reopenOverlay)? OnClickText { get; init; } = null;
+    public (Action, bool)? OnClickText { get; init; } = null;
     virtual protected bool AllowGenerateCollider => true;
     public Action<TextMeshPro>? PostBuilder = null;
     
-    public NoSGUIText(GUIAlignment alignment, Virial.Text.TextAttribute attribute, TextComponent? text) : base(alignment)
+    public NoSGUIText(GUIAlignment alignment, TextAttribute attribute, TextComponent? text) : base(alignment)
     {
         Attr = attribute;
         Text = text;
     }
 
-    protected void ReflectMyAttribute(TMPro.TextMeshPro text, float width) => ReflectAttribute(Attr, text, width);
-    static public void ReflectAttribute(TextAttribute attr, TMPro.TextMeshPro text, float width)
+    protected void ReflectMyAttribute(TextMeshPro text, float width) => ReflectAttribute(Attr, text, width);
+    static public void ReflectAttribute(TextAttribute attr, TextMeshPro text, float width)
     {
         text.color = attr.Color.ToUnityColor();
-        text.alignment = (TMPro.TextAlignmentOptions)attr.Alignment;
-        text.fontStyle = (TMPro.FontStyles)attr.Style;
+        text.alignment = (TextAlignmentOptions)attr.Alignment;
+        text.fontStyle = (FontStyles)attr.Style;
         text.fontSize = attr.FontSize.FontSizeDefault;
         text.fontSizeMin = attr.FontSize.FontSizeMin;
         text.fontSizeMax = attr.FontSize.FontSizeMax;
@@ -43,6 +44,7 @@ public class NoSGUIText : AbstractGUIWidget
         }
     }
 
+    // ReSharper disable Unity.PerformanceAnalysis
     internal override GameObject? Instantiate(Size size, out Size actualSize)
     {
         if(Text == null)
@@ -62,8 +64,8 @@ public class NoSGUIText : AbstractGUIWidget
 
         if (Attr.IsFlexible)
         {
-            float prefferedWidth = Math.Min(text.rectTransform.sizeDelta.x, text.preferredWidth);
-            float prefferedHeight = Math.Min(text.rectTransform.sizeDelta.y, text.preferredHeight);
+            var prefferedWidth = Math.Min(text.rectTransform.sizeDelta.x, text.preferredWidth);
+            var prefferedHeight = Math.Min(text.rectTransform.sizeDelta.y, text.preferredHeight);
             text.rectTransform.sizeDelta = new(prefferedWidth, prefferedHeight);
 
             text.ForceMeshUpdate();
@@ -83,15 +85,15 @@ public class NoSGUIText : AbstractGUIWidget
             }
             if (OnClickText != null)
             {
-                button.OnClick.AddListener(() =>
+                button.OnClick.AddListener((UnityAction)(() =>
                 {
-                    OnClickText.Value.action.Invoke();
-                    if (OnClickText.Value.reopenOverlay)
+                    OnClickText.Value.Item1.Invoke();
+                    if (OnClickText.Value.Item2)
                     {
                         button.OnMouseOut.Invoke();
                         button.OnMouseOver.Invoke();
                     }
-                });
+                }));
             }
         }
 
@@ -115,7 +117,7 @@ public class NoSGUICheckbox : AbstractGUIWidget
 
     internal override GameObject? Instantiate(Size size, out Size actualSize)
     {
-        bool currentValue = defaultValue;
+        var currentValue = defaultValue;
 
         var backText = UnityEngine.Object.Instantiate(VanillaAsset.StandardTextPrefab, null);
         backText.transform.localPosition = new UnityEngine.Vector3(0f, 0f, 0f);

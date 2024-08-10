@@ -49,7 +49,7 @@ public static class Helpers
 
     public static Vector3 AsWorldPos(this Vector3 vec, bool isBack)
     {
-        Vector3 result = vec;
+        var result = vec;
         result.z = result.y / 1000f;
         if(isBack) result.z  += 0.001f;
         return result;
@@ -61,14 +61,14 @@ public static class Helpers
         if (!Directory.Exists(directoryPath)) return;
         
         string[] filePaths = Directory.GetFiles(directoryPath);
-        foreach (string filePath in filePaths)
+        foreach (var filePath in filePaths)
         {
             File.SetAttributes(filePath, FileAttributes.Normal);
             File.Delete(filePath);
         }
 
         string[] directoryPaths = Directory.GetDirectories(directoryPath);
-        foreach (string path in directoryPaths) DeleteDirectoryWithInnerFiles(path);
+        foreach (var path in directoryPaths) DeleteDirectoryWithInnerFiles(path);
         
         Directory.Delete(directoryPath, false);
     }
@@ -76,12 +76,12 @@ public static class Helpers
     public static PlayerControl? GetPlayer(byte? id)
     {
         if (!id.HasValue) return null;
-        return PlayerControl.AllPlayerControls.Find((Il2CppSystem.Predicate<PlayerControl>)((p) => p.PlayerId == id!));
+        return PlayerControl.AllPlayerControls.Find((Il2CppSystem.Predicate<PlayerControl>)(p => p.PlayerId == id!));
     }
 
     public static DeadBody? GetDeadBody(byte id)
     {
-        return AllDeadBodies().FirstOrDefault((p) => p.ParentId == id);
+        return AllDeadBodies().FirstOrDefault(p => p.ParentId == id);
     }
 
     public static int ComputeConstantOldHash(this string str)
@@ -90,7 +90,7 @@ public static class Helpers
         const long SurPrime = 9670057;
 
         long val = 0;
-        foreach (char c in str)
+        foreach (var c in str)
         {
             val *= MulPrime;
             val += c;
@@ -105,7 +105,7 @@ public static class Helpers
         const long SurPrime = 2147283659;
 
         long val = 0;
-        foreach (char c in str)
+        foreach (var c in str)
         {
             val *= MulPrime;
             val += c;
@@ -120,7 +120,7 @@ public static class Helpers
         const long SurPrime = 531206959292021;
 
         long val = 0;
-        foreach (char c in str)
+        foreach (var c in str)
         {
             val *= MulPrime;
             val += c;
@@ -131,14 +131,14 @@ public static class Helpers
 
     //ハッシュ化した文字列に使用するテキスト
     private static char[] HashCharacters = [
-        ..Helpers.Sequential(26).Select(i => (char)('a' + i)),
-        ..Helpers.Sequential(26).Select(i => (char)('A' + i)),
-        ..Helpers.Sequential(10).Select(i => (char)('0' + i))];
+        ..Sequential(26).Select(i => (char)('a' + i)),
+        ..Sequential(26).Select(i => (char)('A' + i)),
+        ..Sequential(10).Select(i => (char)('0' + i))];
 
     public static string ComputeConstantHashAsString(this string str)
     {
         var val = str.ComputeConstantOldHash();
-        StringBuilder builder = new StringBuilder();
+        var builder = new StringBuilder();
 
         while (val > 0)
         {
@@ -151,7 +151,7 @@ public static class Helpers
     public static string ComputeConstantHashAsStringLong(this string str)
     {
         var val = str.ComputeConstantLongHash();
-        StringBuilder builder = new StringBuilder();
+        var builder = new StringBuilder();
 
         while(val > 0)
         {
@@ -165,13 +165,13 @@ public static class Helpers
     {
         //Componentで探すよりタグで探す方が相当はやい
         var bodies = GameObject.FindGameObjectsWithTag("DeadBody");
-        for (int i = 0; i < bodies.Count; i++) yield return bodies[i].GetComponent<DeadBody>();
+        for (var i = 0; i < bodies.Count; i++) yield return bodies[i].GetComponent<DeadBody>();
     }
 
     public static int[] GetRandomArray(int length)
     {
         var array = new int[length];
-        for (int i = 0; i < length; i++) array[i] = i;
+        for (var i = 0; i < length; i++) array[i] = i;
         return array.OrderBy(i => Guid.NewGuid()).ToArray();
     }
 
@@ -193,16 +193,16 @@ public static class Helpers
             else
             {
 
-                IntPtr clipboardData = ClipboardHelper.GetClipboardData(type);
+                var clipboardData = ClipboardHelper.GetClipboardData(type);
                 if (clipboardData == IntPtr.Zero)
                     result = "";
                 else
                 {
-                    IntPtr intPtr = IntPtr.Zero;
+                    var intPtr = IntPtr.Zero;
                     try
                     {
                         intPtr = ClipboardHelper.GlobalLock(clipboardData);
-                        int len = ClipboardHelper.GlobalSize(clipboardData);
+                        var len = ClipboardHelper.GlobalSize(clipboardData);
 
                         if (type == 1U)
                             result = Marshal.PtrToStringAnsi(clipboardData, len);
@@ -228,7 +228,7 @@ public static class Helpers
     static public int[] Sequential(int length)
     {
         var array = new int[length];
-        for (int i = 0; i < length; i++) array[i] = i;
+        for (var i = 0; i < length; i++) array[i] = i;
         return array;
     }
 
@@ -272,9 +272,9 @@ public static class Helpers
         layerMask ??= Constants.ShipAndAllObjectsMask;
         var vector = pos2 - pos1;
         
-        int num = Physics2D.RaycastNonAlloc(pos1, vector.normalized, PhysicsHelpers.castHits, vector.magnitude, layerMask!.Value);
-        bool result = false;
-        for (int i = 0; i < num; i++)
+        var num = Physics2D.RaycastNonAlloc(pos1, vector.normalized, PhysicsHelpers.castHits, vector.magnitude, layerMask!.Value);
+        var result = false;
+        for (var i = 0; i < num; i++)
         {
             if (!PhysicsHelpers.castHits[i].collider.isTrigger && predicate.Invoke(PhysicsHelpers.castHits[i].collider))
             {

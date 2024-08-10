@@ -12,7 +12,7 @@ using Virial.Text;
 
 namespace Nebula.Configuration;
 
-public class ConfigurationsAPI : Virial.Configuration.Configurations
+public class ConfigurationsAPI : Configurations
 {
     static public ConfigurationsAPI API { get; private set; } = new();
 
@@ -33,24 +33,30 @@ public class ConfigurationsAPI : Virial.Configuration.Configurations
 
     BoolConfiguration Configurations.Configuration(string id, bool defaultValue, Func<bool>? predicate, TextComponent? title)
     {
-        var config = new BoolConfigurationImpl(id, defaultValue);
-        config.Predicate = predicate;
+        var config = new BoolConfigurationImpl(id, defaultValue)
+        {
+            Predicate = predicate
+        };
         return config;
     }
 
     IntegerConfiguration Configurations.Configuration(string id, IntegerSelection selection, int defaultValue, Func<bool>? predicate, Func<int,string>? decorator, TextComponent? title)
     {
-        var config = new IntegerConfigurationImpl(id, selection.Selection, defaultValue, title);
-        config.Predicate = predicate;
-        config.Decorator = decorator;
+        var config = new IntegerConfigurationImpl(id, selection.Selection, defaultValue, title)
+        {
+            Predicate = predicate,
+            Decorator = decorator
+        };
 
         return config;
     }
 
     FloatConfiguration Configurations.Configuration(string id, FloatSelection selection, float defaultValue, FloatConfigurationDecorator decorator, Func<bool>? predicate, TextComponent? title)
     {
-        var config = new FloatConfigurationImpl(id, selection.Selection, defaultValue, title);
-        config.Predicate = predicate;
+        var config = new FloatConfigurationImpl(id, selection.Selection, defaultValue, title)
+        {
+            Predicate = predicate
+        };
         if (decorator == FloatConfigurationDecorator.Ratio)
             config.DecorateAsRatioConfiguration();
         if (decorator == FloatConfigurationDecorator.Second)
@@ -61,17 +67,21 @@ public class ConfigurationsAPI : Virial.Configuration.Configurations
 
     FloatConfiguration Configurations.Configuration(string id, FloatSelection selection, float defaultValue, Func<float,string> decorator, Func<bool>? predicate, TextComponent? title)
     {
-        var config = new FloatConfigurationImpl(id, selection.Selection, defaultValue, title);
-        config.Decorator = decorator;
-        config.Predicate = predicate;
+        var config = new FloatConfigurationImpl(id, selection.Selection, defaultValue, title)
+        {
+            Decorator = decorator,
+            Predicate = predicate
+        };
 
         return config;
     }
 
     ValueConfiguration<int> Configurations.Configuration(string id, string[] selection, int defualtIndex, Func<bool>? predicate, TextComponent? title)
     {
-        var config = new StringConfigurationImpl(id, selection, defualtIndex, title);
-        config.Predicate = predicate;
+        var config = new StringConfigurationImpl(id, selection, defualtIndex, title)
+        {
+            Predicate = predicate
+        };
         return config;
     }
 

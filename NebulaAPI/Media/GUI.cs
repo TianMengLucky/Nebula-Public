@@ -57,7 +57,7 @@ public enum GUIAlignment
 /// </summary>
 /// <param name="pivot">重ね合わせるスクリーン上の点</param>
 /// <param name="anchoredPosition">重ね合わせられる空間上の点</param>
-public record Anchor(Virial.Compat.Vector2 pivot, Virial.Compat.Vector3 anchoredPosition)
+public record Anchor(Compat.Vector2 pivot, Compat.Vector3 anchoredPosition)
 {
     public static Anchor At(Compat.Vector2 pivot) => new(pivot,new(0f,0f,0f));
 }
@@ -292,7 +292,7 @@ public interface GUI
     /// <param name="inner"></param>
     /// <param name="perLine"></param>
     /// <returns></returns>
-    GUIWidget Arrange(GUIAlignment alignment, IEnumerable<Virial.Media.GUIWidget?> inner, int perLine);
+    GUIWidget Arrange(GUIAlignment alignment, IEnumerable<GUIWidget?> inner, int perLine);
 
     /// <summary>
     /// 縦方向にウィジェットを並べます。
@@ -363,7 +363,7 @@ public interface GUI
     /// </summary>
     /// <param name="font">フォントの識別子</param>
     /// <returns>フォント</returns>
-    Text.Font GetFont(Text.FontAsset font);
+    Text.Font GetFont(FontAsset font);
 
     /// <summary>
     /// パラメータからテキスト属性を取得します。
@@ -371,7 +371,7 @@ public interface GUI
     /// </summary>
     /// <param name="attribute">属性のパラメータ</param>
     /// <returns>テキスト属性</returns>
-    Text.TextAttribute GetAttribute(Text.AttributeParams attribute);
+    TextAttribute GetAttribute(AttributeParams attribute);
 
     /// <summary>
     /// 識別子からテキスト属性を取得します。
@@ -380,7 +380,7 @@ public interface GUI
     /// </summary>
     /// <param name="attribute">属性の識別子</param>
     /// <returns>テキスト属性</returns>
-    Text.TextAttribute GetAttribute(Text.AttributeAsset attribute);
+    TextAttribute GetAttribute(AttributeAsset attribute);
 
     /// <summary>
     /// テキスト属性を生成します。
@@ -391,7 +391,7 @@ public interface GUI
     /// <param name="fontSize">フォントサイズ</param>
     /// <param name="size">文字列の占有する大きさの上限</param>
     /// <returns></returns>
-    Text.TextAttribute GenerateAttribute(Text.AttributeParams attribute, Color color, FontSize fontSize, Size size);
+    TextAttribute GenerateAttribute(AttributeParams attribute, Color color, FontSize fontSize, Size size);
 
     /// <summary>
     /// 色付き翻訳テキストコンポーネントを生成します。
@@ -400,7 +400,7 @@ public interface GUI
     /// <param name="color">テキスト色</param>
     /// <param name="transrationKey">翻訳キー</param>
     /// <returns>テキストコンポーネント</returns>
-    TextComponent TextComponent(Virial.Color color, string transrationKey);
+    TextComponent TextComponent(Color color, string transrationKey);
 
     /// <summary>
     /// 生文字列のテキストコンポーネントを生成します。
@@ -422,7 +422,7 @@ public interface GUI
     /// <param name="color">テキスト色</param>
     /// <param name="component">テキストコンポーネント</param>
     /// <returns>色付きのテキストコンポーネント</returns>
-    TextComponent ColorTextComponent(Virial.Color color, TextComponent component);
+    TextComponent ColorTextComponent(Color color, TextComponent component);
 
     TextComponent FunctionalTextComponent(Func<string> supplier);
 

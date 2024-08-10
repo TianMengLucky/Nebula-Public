@@ -1,15 +1,17 @@
-﻿namespace Nebula.Utilities;
+﻿using Object = UnityEngine.Object;
+
+namespace Nebula.Utilities;
 
 public class ObjectPool<T> where T : Component
 {
-    List<T> activatedObjects = new();
-    List<T> inactivatedObjects = new();
+    List<T> activatedObjects = [];
+    List<T> inactivatedObjects = [];
     public Action<T>? OnInstantiated { get; set; }
     Func<T> generator;
     Transform parent;
 
     public ObjectPool(T original, Transform parent){
-        this.generator = () => GameObject.Instantiate(original, this.parent);
+        generator = () => Object.Instantiate(original, this.parent);
         this.parent = parent;
     }
 
@@ -21,8 +23,8 @@ public class ObjectPool<T> where T : Component
 
     public void DestroyAll()
     {
-        foreach (var obj in activatedObjects) GameObject.Destroy(obj.gameObject);
-        foreach (var obj in inactivatedObjects) GameObject.Destroy(obj.gameObject);
+        foreach (var obj in activatedObjects) Object.Destroy(obj.gameObject);
+        foreach (var obj in inactivatedObjects) Object.Destroy(obj.gameObject);
         activatedObjects.Clear();
         inactivatedObjects.Clear();
     }
@@ -31,7 +33,7 @@ public class ObjectPool<T> where T : Component
     {
         if(inactivatedObjects.Count > 0)
         {
-            T result = inactivatedObjects[inactivatedObjects.Count - 1];
+            var result = inactivatedObjects[inactivatedObjects.Count - 1];
             inactivatedObjects.RemoveAt(inactivatedObjects.Count - 1);
 
             activatedObjects.Add(result);
@@ -40,7 +42,7 @@ public class ObjectPool<T> where T : Component
         }
         else
         {
-            T result = generator.Invoke();
+            var result = generator.Invoke();
             OnInstantiated?.Invoke(result);
             activatedObjects.Add(result);
             return result;

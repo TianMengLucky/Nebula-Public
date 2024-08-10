@@ -26,8 +26,8 @@ internal static class ConfigurationValues
     /// <summary>
     /// 全オプション
     /// </summary>
-    static internal List<ISharableEntry> AllEntries = new();
-    static internal List<Action> Reloaders = new();
+    static internal List<ISharableEntry> AllEntries = [];
+    static internal List<Action> Reloaders = [];
     static internal StringDataEntry PresetName = new("preset", ConfigurationSaver, "");
     static internal string CurrentPresetName = "";
 
@@ -45,7 +45,7 @@ internal static class ConfigurationValues
     /// <summary>
     /// 値の共有を遅延させられているエントリーのID
     /// </summary>
-    static HashSet<int> ChangedEntryIdList = new();
+    static HashSet<int> ChangedEntryIdList = [];
     
     /// <summary>
     /// 値の共有を遅延させるブロッカー
@@ -119,7 +119,7 @@ internal static class ConfigurationValues
 
         AllEntries.Sort((c1, c2) => string.Compare(c1.Name, c2.Name));
 
-        for (int i = 0; i < AllEntries.Count; i++) AllEntries[i].Id = i;
+        for (var i = 0; i < AllEntries.Count; i++) AllEntries[i].Id = i;
 
         Debug.Log("All NoS Config Entries: " + AllEntries.Count);
         IsFixed = true;
@@ -158,15 +158,15 @@ internal static class ConfigurationValues
     /// </summary>
     static private DivisibleRemoteProcess<int, Tuple<int, int>> RpcShareAll = new DivisibleRemoteProcess<int, Tuple<int, int>>(
         "ShareAllOption",
-        (message) =>
+        message =>
         {
             //(Item1)番目から(Item2)-1番目まで
             IEnumerator<Tuple<int, int>> GetDivider()
             {
-                int done = 0;
+                var done = 0;
                 while (done < AllEntries.Count)
                 {
-                    int max = Mathf.Min(AllEntries.Count, done + 100);
+                    var max = Mathf.Min(AllEntries.Count, done + 100);
                     yield return new Tuple<int, int>(done, max);
                     done = max;
                 }
@@ -177,16 +177,16 @@ internal static class ConfigurationValues
         {
             writer.Write(message.Item1);
             writer.Write(message.Item2 - message.Item1);
-            for (int i = message.Item1; i < message.Item2; i++) writer.Write(AllEntries[i].RpcValue);
+            for (var i = message.Item1; i < message.Item2; i++) writer.Write(AllEntries[i].RpcValue);
         },
-       (reader) =>
+       reader =>
        {
-           int index = reader.ReadInt32();
-           int num = reader.ReadInt32();
+           var index = reader.ReadInt32();
+           var num = reader.ReadInt32();
            Debug.Log($"Received Share All Option RPC, Index: {index}, Num: {num}");
-           for (int i = 0; i < num; i++)
+           for (var i = 0; i < num; i++)
            {
-               int value = reader.ReadInt32();
+               var value = reader.ReadInt32();
                try
                {
                    AllEntries[index + i].RpcValue = value;

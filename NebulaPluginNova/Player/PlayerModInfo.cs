@@ -15,6 +15,7 @@ using Virial.Events.Player;
 using Virial.Game;
 using Virial.Text;
 using static UnityEngine.GraphicsBuffer;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Player;
 
@@ -48,18 +49,18 @@ public static class PlayerState
 
     static PlayerState()
     {
-        Virial.Text.PlayerStates.Alive = Alive;
-        Virial.Text.PlayerStates.Dead = Dead;
-        Virial.Text.PlayerStates.Exiled = Exiled;
-        Virial.Text.PlayerStates.Misfired = Misfired;
-        Virial.Text.PlayerStates.Sniped = Sniped;
-        Virial.Text.PlayerStates.Beaten = Beaten;
-        Virial.Text.PlayerStates.Guessed = Guessed;
-        Virial.Text.PlayerStates.Misguessed = Misguessed;
-        Virial.Text.PlayerStates.Embroiled = Embroiled;
-        Virial.Text.PlayerStates.Suicide = Suicide;
-        Virial.Text.PlayerStates.Revived = Revived;
-        Virial.Text.PlayerStates.Pseudocide = Pseudocide;
+        PlayerStates.Alive = Alive;
+        PlayerStates.Dead = Dead;
+        PlayerStates.Exiled = Exiled;
+        PlayerStates.Misfired = Misfired;
+        PlayerStates.Sniped = Sniped;
+        PlayerStates.Beaten = Beaten;
+        PlayerStates.Guessed = Guessed;
+        PlayerStates.Misguessed = Misguessed;
+        PlayerStates.Embroiled = Embroiled;
+        PlayerStates.Suicide = Suicide;
+        PlayerStates.Revived = Revived;
+        PlayerStates.Pseudocide = Pseudocide;
     }
 }
 
@@ -70,11 +71,11 @@ public class PlayerAttributeImpl : IPlayerAttribute
     public int Id { get; init; }
     public string Name { get; init; }
     public string? UIName { get; init; }
-    public Virial.Media.Image Image { get; private init; }
+    public Image Image { get; private init; }
     public Predicate<GamePlayer>? Cognizable { get; init; }
     public bool CanCognize(GamePlayer player) => Cognizable?.Invoke(player) ?? true;
     public IPlayerAttribute? IdenticalAttribute { get; init; } = null;
-    static private List<IPlayerAttribute> allAttributes = new();
+    static private List<IPlayerAttribute> allAttributes = [];
     static public IEnumerable<IPlayerAttribute> AllAttributes => allAttributes;
 
     //カテゴライズする際の分類用属性(基本的な効果を持つ属性にまとめたいところ)
@@ -85,8 +86,8 @@ public class PlayerAttributeImpl : IPlayerAttribute
 
     public PlayerAttributeImpl(int imageId, string name, string? uiId = null)
     {
-        this.Id = allAttributes.Count;
-        this.Image = AttributeShower.AttributeIcon.GetIconSprite(imageId);
+        Id = allAttributes.Count;
+        Image = AttributeShower.AttributeIcon.GetIconSprite(imageId);
         allAttributes.Add(this);
         Name = name;
         UIName = uiId;
@@ -141,13 +142,13 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
     public RuntimeGhostRole? GhostRole => myGhostRole;
     private RuntimeGhostRole? myGhostRole = null;
 
-    private List<RuntimeModifier> myModifiers = new();
+    private List<RuntimeModifier> myModifiers = [];
 
     RuntimeRole Virial.Game.Player.Role => myRole;
     IEnumerable<RuntimeModifier> Virial.Game.Player.Modifiers => myModifiers;
     public Vector2 PreMeetingPoint { get; private set; } = Vector2.zero;
 
-    private List<Virial.Game.OutfitCandidate> outfits = new();
+    private List<OutfitCandidate> outfits = [];
     private TMPro.TextMeshPro roleText;
 
 
@@ -158,7 +159,7 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
     {
         get
         {
-            bool hasTasks = Role.TaskType != RoleTaskType.NoTask;
+            var hasTasks = Role.TaskType != RoleTaskType.NoTask;
 
             //実際は持っていなくとも、クルータスクを持っていると思しきプレイヤーの場合
             if (Role.TaskType == RoleTaskType.CrewmateTask) hasTasks = FeelLikeHaveCrewmateTasks;
@@ -170,8 +171,8 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
     {
         get
         {
-            bool hasCrewmateTasks = Role.TaskType == RoleTaskType.CrewmateTask;
-            ModifierAction((modifier) => { hasCrewmateTasks &= !(modifier.InvalidateCrewmateTask || modifier.MyCrewmateTaskIsIgnored); });
+            var hasCrewmateTasks = Role.TaskType == RoleTaskType.CrewmateTask;
+            ModifierAction(modifier => { hasCrewmateTasks &= !(modifier.InvalidateCrewmateTask || modifier.MyCrewmateTaskIsIgnored); });
             return hasCrewmateTasks;
         }
     }
@@ -182,14 +183,14 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
         {
             if (NebulaGameManager.Instance?.CanBeSpectator ?? false) return HasCrewmateTasks;
 
-            bool hasCrewmateTasks = Role.TaskType == RoleTaskType.CrewmateTask;
-            ModifierAction((modifier) => { hasCrewmateTasks &= !modifier.InvalidateCrewmateTask; });
+            var hasCrewmateTasks = Role.TaskType == RoleTaskType.CrewmateTask;
+            ModifierAction(modifier => { hasCrewmateTasks &= !modifier.InvalidateCrewmateTask; });
             return hasCrewmateTasks;
         }
     }
 
     public VariablePermissionHolder PermissionHolder = new([]);
-    bool IPermissionHolder.Test(Virial.Common.Permission permission) => PermissionHolder.Test(permission);
+    bool IPermissionHolder.Test(Permission permission) => PermissionHolder.Test(permission);
 
     //各種収集データ
     public GamePlayer? MyKiller = null;
@@ -238,13 +239,13 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
 
     internal void SetPlayer(PlayerControl myPlayer)
     {
-        this.MyControl = myPlayer;
+        MyControl = myPlayer;
         PlayerId = myPlayer.PlayerId;
         AmOwner = myPlayer.AmOwner;
         
         DefaultOutfit = myPlayer.Data.DefaultOutfit;
         DefaultOutfitTags = OutfitTag.GetAllTags().Where(tag => tag.Checker.Invoke(DefaultOutfit)).ToArray();
-        roleText = GameObject.Instantiate(myPlayer.cosmetics.nameText, myPlayer.cosmetics.nameText.transform);
+        roleText = Object.Instantiate(myPlayer.cosmetics.nameText, myPlayer.cosmetics.nameText.transform);
         roleText.transform.localPosition = new Vector3(0, 0.185f, -0.01f);
         roleText.fontSize = 1.7f;
         roleText.text = "Unassigned";
@@ -262,9 +263,9 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
 
     private void UpdateOutfit()
     {
-        int lastColor = MyControl.cosmetics.ColorId;
+        var lastColor = MyControl.cosmetics.ColorId;
 
-        NetworkedPlayerInfo.PlayerOutfit newOutfit = DefaultOutfit;
+        var newOutfit = DefaultOutfit;
         if (outfits.Count > 0)
         {
             outfits = outfits.OrderBy(o => -o.Priority).ToList();
@@ -297,7 +298,7 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
             Debug.LogError(e.ToString());
         }
 
-        int currentColor = newOutfit.ColorId;
+        var currentColor = newOutfit.ColorId;
 
         /*
         Debug.Log("Last: " + lastColor);
@@ -366,11 +367,11 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
     static public readonly Color CrewTaskColor = new Color(0xFA / 255f, 0xD9 / 255f, 0x34 / 255f);
     public void UpdateRoleText(TMPro.TextMeshPro roleText) {
 
-        string text = "";
+        var text = "";
 
         if ((NebulaGameManager.Instance?.CanSeeAllInfo ?? false) || AmOwner)
         {
-            string? roleName = ((RuntimeAssignable?)(IsDead ? myGhostRole : myRole) ?? myRole).DisplayColoredName;
+            var roleName = ((RuntimeAssignable?)(IsDead ? myGhostRole : myRole) ?? myRole).DisplayColoredName;
             text += roleName ?? "Undefined";
 
             AssignableAction(r => { var newName = r.OverrideRoleName(text, false); if (newName != null) text = newName; });
@@ -396,7 +397,7 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
 
         var isDead = MyControl.Data.IsDead;
 
-        if (role.Category == Virial.Assignable.RoleCategory.ImpostorRole)
+        if (role.Category == RoleCategory.ImpostorRole)
             DestroyableSingleton<RoleManager>.Instance.SetRole(MyControl, RoleTypes.Impostor);
         else
             DestroyableSingleton<RoleManager>.Instance.SetRole(MyControl, RoleTypes.Crewmate);
@@ -443,9 +444,9 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
         GameTracker.Instance?.AddRoleHistory(new(NebulaGameManager.Instance!.CurrentTime, RoleType.Modifier, role.InternalName, PlayerId, arguments));
     }
 
-    public NebulaRPCInvoker RpcInvokerSetRole(DefinedRole role, int[]? arguments) => RpcSetAssignable.GetInvoker((PlayerId, role.Id, arguments ?? Array.Empty<int>(), RoleType.Role));
-    public NebulaRPCInvoker RpcInvokerSetModifier(DefinedModifier modifier, int[]? arguments) => RpcSetAssignable.GetInvoker((PlayerId, modifier.Id, arguments ?? Array.Empty<int>(), RoleType.Modifier));
-    public NebulaRPCInvoker RpcInvokerSetGhostRole(DefinedGhostRole role, int[]? arguments) => RpcSetAssignable.GetInvoker((PlayerId, role.Id, arguments ?? Array.Empty<int>(), RoleType.GhostRole));
+    public NebulaRPCInvoker RpcInvokerSetRole(DefinedRole role, int[]? arguments) => RpcSetAssignable.GetInvoker((PlayerId, role.Id, arguments ?? [], RoleType.Role));
+    public NebulaRPCInvoker RpcInvokerSetModifier(DefinedModifier modifier, int[]? arguments) => RpcSetAssignable.GetInvoker((PlayerId, modifier.Id, arguments ?? [], RoleType.Modifier));
+    public NebulaRPCInvoker RpcInvokerSetGhostRole(DefinedGhostRole role, int[]? arguments) => RpcSetAssignable.GetInvoker((PlayerId, role.Id, arguments ?? [], RoleType.GhostRole));
     public NebulaRPCInvoker RpcInvokerUnsetModifier(DefinedModifier modifier) => RpcRemoveModifier.GetInvoker(new(PlayerId, modifier.Id));
     public void UnsetModifierLocal(Predicate<RuntimeModifier> predicate)
     {
@@ -468,10 +469,10 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
     public bool TryGetProperty(string id, out INebulaProperty? property)
     {
         property = null;
-        string prefix = $"players.{PlayerId}.";
+        var prefix = $"players.{PlayerId}.";
         if (!id.StartsWith(prefix)) return false;
 
-        string subStr = id.Substring(prefix.Length);
+        var subStr = id.Substring(prefix.Length);
         if (subStr == "roleArgument")
         {
             property = new NebulaInstantProperty() { IntegerArrayProperty = Role?.RoleArguments };
@@ -487,7 +488,7 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
 
     public IEnumerator CoGetRoleArgument(Action<int[]> callback)
     {
-        yield return PropertyRPC.CoGetProperty<int[]>(PlayerId, $"players.{PlayerId}.roleArgument", callback, () => callback.Invoke(new int[0]));
+        yield return PropertyRPC.CoGetProperty<int[]>(PlayerId, $"players.{PlayerId}.roleArgument", callback, () => callback.Invoke([]));
     }
 
     public IEnumerator CoGetLeftGuess(Action<int> callback)
@@ -500,7 +501,8 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
         (message, isCalledByMe) =>
         {
             var player = NebulaGameManager.Instance!.RegisterPlayer(PlayerControl.AllPlayerControls.Find((Il2CppSystem.Predicate<PlayerControl>)(p => p.PlayerId == message.playerId))).Unbox();
-
+            ChatChannel.Instance.UpdateCanUseChannels();
+            
             if (message.roleType == RoleType.Role)
                 player.SetRole(Roles.Roles.AllRoles[message.assignableId], message.arguments);
             else if (message.roleType == RoleType.GhostRole)
@@ -517,7 +519,7 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
         );
 
     private readonly static RemoteProcess<(byte playerId, int modifierId)> RpcRemoveModifier = new(
-        "RemoveModifier", (message, _) => NebulaGameManager.Instance?.GetPlayer(message.playerId)?.Unbox().UnsetModifierLocal((m) => m.Modifier.Id == message.modifierId)
+        "RemoveModifier", (message, _) => NebulaGameManager.Instance?.GetPlayer(message.playerId)?.Unbox().UnsetModifierLocal(m => m.Modifier.Id == message.modifierId)
         );
 
     public readonly static RemoteProcess<(byte playerId, OutfitCandidate outfit)> RpcAddOutfit = new(
@@ -553,7 +555,7 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
 
         if (!holdingDeadBodyCache || holdingDeadBodyCache!.ParentId != HoldingDeadBodyId)
         {
-            holdingDeadBodyCache = Helpers.AllDeadBodies().FirstOrDefault((d) => d.ParentId == HoldingDeadBodyId);
+            holdingDeadBodyCache = Helpers.AllDeadBodies().FirstOrDefault(d => d.ParentId == HoldingDeadBodyId);
             if (!holdingDeadBodyCache)
             {
                 holdingDeadBodyCache = null;
@@ -576,13 +578,13 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
 
         Vector3 playerPos = MyControl.GetTruePosition();
         Vector3 deadBodyPos = holdingDeadBodyCache!.TruePosition;
-        Vector3 diff = (deadBodyPos - playerPos);
-        float d = diff.magnitude;
+        var diff = (deadBodyPos - playerPos);
+        var d = diff.magnitude;
         if (PhysicsHelpers.AnythingBetween(playerPos, deadBodyPos, Constants.ShipAndAllObjectsMask, false))
         {
             foreach (var ray in PhysicsHelpers.castHits)
             {
-                float temp = ((Vector3)ray.point - playerPos).magnitude;
+                var temp = ((Vector3)ray.point - playerPos).magnitude;
                 if (d > temp) d = temp;
             }
 
@@ -638,13 +640,13 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
 
     static public (float angle, float distance) LocalMouseInfo { get
         {
-            Vector2 vec = (Vector2)Input.mousePosition - new Vector2(Screen.width / 2, Screen.height / 2);
+            var vec = (Vector2)Input.mousePosition - new Vector2(Screen.width / 2, Screen.height / 2);
             var viewer = NebulaGameManager.Instance!.WideCamera.ViewerTransform;
             if (viewer.localScale.x < 0f) vec.x *= -1;
             if (viewer.localScale.y < 0f) vec.y *= -1;
 
-            float currentAngle = Mathf.Atan2(vec.y, vec.x) - (viewer.localEulerAngles.z / 180f * Mathf.PI);
-            float ratio = (Camera.main.orthographicSize * 2f) / (float)Screen.height;
+            var currentAngle = Mathf.Atan2(vec.y, vec.x) - (viewer.localEulerAngles.z / 180f * Mathf.PI);
+            var ratio = (Camera.main.orthographicSize * 2f) / (float)Screen.height;
             return (currentAngle, vec.magnitude * ratio);
         }
     }
@@ -653,7 +655,7 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
     {
         if (!requiredUpdateMouseAngle) return;
 
-        float currentAngle = LocalMouseInfo.angle;
+        var currentAngle = LocalMouseInfo.angle;
 
         if (Mathf.Repeat(currentAngle - MouseAngle, Mathf.PI * 2f) > 0.02f) RpcUpdateAngle.Invoke((PlayerId, currentAngle));
 
@@ -673,7 +675,7 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
 
     private IEnumerable<SpeedModulator> SpeedModulators => timeLimitedModulators.Select(m => m as SpeedModulator).Where(m => m != null)!;
     private IEnumerable<AttributeModulator> AttributeModulators => timeLimitedModulators.Select(m => m as AttributeModulator).Where(m => m != null)!;
-    private List<TimeLimitedModulator> timeLimitedModulators = new();
+    private List<TimeLimitedModulator> timeLimitedModulators = [];
     private Vector2 smoothPlayerSize = Vector2.one;
     public Transform PlayerScaler;
     private Vector2 directionalPlayerSpeed = Vector2.one;
@@ -700,7 +702,7 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
             if (!a.CanCognize(this)) continue;
 
             float max = 0f, current = 0f;
-            bool isPermanent = false;
+            var isPermanent = false;
             foreach (var attribute in timeLimitedModulators.Where(attr => attr.HasCategorizedAttribute(a, this)))
             {
                 if (max < attribute.MaxTime) max = attribute.MaxTime;
@@ -719,7 +721,7 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
         {
             IEnumerator CoCurseUpdate()
             {
-                bool isLeft = false;
+                var isLeft = false;
 
                 while (true)
                 {
@@ -812,7 +814,7 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
 
     public float CalcSpeed(ref Vector2 directionalPlayerSpeed)
     {
-        float speed = 2.5f;
+        var speed = 2.5f;
         CalcSpeed(ref directionalPlayerSpeed, ref speed);
         return speed;
     }
@@ -825,8 +827,8 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
 
     public void CalcSize()
     {
-        Vector2 targetSize = Vector2.one;
-        Vector2 nonSmoothSize = Vector2.one;
+        var targetSize = Vector2.one;
+        var nonSmoothSize = Vector2.one;
         foreach (var m in timeLimitedModulators.Select(m => m as SizeModulator).Where(m => m != null))
         {
             if (m.Smooth)
@@ -872,7 +874,7 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
         float min = 0f, max = 1f;
         if (invisibleLevel == 1) min = 0.25f;
 
-        float goal = invisibleLevel switch
+        var goal = invisibleLevel switch
         {
             1 => 0.25f,
             2 => 0f,
@@ -912,8 +914,8 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
             if (update)
             {
                 //不可視度合を調べる
-                int invisibleLevel = 0;
-                PlayerModInfo localInfo = NebulaGameManager.Instance!.LocalPlayerInfo.Unbox();
+                var invisibleLevel = 0;
+                var localInfo = NebulaGameManager.Instance!.LocalPlayerInfo.Unbox();
 
                 //属性効果はより透明にする効果を優先する
                 if (!IsDead)
@@ -938,7 +940,7 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
                 visibilityCache = invisibleLevel;
             }
 
-            int visualInvisibleLevel = visibilityCache;
+            var visualInvisibleLevel = visibilityCache;
 
             //情報が開示済みの場合、あるいは自分自身を見る場合は半透明までにしかならない
             if (AmOwner || NebulaGameManager.Instance!.CanBeSpectator) visualInvisibleLevel = Math.Min(1, visualInvisibleLevel);
@@ -966,13 +968,13 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
             {
                 UpdateVisibilityAlpha(visualInvisibleLevel);
 
-                bool isInShadow = false;
+                var isInShadow = false;
                 if (!NebulaGameManager.Instance!.LocalPlayerInfo.IsDead && !AmOwner)
                 {
                     //自身も生存している場合、影の中にいるプレイヤーは見えないようにする
 
-                    int shadowMask = Constants.ShadowMask;
-                    int objectMask = Constants.ShipAndAllObjectsMask;
+                    var shadowMask = Constants.ShadowMask;
+                    var objectMask = Constants.ShipAndAllObjectsMask;
 
                     var light = PlayerControl.LocalPlayer.lightSource;
                     Vector2 pos = light.transform.position;
@@ -1126,9 +1128,9 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
 
     // Virial::OutfitAPI
 
-    Virial.Game.Outfit GamePlayer.GetOutfit(int maxPriority) => new(GetOutfit(maxPriority, out var tags), tags);
-    Virial.Game.Outfit GamePlayer.CurrentOutfit => new(CurrentOutfit, outfits.Count > 0 ? outfits[0].OutfitTags : DefaultOutfitTags);
-    Virial.Game.Outfit GamePlayer.DefaultOutfit => new(DefaultOutfit, DefaultOutfitTags);
+    Outfit GamePlayer.GetOutfit(int maxPriority) => new(GetOutfit(maxPriority, out var tags), tags);
+    Outfit GamePlayer.CurrentOutfit => new(CurrentOutfit, outfits.Count > 0 ? outfits[0].OutfitTags : DefaultOutfitTags);
+    Outfit GamePlayer.DefaultOutfit => new(DefaultOutfit, DefaultOutfitTags);
 
     // Virial::Internal
 

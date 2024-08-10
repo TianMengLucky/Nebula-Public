@@ -16,8 +16,8 @@ public class PlayerBlockWinEvent : AbstractPlayerEvent
 
     internal PlayerBlockWinEvent(Virial.Game.Player player, BitMask<Virial.Game.Player> winners, Virial.Game.GameEnd gameEnd) : base(player)
     {
-        this.GameEnd = gameEnd;
-        this.IsWin = winners.Test(player);
-        this.WinnersMask = winners;
+        GameEnd = gameEnd;
+        IsWin = winners.Test(player);
+        WinnersMask = winners;
     }
 }

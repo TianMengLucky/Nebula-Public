@@ -8,6 +8,7 @@ using Virial.Events.Game;
 using Virial.Events.Player;
 using Virial.Game;
 using Virial.Runtime;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Roles.Neutral;
 
@@ -159,7 +160,7 @@ public class Dancer : DefinedRoleTemplate, DefinedRole
     static private RemoteProcess<(GamePlayer, int, GamePlayer[], GamePlayer[])> RpcShareDanceState = new("ShareDanceState",
     (message, callByMe) =>
     {
-        if (!callByMe) (message.Item1.Role as Dancer.Instance)?.UpdateDanceState(message.Item2, message.Item3, message.Item4);
+        if (!callByMe) (message.Item1.Role as Instance)?.UpdateDanceState(message.Item2, message.Item3, message.Item4);
     });
 
     public class Instance : RuntimeAssignableTemplate, RuntimeRole
@@ -199,11 +200,11 @@ public class Dancer : DefinedRoleTemplate, DefinedRole
         //Dancerのダンス進捗チェッカ(抜き出したもの)
         private DanceModule dancerDanceChecker;
         //Dancerのダンスの全目撃者(称号用)
-        HashSet<GamePlayer> danceLooked = new HashSet<GamePlayer>();
+        HashSet<GamePlayer> danceLooked = [];
         //死の預言が有効なプレイヤー
-        List<GamePlayer> activeDanceLooked = new();
+        List<GamePlayer> activeDanceLooked = [];
         //死の預言が完遂されたプレイヤー
-        List<GamePlayer> completedDanceLooked = new();
+        List<GamePlayer> completedDanceLooked = [];
         //Dancer本人だけが使用する。死の預言の有効時間
         float[] danceLookedTimer = new float[15];
         int danceShareVersion = 0;
@@ -213,8 +214,8 @@ public class Dancer : DefinedRoleTemplate, DefinedRole
             if (version <= danceShareVersion) return;
 
             danceShareVersion = version;
-            activeDanceLooked = new(active);
-            completedDanceLooked = new(completed);
+            activeDanceLooked = [..active];
+            completedDanceLooked = [..completed];
         }
         void UpdateButtonGraphic()
         {
@@ -222,7 +223,7 @@ public class Dancer : DefinedRoleTemplate, DefinedRole
             {
                 canKillLeft = 0;
                 danceButton.SetSprite(buttonSprite.GetSprite());
-                if(danceButton.UsesIcon) GameObject.Destroy(danceButton.UsesIcon);
+                if(danceButton.UsesIcon) Object.Destroy(danceButton.UsesIcon);
             }
             else
             {
@@ -244,8 +245,8 @@ public class Dancer : DefinedRoleTemplate, DefinedRole
 
                 danceButton = Bind(new Modules.ScriptComponents.ModAbilityButton());
                 danceButton.SetSprite(buttonSprite.GetSprite());
-                danceButton.Availability = (button) => !danceCoolDownTimer.IsProgressing;
-                danceButton.Visibility = (button) => !MyPlayer.IsDead;
+                danceButton.Availability = button => !danceCoolDownTimer.IsProgressing;
+                danceButton.Visibility = button => !MyPlayer.IsDead;
                 danceButton.CoolDownTimer = new ScriptVisualTimer(
                     () => danceCoolDownTimer.IsProgressing ? danceCoolDownTimer.Percentage : dancerDanceChecker.Percentage,
                     () => danceCoolDownTimer.IsProgressing ? danceCoolDownTimer.TimerText : dancerDanceChecker.DancingProgress > 0 ? Mathf.CeilToInt(DanceDuration - dancerDanceChecker.DancingProgress).ToString().Color(Color.cyan) : ""
@@ -334,9 +335,9 @@ public class Dancer : DefinedRoleTemplate, DefinedRole
                         //通常のダンス
                         if (ev.Players.AsRawPattern != 0) new StaticAchievementToken("dancer.commmon1");
                         if (ev.Corpses.AsRawPattern != 0) new StaticAchievementToken("dancer.commmon2");
-                        int playerCount = players.Count();
+                        var playerCount = players.Count();
                         if (playerCount >= 2) new StaticAchievementToken("dancer.another2");
-                        for (int i = 0; i < playerCount; i++) new StaticAchievementToken("dancer.commmon8");
+                        for (var i = 0; i < playerCount; i++) new StaticAchievementToken("dancer.commmon8");
                         //死の舞踏によるダンサーキル
                         using (RPCRouter.CreateSection("Dance"))
                         {
@@ -410,7 +411,7 @@ public class Dancer : DefinedRoleTemplate, DefinedRole
             //死の預言の有効時間を減少させる
             if (AmOwner && !MeetingHud.Instance && !ExileController.Instance)
             {
-                for (int i = 0; i < danceLookedTimer.Length; i++) danceLookedTimer[i] -= Time.deltaTime;
+                for (var i = 0; i < danceLookedTimer.Length; i++) danceLookedTimer[i] -= Time.deltaTime;
                 if (activeDanceLooked.RemoveAll(p => !(danceLookedTimer[p.PlayerId] > 0f)) > 0)
                     RpcShareDanceState.Invoke((MyPlayer, ++danceShareVersion, activeDanceLooked.ToArray(), completedDanceLooked.ToArray()));
             }
@@ -490,7 +491,7 @@ public class Dancer : DefinedRoleTemplate, DefinedRole
         [Local]
         void AppendExtraTaskText(PlayerTaskTextLocalEvent ev)
         {
-            bool isCompleted = successPlayers.Count >= (int)NumOfSuccessfulForecastToWinOption;
+            var isCompleted = successPlayers.Count >= (int)NumOfSuccessfulForecastToWinOption;
             var text = Language.Translate("role.dancer.taskDanceText");
             if(!isCompleted) text += $" ({successPlayers.Count}/{(int)NumOfSuccessfulForecastToWinOption})";
             text = text.Color(isCompleted ? Color.green : successPlayers.Count > 0 ? Color.yellow : Color.white);

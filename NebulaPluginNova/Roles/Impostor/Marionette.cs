@@ -41,7 +41,7 @@ public class Marionette : DefinedRoleTemplate, DefinedRole
 
         static Decoy()
         {
-            NebulaSyncObject.RegisterInstantiater(MyTag, (args) => new Decoy(new Vector2(args[0], args[1]), args[2] < 0f));
+            RegisterInstantiater(MyTag, args => new Decoy(new Vector2(args[0], args[1]), args[2] < 0f));
         }
     }
 
@@ -84,10 +84,10 @@ public class Marionette : DefinedRoleTemplate, DefinedRole
 
                 placeButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability, "marionette.place");
                 placeButton.SetSprite(placeButtonSprite.GetSprite());
-                placeButton.Availability = (button) => MyPlayer.CanMove;
-                placeButton.Visibility = (button) => !MyPlayer.IsDead && MyDecoy == null;
+                placeButton.Availability = button => MyPlayer.CanMove;
+                placeButton.Visibility = button => !MyPlayer.IsDead && MyDecoy == null;
                 placeButton.CoolDownTimer = Bind(new Timer(PlaceCoolDownOption).SetAsAbilityCoolDown().Start());
-                placeButton.OnClick = (button) =>
+                placeButton.OnClick = button =>
                 {
                     NebulaManager.Instance.ScheduleDelayAction(() =>
                     {
@@ -108,14 +108,14 @@ public class Marionette : DefinedRoleTemplate, DefinedRole
 
                 destroyButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability, "marionette.destroy");
                 destroyButton.SetSprite(destroyButtonSprite.GetSprite());
-                destroyButton.Availability = (button) => MyPlayer.CanMove;
-                destroyButton.Visibility = (button) => !MyPlayer.IsDead && MyDecoy != null;
+                destroyButton.Availability = button => MyPlayer.CanMove;
+                destroyButton.Visibility = button => !MyPlayer.IsDead && MyDecoy != null;
                 destroyButton.EffectTimer = Bind(new Timer(DecoyDurationOption));
-                destroyButton.OnClick = (button) =>
+                destroyButton.OnClick = button =>
                 {
                     destroyButton.InactivateEffect();
                 };
-                destroyButton.OnEffectEnd = (button) =>
+                destroyButton.OnEffectEnd = button =>
                 {
                     if (MyDecoy != null) NebulaSyncObject.RpcDestroy(MyDecoy!.ObjectId);
                     MyDecoy = null;
@@ -126,23 +126,23 @@ public class Marionette : DefinedRoleTemplate, DefinedRole
 
                 swapButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.SecondaryAbility, "marionette.swap").SubKeyBind(Virial.Compat.VirtualKeyInput.AidAction, "marionette.switch");
                 swapButton.SetSprite(swapButtonSprite.GetSprite());
-                swapButton.Availability = (button) => (MyPlayer.CanMove || HudManager.Instance.PlayerCam.Target == MyDecoy?.MyBehaviour) && (!MyPlayer.VanillaPlayer.inVent && !MyPlayer.VanillaPlayer.onLadder && !MyPlayer.VanillaPlayer.inMovingPlat);
-                swapButton.Visibility = (button) => !MyPlayer.IsDead && MyDecoy != null;
+                swapButton.Availability = button => (MyPlayer.CanMove || HudManager.Instance.PlayerCam.Target == MyDecoy?.MyBehaviour) && (!MyPlayer.VanillaPlayer.inVent && !MyPlayer.VanillaPlayer.onLadder && !MyPlayer.VanillaPlayer.inMovingPlat);
+                swapButton.Visibility = button => !MyPlayer.IsDead && MyDecoy != null;
                 swapButton.CoolDownTimer = Bind(new Timer(SwapCoolDownOption));
-                swapButton.OnClick = (button) =>
+                swapButton.OnClick = button =>
                 {
                     DecoySwap.Invoke((MyPlayer.PlayerId, MyDecoy!.ObjectId));
                     button.StartCoolDown();
                     AmongUsUtil.SetCamTarget();
 
-                    float currentTime = NebulaGameManager.Instance!.CurrentTime;
+                    var currentTime = NebulaGameManager.Instance!.CurrentTime;
                     acTokenCommon2.Value.cleared |= currentTime - acTokenCommon2.Value.swapTime < 10f;
                     acTokenCommon2.Value.swapTime = currentTime;
                     acTokenAnother!.Value.triggered = true;
                     if (currentTime - acTokenChallenge.Value.killTime < 1f && MyPlayer.VanillaPlayer.GetTruePosition().Distance(MyDecoy!.Position) > 30f)
                         acTokenChallenge.Value.cleared = true;
                 };
-                swapButton.OnSubAction = (button) =>
+                swapButton.OnSubAction = button =>
                 {
                     NebulaManager.Instance.ScheduleDelayAction(() =>
                     {
@@ -155,13 +155,13 @@ public class Marionette : DefinedRoleTemplate, DefinedRole
 
                 monitorButton = Bind(new ModAbilityButton());
                 monitorButton.SetSprite(monitorButtonSprite.GetSprite());
-                monitorButton.Availability = (button) => true;
-                monitorButton.Visibility = (button) => !MyPlayer.IsDead && MyDecoy != null;
-                monitorButton.OnClick = (button) =>
+                monitorButton.Availability = button => true;
+                monitorButton.Visibility = button => !MyPlayer.IsDead && MyDecoy != null;
+                monitorButton.OnClick = button =>
                 {
                     AmongUsUtil.ToggleCamTarget(MyDecoy!.MyBehaviour, null);
                 };
-                monitorButton.OnSubAction = (button) =>
+                monitorButton.OnSubAction = button =>
                 {
                     NebulaManager.Instance.ScheduleDelayAction(() =>
                     {

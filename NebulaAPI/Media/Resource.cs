@@ -110,7 +110,7 @@ public class VariableResourceAllocator : NamespaceAllocator, IVariableResourceAl
     }
 
     INebulaResource? IResourceAllocator.GetResource(IReadOnlyArray<string> namespaceArray, string name) => GetResource(namespaceArray, name);
-    void IVariableResourceAllocator.Register(string name, Virial.Media.INebulaResource resource)
+    void IVariableResourceAllocator.Register(string name, INebulaResource resource)
     {
         resources.TryAdd(name.ToLower(), resource);
     }

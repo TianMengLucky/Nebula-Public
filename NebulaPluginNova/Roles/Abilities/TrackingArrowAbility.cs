@@ -19,7 +19,7 @@ public class TrackingArrowAbility : ComponentHolder, IGameOperator
     {
         this.target = target;
         this.interval = interval;
-        this.timer = -1f;
+        timer = -1f;
         this.color = color;
         this.showPlayerIcon = showPlayerIcon;
     }

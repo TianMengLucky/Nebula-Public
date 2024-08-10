@@ -47,12 +47,12 @@ public class Camouflager : DefinedRoleTemplate, HasCitation, DefinedRole
 
                 camouflageButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability);
                 camouflageButton.SetSprite(buttonSprite.GetSprite());
-                camouflageButton.Availability = (button) =>MyPlayer.CanMove;
-                camouflageButton.Visibility = (button) => !MyPlayer.IsDead || CanInvokeCamoAfterDeathOption;
-                camouflageButton.OnClick = (button) => {
+                camouflageButton.Availability = button =>MyPlayer.CanMove;
+                camouflageButton.Visibility = button => !MyPlayer.IsDead || CanInvokeCamoAfterDeathOption;
+                camouflageButton.OnClick = button => {
                     button.ActivateEffect();
                 };
-                camouflageButton.OnEffectStart = (button) =>
+                camouflageButton.OnEffectStart = button =>
                 {
                     RpcCamouflage.Invoke(new(MyPlayer.PlayerId,true));
 
@@ -60,7 +60,7 @@ public class Camouflager : DefinedRoleTemplate, HasCitation, DefinedRole
                     acTokenChallenge!.Value.killed = 0;
                     
                 };
-                camouflageButton.OnEffectEnd = (button) =>
+                camouflageButton.OnEffectEnd = button =>
                 {
                     RpcCamouflage.Invoke(new(MyPlayer.PlayerId,false));
                     button.StartCoolDown();

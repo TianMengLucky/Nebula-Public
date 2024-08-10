@@ -39,7 +39,7 @@ namespace Nebula.Behaviour
             });
 
         private static RemoteProcess RpcRequireHandshake = new(
-            "RequireHandshake", (_) => Handshake()
+            "RequireHandshake", _ => Handshake()
             );
 
         private static void Handshake()
@@ -79,7 +79,7 @@ namespace Nebula.Behaviour
             myShower = UnityHelper.CreateObject("UncertifiedHolder",gameObject.transform,new Vector3(0,0,-20f), LayerExpansion.GetPlayersLayer());
             (new MetaWidgetOld.Text(TextAttributeOld.BoldAttr) {
                 TranslationKey = ReasonToTranslationKey(UncertifiedReason.Uncertified),
-                PostBuilder = (text) => myText = text })
+                PostBuilder = text => myText = text })
                 .Generate(myShower, Vector2.zero,out _);
             myText.color = Color.red.RGBMultiplied(0.92f);
             myText.gameObject.layer = LayerExpansion.GetPlayersLayer();
@@ -103,7 +103,7 @@ namespace Nebula.Behaviour
         }
         public void Certify()
         {
-            GameObject.Destroy(this);
+            Destroy(this);
         }
         public void Reject(UncertifiedReason reason)
         {
@@ -135,7 +135,7 @@ namespace Nebula.Behaviour
 
         public void OnDestroy()
         {
-            GameObject.Destroy(myShower);
+            Destroy(myShower);
         }
     }
 }

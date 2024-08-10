@@ -55,19 +55,19 @@ public class Damned : DefinedAllocatableModifierTemplate, DefinedAllocatableModi
 
         private void CheckAchievement(DefinedRole myNextRole)
         {
-            if (MyPlayer.Role.Role.Category == Virial.Assignable.RoleCategory.ImpostorRole && myNextRole.Category == Virial.Assignable.RoleCategory.CrewmateRole)
+            if (MyPlayer.Role.Role.Category == RoleCategory.ImpostorRole && myNextRole.Category == RoleCategory.CrewmateRole)
                 //インポスター⇒クルーメイト
                 RpcNoticeCurse.Invoke((MyPlayer.PlayerId, 2));
 
-            if (MyPlayer.Role.Role.Category == Virial.Assignable.RoleCategory.ImpostorRole && myNextRole.Category != Virial.Assignable.RoleCategory.ImpostorRole)
+            if (MyPlayer.Role.Role.Category == RoleCategory.ImpostorRole && myNextRole.Category != RoleCategory.ImpostorRole)
                 //インポスター⇒非インポスター
                 RpcNoticeCurse.Invoke((MyPlayer.PlayerId, 3));
 
-            if (MyPlayer.Role.Role.Category == Virial.Assignable.RoleCategory.CrewmateRole && myNextRole.Category == Virial.Assignable.RoleCategory.ImpostorRole)
+            if (MyPlayer.Role.Role.Category == RoleCategory.CrewmateRole && myNextRole.Category == RoleCategory.ImpostorRole)
                 //クルーメイト⇒インポスター
                 RpcNoticeCurse.Invoke((MyPlayer.PlayerId, 0));
 
-            if (MyPlayer.Role.Role.Category == Virial.Assignable.RoleCategory.NeutralRole && myNextRole.Category == Virial.Assignable.RoleCategory.ImpostorRole)
+            if (MyPlayer.Role.Role.Category == RoleCategory.NeutralRole && myNextRole.Category == RoleCategory.ImpostorRole)
                 //第三陣営⇒インポスター
                 RpcNoticeCurse.Invoke((MyPlayer.PlayerId, 1));
         }
@@ -85,7 +85,7 @@ public class Damned : DefinedAllocatableModifierTemplate, DefinedAllocatableModi
                 {
                     yield return Effects.Wait(KillDelayOption);
 
-                    DefinedRole myNextRole = TakeOverRoleOfKillerOption ? nextRole! : Impostor.DamnedImpostor.MyRole;
+                    var myNextRole = TakeOverRoleOfKillerOption ? nextRole! : Impostor.DamnedImpostor.MyRole;
                     var myNextArgs = TakeOverRoleOfKillerOption ? nextArgs! : null;
                     CheckAchievement(myNextRole);
 
@@ -112,7 +112,7 @@ public class Damned : DefinedAllocatableModifierTemplate, DefinedAllocatableModi
             {
                 NebulaManager.Instance.ScheduleDelayAction(() =>
                 {
-                    DefinedRole myNextRole = TakeOverRoleOfKillerOption ? nextRole! : Impostor.DamnedImpostor.MyRole;
+                    var myNextRole = TakeOverRoleOfKillerOption ? nextRole! : Impostor.DamnedImpostor.MyRole;
                     var myNextArgs = TakeOverRoleOfKillerOption ? nextArgs! : null;
                     CheckAchievement(myNextRole);
 

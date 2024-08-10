@@ -22,21 +22,23 @@ public class ModUpdater
             Unknown
         }
         
-        public static Color[] CategoryColors = {
+        public static Color[] CategoryColors =
+        [
             new Color(176f / 255f, 204f / 255f, 251f / 255f),
             new Color(247f / 255f, 255f / 255f, 29f / 255f),
             new Color(217f / 255f, 179f / 255f, 237f / 255f),
             new Color(180f / 255f, 159f / 255f, 107f / 255f),
             new Color(141f / 255f, 141f / 255f, 141f / 255f)
-        };
+        ];
 
-        public static string[] CategoryTranslationKeys = {
+        public static string[] CategoryTranslationKeys =
+        [
             "version.category.major",
             "version.category.snapshot",
             "version.category.preRelease",
             "version.category.custom",
             "version.category.unknown"
-        };
+        ];
         
         public ReleaseCategory Category;
         public int BuildNum;
@@ -72,12 +74,12 @@ public class ModUpdater
             }
 
             Version = strings[1];
-            if (int.TryParse(strings[2], out int epoch))
+            if (int.TryParse(strings[2], out var epoch))
                 Epoch = epoch;
             else
                 Epoch = -1;
 
-            if (int.TryParse(strings[3], out int build))
+            if (int.TryParse(strings[3], out var build))
                 BuildNum = build;
             else
                 BuildNum = -1;
@@ -85,14 +87,14 @@ public class ModUpdater
 
         private async Task UpdateAsync()
         {
-            string url = $"https://github.com/Dolly1016/Nebula/releases/download/{rawTag}/Nebula.dll";
+            var url = $"https://github.com/Dolly1016/Nebula/releases/download/{rawTag}/Nebula.dll";
             var response = await NebulaPlugin.HttpClient.GetAsync(url);
             if (response.StatusCode != HttpStatusCode.OK) return;
             var dllStream = await response.Content.ReadAsStreamAsync();
 
             try
             {
-                string path = System.Uri.UnescapeDataString(new System.UriBuilder(Assembly.GetExecutingAssembly().Location!).Path);
+                var path = Uri.UnescapeDataString(new UriBuilder(Assembly.GetExecutingAssembly().Location!).Path);
                 File.Move(path, path + ".old", true);
                 using var fileStream = File.Create(path);
                 dllStream.CopyTo(fileStream);
@@ -121,14 +123,14 @@ public class ModUpdater
     static string GetTagsUrl(int page) => "https://api.github.com/repos/Dolly1016/Nebula/tags?per_page=100&page=" + (page);
     private static async Task FetchAsync()
     {
-        List<ReleasedInfo> releases = new();
+        List<ReleasedInfo> releases = [];
 
-        int page = 1;
+        var page = 1;
         while (true)
         {
             var response = await NebulaPlugin.HttpClient.GetAsync(GetTagsUrl(page));
             if (response.StatusCode != HttpStatusCode.OK) break;
-            string json = await response.Content.ReadAsStringAsync();
+            var json = await response.Content.ReadAsStringAsync();
 
             var tags = JsonStructure.Deserialize<List<ReleaseContent>>(json);
             if (tags != null) foreach (var tag in tags) if (tag.name != null) releases.Add(new(tag.name));

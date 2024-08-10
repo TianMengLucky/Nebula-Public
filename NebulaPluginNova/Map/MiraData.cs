@@ -2,8 +2,8 @@
 
 public class MiraData : MapData
 {
-    static private Vector2[] MapPositions = new Vector2[]
-    {
+    static private Vector2[] MapPositions =
+    [
         //ラウンチパッド
         new(-4.4f, 3.3f),
         //ランチパッド下通路
@@ -37,10 +37,11 @@ public class MiraData : MapData
         //アドミン
         new(20.6f, 20.8f), new(22.3f, 18.6f), new(21.2f, 17.3f), new(19.4f, 17.6f),
         //グリーンハウス
-        new(13.2f, 22.3f), new(22.4f, 23.3f), new(20.2f, 24.3f), new(16.5f, 24.4f), new(20.7f, 22.2f), new(18f, 25.3f),
-    };
+        new(13.2f, 22.3f), new(22.4f, 23.3f), new(20.2f, 24.3f), new(16.5f, 24.4f), new(20.7f, 22.2f), new(18f, 25.3f)
+    ];
 
     protected override Vector2[] MapArea => MapPositions;
     protected override Vector2[] NonMapArea => [];
-    protected override SystemTypes[] SabotageTypes => new SystemTypes[] { SystemTypes.Reactor, SystemTypes.Comms, SystemTypes.Electrical, SystemTypes.LifeSupp };
+    protected override SystemTypes[] SabotageTypes => [SystemTypes.Reactor, SystemTypes.Comms, SystemTypes.Electrical, SystemTypes.LifeSupp
+    ];
 }

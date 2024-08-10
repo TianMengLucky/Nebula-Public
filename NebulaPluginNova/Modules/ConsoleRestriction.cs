@@ -48,7 +48,7 @@ public class ConsoleRestriction
         timer[(int)ConsoleType.Camera] = GeneralConfigurations.CameraRestrictionOption < 0f ? null : GeneralConfigurations.CameraRestrictionOption.GetValue();
     }
 
-    public ConsoleTimer? ShowTimerIfNecessary(ConsoleRestriction.ConsoleType consoleType,Transform parentTransform,Vector3 localPos)
+    public ConsoleTimer? ShowTimerIfNecessary(ConsoleType consoleType,Transform parentTransform,Vector3 localPos)
     {
         if (!ShouldShowTimer(consoleType)) return null;
         return UnityHelper.CreateObject<ConsoleTimer>("Timer", parentTransform, localPos).SetUp(consoleType);

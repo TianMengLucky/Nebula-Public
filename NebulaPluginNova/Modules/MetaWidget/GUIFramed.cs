@@ -12,15 +12,15 @@ public class NoSGUIFramed : AbstractGUIWidget
 
     public NoSGUIFramed(GUIAlignment alignment, GUIWidgetSupplier? inner, UnityEngine.Vector2 margin, Color? color = null) : base(alignment)
     {
-        this.Inner = inner;
-        this.Margin = margin;
-        this.Color = color;
+        Inner = inner;
+        Margin = margin;
+        Color = color;
     }
 
     internal override GameObject? Instantiate(Size size, out Size actualSize)
     {
         var frame = UnityHelper.CreateObject("SizedFrame", null, new(0f, 0f, -0.8f));
-        Virial.Media.GUIWidget? innerWidget = Inner?.Invoke();
+        var innerWidget = Inner?.Invoke();
         actualSize = new(0f, 0f);
         if (innerWidget != null)
         {

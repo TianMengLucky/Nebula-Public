@@ -1,5 +1,6 @@
 ﻿using Virial;
 using Virial.Game;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Modules.ScriptComponents;
 
@@ -11,7 +12,7 @@ public abstract class NebulaSyncObject : INebulaScriptComponent, IGameOperator
 
     static protected void RegisterInstantiater(string tag, Func<float[], NebulaSyncObject> instantiater)
     {
-        int hash = tag.ComputeConstantHash();
+        var hash = tag.ComputeConstantHash();
         if (instantiaters.ContainsKey(hash)) NebulaPlugin.Log.Print(NebulaLog.LogLevel.FatalError, $"Duplicated Instantiater Error ({tag})");
         instantiaters[hash] = instantiater;
     }
@@ -23,10 +24,10 @@ public abstract class NebulaSyncObject : INebulaScriptComponent, IGameOperator
 
     private static int AvailableId(byte issuerId)
     {
-        int idMask = issuerId << 16;
+        var idMask = issuerId << 16;
         while (true)
         {
-            int cand = System.Random.Shared.Next(0xFFFF) | idMask;
+            var cand = System.Random.Shared.Next(0xFFFF) | idMask;
 
             if (!allObjects.ContainsKey(cand)) return cand;
         }
@@ -71,15 +72,15 @@ public abstract class NebulaSyncObject : INebulaScriptComponent, IGameOperator
 
     static public NebulaSyncObject? RpcInstantiate(string tag, float[]? arguments)
     {
-        int id = AvailableId(PlayerControl.LocalPlayer.PlayerId);
-        RpcInstantiateDef.Invoke(new(id, tag.ComputeConstantHash(), arguments ?? Array.Empty<float>(), false));
+        var id = AvailableId(PlayerControl.LocalPlayer.PlayerId);
+        RpcInstantiateDef.Invoke(new(id, tag.ComputeConstantHash(), arguments ?? [], false));
         return allObjects[id];
     }
 
     static public NebulaSyncObject? LocalInstantiate(string tag, float[]? arguments)
     {
-        int id = AvailableId(PlayerControl.LocalPlayer.PlayerId);
-        RpcInstantiateDef.LocalInvoke(new(id, tag.ComputeConstantHash(), arguments ?? Array.Empty<float>(), false));
+        var id = AvailableId(PlayerControl.LocalPlayer.PlayerId);
+        RpcInstantiateDef.LocalInvoke(new(id, tag.ComputeConstantHash(), arguments ?? [], false));
         return allObjects[id];
     }
 
@@ -107,11 +108,11 @@ public abstract class NebulaSyncObject : INebulaScriptComponent, IGameOperator
 
     static public IEnumerator<T> GetObjects<T>(string tag) where T : NebulaSyncObject
     {
-        int hash = tag.ComputeConstantHash();
+        var hash = tag.ComputeConstantHash();
         foreach(var obj in allObjects.Values)
         {
             if (obj.TagHash != hash) continue;
-            T? t = obj as T;
+            var t = obj as T;
             if (t is not null) yield return t;
         }
     }
@@ -156,7 +157,7 @@ public class NebulaSyncStandardObject : NebulaSyncObject, IReleasable
         set {
             Vector3 pos = value;
             
-            float z = value.y / 1000f;
+            var z = value.y / 1000f;
             switch (ZOrder)
             {
                 case ZOption.Back:
@@ -194,6 +195,6 @@ public class NebulaSyncStandardObject : NebulaSyncObject, IReleasable
     public override void OnReleased()
     {
         base.OnReleased();
-        if(MyRenderer) GameObject.Destroy(MyRenderer.gameObject);
+        if(MyRenderer) Object.Destroy(MyRenderer.gameObject);
     }
 }

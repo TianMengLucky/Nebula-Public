@@ -143,8 +143,8 @@ public class GuiArrayerCommand : ICommand
         return arguments[0].AsStructure(env).ConvertTo(GuiArrayerStructure.Converter, new(), env).ChainFast(
             (Func<GuiArrayerStructure, ICommandToken>)(            structure =>
             {
-                List<GUIWidget> widgets = new();
-                List<GUIWidget> holders = new();
+                List<GUIWidget> widgets = [];
+                List<GUIWidget> holders = [];
                 foreach (var i in structure.inner ?? [])
                 {
                     widgets.Add(i);

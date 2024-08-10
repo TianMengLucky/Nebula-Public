@@ -16,10 +16,10 @@ public class NebulaImpl : INebula
 {
     public static NebulaImpl Instance = null!;
 
-    private static List<object> allModules = new();
+    private static List<object> allModules = [];
     private static Dictionary<Type, object> moduleFastMap = new();
 
-    private static List<(Type type,Func<object> generator)> allDefinitions = new();
+    private static List<(Type type,Func<object> generator)> allDefinitions = [];
     private static Dictionary<Type, Func<object>> definitionFastMap = new();
 
     public NebulaImpl()
@@ -64,15 +64,15 @@ public class NebulaImpl : INebula
 
     Virial.Game.Game? INebula.CurrentGame => NebulaGameManager.Instance;
 
-    Virial.Assignable.DefinedRole? INebula.GetRole(string internalName) => Roles.Roles.AllRoles.FirstOrDefault(r => r.InternalName == internalName);
-    Virial.Assignable.DefinedModifier? INebula.GetModifier(string internalName) => Roles.Roles.AllModifiers.FirstOrDefault(r => r.InternalName == internalName);
-    Virial.Assignable.DefinedGhostRole? INebula.GetGhostRole(string internalName) => Roles.Roles.AllGhostRoles.FirstOrDefault(r => r.InternalName == internalName);
+    DefinedRole? INebula.GetRole(string internalName) => Roles.Roles.AllRoles.FirstOrDefault(r => r.InternalName == internalName);
+    DefinedModifier? INebula.GetModifier(string internalName) => Roles.Roles.AllModifiers.FirstOrDefault(r => r.InternalName == internalName);
+    DefinedGhostRole? INebula.GetGhostRole(string internalName) => Roles.Roles.AllGhostRoles.FirstOrDefault(r => r.InternalName == internalName);
 
     //ショートカット
-    Virial.Configuration.Configurations Configurations => ConfigurationsAPI.API;
+    Configurations Configurations => ConfigurationsAPI.API;
     Virial.Media.GUI GUILibrary => GUI.API;
     Virial.Media.Translator Language => Nebula.Modules.Language.API;
-    Virial.Utilities.IHasher Hasher => NebulaHasher.API;
+    IHasher Hasher => NebulaHasher.API;
 }
 
 internal static class UnboxExtension
@@ -91,7 +91,7 @@ public static class ComponentHolderHelper
     }
 }
 
-public class NebulaHasher : Virial.Utilities.IHasher
+public class NebulaHasher : IHasher
 {
     internal static NebulaHasher API = new();
     int IHasher.GetIntegerHash(string text) => text.ComputeConstantHash();

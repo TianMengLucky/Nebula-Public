@@ -46,12 +46,12 @@ public class Alien : DefinedRoleTemplate, HasCitation, DefinedRole
 
                 emiButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability);
                 emiButton.SetSprite(buttonSprite.GetSprite());
-                emiButton.Availability = (button) => MyPlayer.CanMove;
-                emiButton.Visibility = (button) => !MyPlayer.IsDead;
-                emiButton.OnClick = (button) => {
+                emiButton.Availability = button => MyPlayer.CanMove;
+                emiButton.Visibility = button => !MyPlayer.IsDead;
+                emiButton.OnClick = button => {
                     button.ActivateEffect();
                 };
-                emiButton.OnEffectStart = (button) =>
+                emiButton.OnEffectStart = button =>
                 {
                     using (RPCRouter.CreateSection("EMI"))
                     {
@@ -69,7 +69,7 @@ public class Alien : DefinedRoleTemplate, HasCitation, DefinedRole
                     NebulaManager.Instance.StartCoroutine(CoNoise().WrapToIl2Cpp());
 
                 };
-                emiButton.OnEffectEnd = (button) =>
+                emiButton.OnEffectEnd = button =>
                 {
                     button.StartCoolDown();
                 };
@@ -87,11 +87,11 @@ public class Alien : DefinedRoleTemplate, HasCitation, DefinedRole
                     var invalidateTracker = Bind(ObjectTrackers.ForPlayer(null, MyPlayer, p => ObjectTrackers.StandardPredicate(p)));
                     var invalidateButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.SecondaryAbility);
                     invalidateButton.SetSprite(invalidateButtonSprite.GetSprite());
-                    invalidateButton.Availability = (button) => MyPlayer.CanMove && invalidateTracker.CurrentTarget != null;
-                    invalidateButton.Visibility = (button) => !MyPlayer.IsDead && left > 0;
+                    invalidateButton.Availability = button => MyPlayer.CanMove && invalidateTracker.CurrentTarget != null;
+                    invalidateButton.Visibility = button => !MyPlayer.IsDead && left > 0;
                     var icon = invalidateButton.ShowUsesIcon(0);
                     icon.text = left.ToString();
-                    invalidateButton.OnClick = (button) =>
+                    invalidateButton.OnClick = button =>
                     {
                         PlayerModInfo.RpcAttrModulator.Invoke((invalidateTracker.CurrentTarget!.PlayerId, new AttributeModulator(PlayerAttributes.Isolation, 100000f, true, 0, canBeAware: invalidateTracker.CurrentTarget.IsImpostor), true));
                         left--;

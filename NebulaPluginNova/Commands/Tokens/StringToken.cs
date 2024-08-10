@@ -57,7 +57,7 @@ public class StringCommandToken : ICommandToken
             if (int.TryParse(myStr, out var val)) return new CoImmediateTask<T>(Unsafe.As<int, T>(ref val));
             if (float.TryParse(myStr, out var valFloat))
             {
-                int valInt = (int)valFloat;
+                var valInt = (int)valFloat;
                 return new CoImmediateTask<T>(Unsafe.As<int, T>(ref valInt));
             }
             return new CoImmediateErrorTask<T>(env.Logger);
@@ -89,13 +89,13 @@ public class StringCommandToken : ICommandToken
         }
         else if (type == typeof(Virial.Assignable.DefinedRole))
         {
-            Virial.Assignable.DefinedRole? role = Roles.Roles.AllRoles.FirstOrDefault(r => r.LocalizedName == myStr);
+            var role = Roles.Roles.AllRoles.FirstOrDefault(r => r.LocalizedName == myStr);
             if(role != null) return new CoImmediateTask<T>(Unsafe.As<Virial.Assignable.DefinedRole, T>(ref role));
             return new CoImmediateErrorTask<T>();
         }
         else if (type == typeof(Virial.Assignable.DefinedModifier))
         {
-            Virial.Assignable.DefinedModifier? role = Roles.Roles.AllModifiers.FirstOrDefault(r => r.LocalizedName == myStr);
+            var role = Roles.Roles.AllModifiers.FirstOrDefault(r => r.LocalizedName == myStr);
             if (role != null) return new CoImmediateTask<T>(Unsafe.As<Virial.Assignable.DefinedModifier, T>(ref role));
             return new CoImmediateErrorTask<T>();
         }

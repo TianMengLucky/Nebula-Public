@@ -69,7 +69,7 @@ public class NebulaAddon : VariableResourceAllocator, IDisposable, IResourceAllo
 
 
     static private Dictionary<string, NebulaAddon> allAddons = new();
-    static private List<NebulaAddon> allOrderedAddons = new();
+    static private List<NebulaAddon> allOrderedAddons = [];
     static public IEnumerable<NebulaAddon> AllAddons => allOrderedAddons;
     static public NebulaAddon? GetAddon(string id)
     {
@@ -92,7 +92,7 @@ public class NebulaAddon : VariableResourceAllocator, IDisposable, IResourceAllo
     {
         var response = await NebulaPlugin.HttpClient.GetAsync(url);
         if (response.StatusCode != HttpStatusCode.OK) return;
-        string json = await response.Content.ReadAsStringAsync();
+        var json = await response.Content.ReadAsStringAsync();
 
         var assets = JsonStructure.Deserialize<GitHubReleaseContent>(json);
 
@@ -109,7 +109,7 @@ public class NebulaAddon : VariableResourceAllocator, IDisposable, IResourceAllo
             try
             {
                 //ダウンロードしたファイルを配置
-                string path = "Addons" + Path.DirectorySeparatorChar + "[M" + entryId + "]" + addonAsset.name;
+                var path = "Addons" + Path.DirectorySeparatorChar + "[M" + entryId + "]" + addonAsset.name;
                 using (var fileStream = File.Create(path))
                 {
                     dllStream.CopyTo(fileStream);
@@ -120,7 +120,7 @@ public class NebulaAddon : VariableResourceAllocator, IDisposable, IResourceAllo
                 int hash;
                 using (var file = File.Open(path, FileMode.Open))
                 {
-                    hash = System.BitConverter.ToString(md5.ComputeHash(file)).ComputeConstantHash();
+                    hash = BitConverter.ToString(md5.ComputeHash(file)).ComputeConstantHash();
                 }
 
                 //メタ情報を付加
@@ -147,7 +147,7 @@ public class NebulaAddon : VariableResourceAllocator, IDisposable, IResourceAllo
 
         yield return preprocessor.SetLoadingText("Fetching Addons");
 
-        List<int> existingEntry = new();
+        List<int> existingEntry = [];
         foreach(var path in ExternalAddons())
         {
             var zip = ZipFile.OpenRead(path);
@@ -190,15 +190,15 @@ public class NebulaAddon : VariableResourceAllocator, IDisposable, IResourceAllo
         //ローカルなアドオンを更新
         foreach (var dir in Directory.GetDirectories("Addons", "*"))
         {
-            string id = Path.GetFileName(dir);
-            string filePath = dir + "/" + id + ".zip";
+            var id = Path.GetFileName(dir);
+            var filePath = dir + "/" + id + ".zip";
             if (File.Exists(filePath)) File.Move(filePath, "Addons/" + id + ".zip", true);
         }
 
 
         //組込アドオンの読み込み
-        Assembly assembly = Assembly.GetExecutingAssembly();
-        string prefix = "Nebula.Resources.Addons.";
+        var assembly = Assembly.GetExecutingAssembly();
+        var prefix = "Nebula.Resources.Addons.";
         foreach (var file in assembly.GetManifestResourceNames().Where(name => name.StartsWith(prefix) && name.EndsWith(".zip")))
         {
             ZipArchive? zip = null;
@@ -211,7 +211,7 @@ public class NebulaAddon : VariableResourceAllocator, IDisposable, IResourceAllo
                 var addon = new NebulaAddon(zip, file.Substring(prefix.Length)) { IsBuiltIn = true };
                 allAddons.Add(addon.Id, addon);
 
-                addon.HandshakeHash = System.BitConverter.ToString(md5.ComputeHash(assembly.GetManifestResourceStream(file)!)).ComputeConstantHash();
+                addon.HandshakeHash = BitConverter.ToString(md5.ComputeHash(assembly.GetManifestResourceStream(file)!)).ComputeConstantHash();
             }
             catch
             {
@@ -235,7 +235,7 @@ public class NebulaAddon : VariableResourceAllocator, IDisposable, IResourceAllo
 
                 var marketplaceMeta = zip.GetEntry(".marketplace");
                 if (marketplaceMeta == null)
-                    addon.HandshakeHash = addon.HandshakeHash = System.BitConverter.ToString(md5.ComputeHash(File.OpenRead(file))).ComputeConstantHash();
+                    addon.HandshakeHash = addon.HandshakeHash = BitConverter.ToString(md5.ComputeHash(File.OpenRead(file))).ComputeConstantHash();
                 else
                 {
                     using (var mmStream = marketplaceMeta.Open())
@@ -252,9 +252,9 @@ public class NebulaAddon : VariableResourceAllocator, IDisposable, IResourceAllo
             }
         }
 
-        allOrderedAddons = new();
+        allOrderedAddons = [];
 
-        List<NebulaAddon> leftAddons = new(allAddons.Values);
+        List<NebulaAddon> leftAddons = [..allAddons.Values];
         void ResolveOrder(NebulaAddon a)
         {
             leftAddons.Remove(a);
@@ -266,7 +266,7 @@ public class NebulaAddon : VariableResourceAllocator, IDisposable, IResourceAllo
         leftAddons.Where(a => a.IsBuiltIn).ToArray().Do(ResolveOrder);
 
         //依存関係が解決したアドオンから順に追加する
-        int left = leftAddons.Count;
+        var left = leftAddons.Count;
         while (left > 0)
         {
             leftAddons.Where(a => a.UnsolvedDependency.Count == 0).ToArray().Do(ResolveOrder);
@@ -286,14 +286,14 @@ public class NebulaAddon : VariableResourceAllocator, IDisposable, IResourceAllo
     static private string MetaFileName = "addon.meta";
     private NebulaAddon(ZipArchive zip, string path)
     {
-        bool foundMetaFile = false;
+        var foundMetaFile = false;
         foreach (var entry in zip.Entries)
         {
             if (entry.Name != MetaFileName) continue;
 
             using var metaFile = entry.Open();
 
-            AddonMeta? meta = (AddonMeta?)JsonStructure.Deserialize(metaFile, typeof(AddonMeta));
+            var meta = (AddonMeta?)JsonStructure.Deserialize(metaFile, typeof(AddonMeta));
             if (meta == null) throw new Exception();
 
             Id = meta.Id ?? Path.GetFileNameWithoutExtension(path);
@@ -303,7 +303,7 @@ public class NebulaAddon : VariableResourceAllocator, IDisposable, IResourceAllo
             Description = meta.Description;
             Version = meta.Version;
             IdDependencyCache = meta.Dependency.ToArray();
-            UnsolvedDependency = new(meta.Dependency);
+            UnsolvedDependency = [..meta.Dependency];
             IsHidden = meta.Hidden;
 
             InZipPath = entry.FullName.Substring(0, entry.FullName.Length - MetaFileName.Length);
@@ -375,7 +375,7 @@ public class NebulaAddon : VariableResourceAllocator, IDisposable, IResourceAllo
     {
         get
         {
-            int val = 0;
+            var val = 0;
             foreach(var addon in allOrderedAddons)
             {
                 if(addon.NeedHandshake) val ^= addon.HandshakeHash;

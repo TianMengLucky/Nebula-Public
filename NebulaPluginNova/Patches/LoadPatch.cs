@@ -1,4 +1,5 @@
 ﻿using TMPro;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Patches;
 
@@ -8,7 +9,7 @@ public static class LoadPatch
 {
     static SpriteLoader logoSprite = SpriteLoader.FromResource("Nebula.Resources.NebulaLogo.png", 100f);
     static SpriteLoader logoGlowSprite = SpriteLoader.FromResource("Nebula.Resources.NebulaLogoGlow.png", 100f);
-    static TMPro.TextMeshPro loadText = null!;
+    static TextMeshPro loadText = null!;
     static public string LoadingText { set { loadText.text = value; } }
     static IEnumerator CoLoadNebula(SplashManager __instance)
     {
@@ -21,11 +22,11 @@ public static class LoadPatch
 
         
 
-        float p = 1f;
+        var p = 1f;
         while (p > 0f)
         {
             p -= Time.deltaTime * 2.8f;
-            float alpha = 1 - p;
+            var alpha = 1 - p;
             logo.color = Color.white.AlphaMultiplied(alpha);
             logoGlow.color = Color.white.AlphaMultiplied(Mathf.Min(1f, alpha * (p * 2)));
             logo.transform.localScale = Vector3.one * (p * p * 0.012f + 1f);
@@ -36,9 +37,9 @@ public static class LoadPatch
         logoGlow.gameObject.SetActive(false);
         logo.transform.localScale = Vector3.one;
 
-        loadText = GameObject.Instantiate(__instance.errorPopup.InfoText, null);
+        loadText = Object.Instantiate(__instance.errorPopup.InfoText, null);
         loadText.transform.localPosition = new(0f, -0.28f, -10f);
-        loadText.fontStyle = TMPro.FontStyles.Bold;
+        loadText.fontStyle = FontStyles.Bold;
         loadText.text = "Loading...";
         loadText.color = Color.white.AlphaMultiplied(0.3f);
 
@@ -48,7 +49,7 @@ public static class LoadPatch
             {
                 var excep = PreloadManager.LastException;
 
-                string errorText = $"[{excep.GetType().Name}] {excep.Message}\n{excep.StackTrace}";
+                var errorText = $"[{excep.GetType().Name}] {excep.Message}\n{excep.StackTrace}";
                 {
                     var inner = excep;
                     while (inner.InnerException != null) { 
@@ -58,9 +59,9 @@ public static class LoadPatch
                 }
 
 
-                GameObject.Destroy(logo.gameObject);
-                GameObject.Destroy(logoGlow.gameObject);
-                GameObject.Destroy(loadText.gameObject);
+                Object.Destroy(logo.gameObject);
+                Object.Destroy(logoGlow.gameObject);
+                Object.Destroy(loadText.gameObject);
 
                 __instance.errorPopup.gameObject.SetActive(true);
 
@@ -73,7 +74,7 @@ public static class LoadPatch
                 button.transform.localPosition += new Vector3(0f, -1f, 0f);
                 
                 var infoText =__instance.errorPopup.transform.GetChild(4).GetComponent<TextMeshPro>();
-                infoText.alignment = TMPro.TextAlignmentOptions.TopLeft;
+                infoText.alignment = TextAlignmentOptions.TopLeft;
                 infoText.rectTransform.sizeDelta = new Vector2(11f, 4f);
                 infoText.rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
                 infoText.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
@@ -96,7 +97,7 @@ public static class LoadPatch
         }
 
         loadText.text = "Loading Completed";
-        for(int i = 0; i < 3; i++)
+        for(var i = 0; i < 3; i++)
         {
             loadText.gameObject.SetActive(false);
             yield return new WaitForSeconds(0.03f);
@@ -104,7 +105,7 @@ public static class LoadPatch
             yield return new WaitForSeconds(0.03f);
         }
 
-        GameObject.Destroy(loadText.gameObject);
+        Object.Destroy(loadText.gameObject);
 
         p = 1f;
         while (p > 0f)

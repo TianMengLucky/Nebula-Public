@@ -2,8 +2,8 @@
 
 public class SkeldData : MapData
 {
-    static private Vector2[] MapPositions = new Vector2[]
-    {
+    static private Vector2[] MapPositions =
+    [
         //カフェ
         new(0f, 5.3f), new(-5.2f, 1.2f), new(-0.9f, -3.1f), new(4.6f, 1.2f),
         //ウェポン
@@ -36,16 +36,17 @@ public class SkeldData : MapData
         new(-7.3f, -4.6f), new(-9.2f, -2.1f),
         //アドミン
         new(2.6f, -7.1f), new(6.3f, -9.5f)
-    };
+    ];
 
-    static private Vector2[] NonMapPositions = new Vector2[]
-    {
+    static private Vector2[] NonMapPositions =
+    [
         //ナビ左上
         new(13.55f, -3.5f),
         //リアクター右上方
         new(-18.45f, -2.65f)
-    };
+    ];
     protected override Vector2[] MapArea => MapPositions;
     protected override Vector2[] NonMapArea => NonMapPositions;
-    protected override SystemTypes[] SabotageTypes => new SystemTypes[] { SystemTypes.Reactor, SystemTypes.Comms, SystemTypes.Electrical, SystemTypes.LifeSupp };
+    protected override SystemTypes[] SabotageTypes => [SystemTypes.Reactor, SystemTypes.Comms, SystemTypes.Electrical, SystemTypes.LifeSupp
+    ];
 }

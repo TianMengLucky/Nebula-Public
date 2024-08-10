@@ -2,6 +2,7 @@
 using TMPro;
 using Twitch;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Nebula;
 
@@ -11,7 +12,7 @@ public class VanillaAsset
     static public Sprite FullScreenSprite { get; private set; } = null!;
     static public Sprite TextButtonSprite { get; private set; } = null!;
     static public Sprite CloseButtonSprite { get; private set; } = null!;
-    static public TMPro.TextMeshPro StandardTextPrefab { get; private set; } = null!;
+    static public TextMeshPro StandardTextPrefab { get; private set; } = null!;
     static public AudioClip HoverClip { get; private set; } = null!;
     static public AudioClip SelectClip { get; private set; } = null!;
     static public Material StandardMaskedFontMaterial { get {
@@ -59,7 +60,7 @@ public class VanillaAsset
 
     static public ShipStatus[] MapAsset = new ShipStatus[6];
     static public Vector2 GetMapCenter(byte mapId) => MapAsset[mapId].MapPrefab.transform.GetChild(5).localPosition;
-    static public float GetMapScale(byte mapId) => VanillaAsset.MapAsset[mapId].MapScale;
+    static public float GetMapScale(byte mapId) => MapAsset[mapId].MapScale;
     static public Vector2 ConvertToMinimapPos(Vector2 pos,Vector2 center, float scale)=> (pos / scale) + center;
     static public Vector2 ConvertToMinimapPos(Vector2 pos, byte mapId) => ConvertToMinimapPos(pos, GetMapCenter(mapId), GetMapScale(mapId));
     static public Vector2 ConvertFromMinimapPosToWorld(Vector2 minimapPos, Vector2 center, float scale) => (minimapPos - center) * scale;
@@ -85,10 +86,10 @@ public class VanillaAsset
         CloseButtonSprite = UnityHelper.FindAsset<Sprite>("closeButton")!;
         
 
-        StandardTextPrefab = GameObject.Instantiate(twitchPopUp.GetChild(1).GetComponent<TMPro.TextMeshPro>(),null);
+        StandardTextPrefab = Object.Instantiate(twitchPopUp.GetChild(1).GetComponent<TextMeshPro>(),null);
         StandardTextPrefab.gameObject.hideFlags = HideFlags.HideAndDontSave;
-        GameObject.Destroy(StandardTextPrefab.spriteAnimator);
-        GameObject.DontDestroyOnLoad(StandardTextPrefab.gameObject);
+        Object.Destroy(StandardTextPrefab.spriteAnimator);
+        Object.DontDestroyOnLoad(StandardTextPrefab.gameObject);
 
         while (AmongUsClient.Instance == null) yield return null;
 
@@ -96,9 +97,9 @@ public class VanillaAsset
         //AsyncOperationHandle<GameObject> handle;
         //AmongUsClient.Instance.ShipPrefabs[2].RuntimeKey;
         //UnityEngine.AddressableAssets.Addressables.LoadAssetAsync(AmongUsClient.Instance.ShipPrefabs[0].RuntimeKey, null, false, false);
-        for (int i = 0; i < MapAsset.Length; i++) {
+        for (var i = 0; i < MapAsset.Length; i++) {
             if (i == 3) continue;
-            var handle = UnityEngine.AddressableAssets.Addressables.LoadAssetAsync<GameObject>(AmongUsClient.Instance.ShipPrefabs[i].RuntimeKey);
+            var handle = UnityEngine.AddressableAssets.Addressables.LoadAssetAsync<GameObject>(AmongUsClient.Instance.ShipPrefabs._items[i].RuntimeKey);
             yield return handle;
             MapAsset[i] = handle.Result.GetComponent<ShipStatus>();
         }
@@ -123,8 +124,8 @@ public class VanillaAsset
 
     static public Scroller GenerateScroller(Vector2 size, Transform transform, Vector3 scrollBarLocalPos, Transform target, FloatRange bounds, float scrollerHeight)
     {
-        var barBack = GameObject.Instantiate(PlayerOptionsMenuPrefab.transform.GetChild(4).FindChild("UI_ScrollbarTrack").gameObject, transform);
-        var bar = GameObject.Instantiate(PlayerOptionsMenuPrefab.transform.GetChild(4).FindChild("UI_Scrollbar").gameObject, transform);
+        var barBack = Object.Instantiate(PlayerOptionsMenuPrefab.transform.GetChild(4).FindChild("UI_ScrollbarTrack").gameObject, transform);
+        var bar = Object.Instantiate(PlayerOptionsMenuPrefab.transform.GetChild(4).FindChild("UI_Scrollbar").gameObject, transform);
         barBack.transform.localPosition = scrollBarLocalPos + new Vector3(0.12f, 0f, 0f);
         bar.transform.localPosition = scrollBarLocalPos;
 
@@ -158,7 +159,7 @@ public class VanillaAsset
     public static Material GetHighlightMaterial()
     {
         if (highlightMaterial != null) return new Material(highlightMaterial);
-        foreach (var mat in UnityEngine.Resources.FindObjectsOfTypeAll(Il2CppType.Of<Material>()))
+        foreach (var mat in Resources.FindObjectsOfTypeAll(Il2CppType.Of<Material>()))
         {
             if (mat.name == "HighlightMat")
             {
@@ -175,16 +176,16 @@ public class VanillaAsset
         var display = UnityEngine.Object.Instantiate(AmongUsClient.Instance.PlayerPrefab.gameObject);
         AmongUsClient.Instance.PlayerPrefab.gameObject.SetActive(true);
 
-        GameObject.Destroy(display.GetComponent<PlayerControl>());
-        GameObject.Destroy(display.GetComponent<PlayerPhysics>());
-        GameObject.Destroy(display.GetComponent<Rigidbody2D>());
-        GameObject.Destroy(display.GetComponent<CircleCollider2D>());
-        GameObject.Destroy(display.GetComponent<CustomNetworkTransform>());
-        GameObject.Destroy(display.GetComponent<BoxCollider2D>());
-        GameObject.Destroy(display.GetComponent<DummyBehaviour>());
-        GameObject.Destroy(display.GetComponent<AudioSource>());
-        GameObject.Destroy(display.GetComponent<PassiveButton>());
-        GameObject.Destroy(display.GetComponent<HnSImpostorScreamSfx>());
+        Object.Destroy(display.GetComponent<PlayerControl>());
+        Object.Destroy(display.GetComponent<PlayerPhysics>());
+        Object.Destroy(display.GetComponent<Rigidbody2D>());
+        Object.Destroy(display.GetComponent<CircleCollider2D>());
+        Object.Destroy(display.GetComponent<CustomNetworkTransform>());
+        Object.Destroy(display.GetComponent<BoxCollider2D>());
+        Object.Destroy(display.GetComponent<DummyBehaviour>());
+        Object.Destroy(display.GetComponent<AudioSource>());
+        Object.Destroy(display.GetComponent<PassiveButton>());
+        Object.Destroy(display.GetComponent<HnSImpostorScreamSfx>());
 
         display.gameObject.SetActive(true);
 

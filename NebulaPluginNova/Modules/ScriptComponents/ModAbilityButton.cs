@@ -10,6 +10,7 @@ using Virial.Game;
 using Virial.Helpers;
 using Virial.Runtime;
 using Virial.Text;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Modules.ScriptComponents;
 
@@ -30,7 +31,7 @@ public class ModAbilityButton : INebulaScriptComponent, Virial.Components.ModAbi
     static ModAbilityButton()
     {
         EntityCommand.RegisterEntityDefinition("button", EntityCommand.GenerateDefinition(
-            new Virial.Command.CommandStructureConverter<AbilityButtonStructure>()
+            new CommandStructureConverter<AbilityButtonStructure>()
             .Add<bool>("isLeftSide", (structure, val) => structure.isLeftSide = val)
             .Add<bool>("isRightSide", (structure, val) => structure.isLeftSide = !val)
             .Add<bool>("always", (structure, val) => structure.showAlways = val)
@@ -77,7 +78,7 @@ public class ModAbilityButton : INebulaScriptComponent, Virial.Components.ModAbi
     {
 
         VanillaButton = UnityEngine.Object.Instantiate(HudManager.Instance.KillButton, HudManager.Instance.KillButton.transform.parent);
-        VanillaButton.gameObject.ForEachChild((Il2CppSystem.Action<GameObject>)((c) => { if (c.name.Equals("HotKeyGuide")) GameObject.Destroy(c); }));
+        VanillaButton.gameObject.ForEachChild((Il2CppSystem.Action<GameObject>)(c => { if (c.name.Equals("HotKeyGuide")) Object.Destroy(c); }));
         VanillaButton.cooldownTimerText.gameObject.SetActive(true);
 
         VanillaButton.buttonLabelText.GetComponent<TextTranslatorTMP>().enabled = false;
@@ -127,7 +128,7 @@ public class ModAbilityButton : INebulaScriptComponent, Virial.Components.ModAbi
             renderer.material.SetColor("_Color", new(1f, 1f, 1f, 1f));
             yield return null;
 
-            float a = 1f;
+            var a = 1f;
             while(a > 0f)
             {
                 renderer.transform.localScale = UnityEngine.Vector3.one * (2f - a);
@@ -136,7 +137,7 @@ public class ModAbilityButton : INebulaScriptComponent, Virial.Components.ModAbi
                 yield return null;
             }
 
-            GameObject.Destroy(renderer.gameObject);
+            Object.Destroy(renderer.gameObject);
 
         }
 
@@ -185,7 +186,7 @@ public class ModAbilityButton : INebulaScriptComponent, Virial.Components.ModAbi
 
         VanillaButton.SetCooldownFill(CurrentTimer?.Percentage ?? 0f);
 
-        string timerText = "";
+        var timerText = "";
         if (CurrentTimer?.IsProgressing ?? false) timerText = CurrentTimer.TimerText ?? "";
         VanillaButton.cooldownTimerText.text = timerText;
         VanillaButton.cooldownTimerText.color = EffectActive ? Color.green : Color.white;
@@ -307,23 +308,23 @@ public class ModAbilityButton : INebulaScriptComponent, Virial.Components.ModAbi
     internal GameObject UsesIcon = null!;
     public TMPro.TextMeshPro ShowUsesIcon(int iconVariation)
     {
-        if(UsesIcon)GameObject.Destroy(UsesIcon);
+        if(UsesIcon)Object.Destroy(UsesIcon);
         UsesIcon = ButtonEffect.ShowUsesIcon(VanillaButton,iconVariation,out var text);
         return text;
     }
 
     public ModAbilityButton ResetKeyBind()
     {
-        VanillaButton.gameObject.ForEachChild((Il2CppSystem.Action<GameObject>)((c) => { if (c.name.Equals("HotKeyGuide")) GameObject.Destroy(c); }));
+        VanillaButton.gameObject.ForEachChild((Il2CppSystem.Action<GameObject>)(c => { if (c.name.Equals("HotKeyGuide")) Object.Destroy(c); }));
         keyCode = null;
         subKeyCode = null;
         return this;
     }
 
-    public ModAbilityButton KeyBind(Virial.Compat.VirtualKeyInput keyCode, string? action = null) => KeyBind(NebulaInput.GetInput(keyCode), action);
+    public ModAbilityButton KeyBind(VirtualKeyInput keyCode, string? action = null) => KeyBind(NebulaInput.GetInput(keyCode), action);
     public ModAbilityButton KeyBind(VirtualInput keyCode, string? action = null)
     {
-        VanillaButton.gameObject.ForEachChild((Il2CppSystem.Action<GameObject>)((c) => { if (c.name.Equals("HotKeyGuide")) GameObject.Destroy(c); }));
+        VanillaButton.gameObject.ForEachChild((Il2CppSystem.Action<GameObject>)(c => { if (c.name.Equals("HotKeyGuide")) Object.Destroy(c); }));
 
         this.keyCode= keyCode;
         ButtonEffect.SetKeyGuide(VanillaButton.gameObject, keyCode.TypicalKey, action: action);
@@ -332,10 +333,10 @@ public class ModAbilityButton : INebulaScriptComponent, Virial.Components.ModAbi
     }
 
     private static SpriteLoader aidActionSprite = SpriteLoader.FromResource("Nebula.Resources.KeyBindOption.png", 100f);
-    public ModAbilityButton SubKeyBind(Virial.Compat.VirtualKeyInput keyCode, string? action = null) => SubKeyBind(NebulaInput.GetInput(keyCode), action);
+    public ModAbilityButton SubKeyBind(VirtualKeyInput keyCode, string? action = null) => SubKeyBind(NebulaInput.GetInput(keyCode), action);
     public ModAbilityButton SubKeyBind(VirtualInput keyCode, string? action = null)
     {
-        this.subKeyCode = keyCode;
+        subKeyCode = keyCode;
         var guideObj = ButtonEffect.SetSubKeyGuide(VanillaButton.gameObject, keyCode.TypicalKey, false, action);
 
         if (guideObj != null)
@@ -397,7 +398,7 @@ public class ModAbilityButton : INebulaScriptComponent, Virial.Components.ModAbi
 
     public Virial.Components.ModAbilityButton SetUpAsAbilityButton(Virial.IBinder binder, Func<bool>? canUseAbilityNow, Func<bool>? hasAbilityCharge, float coolDown, Action onClick)
     {
-        KeyBind(Virial.Compat.VirtualKeyInput.Ability);
+        KeyBind(VirtualKeyInput.Ability);
         Availability = button => (canUseAbilityNow?.Invoke() ?? true) && PlayerControl.LocalPlayer.CanMove;
         Visibility = button => (hasAbilityCharge?.Invoke() ?? true) && !PlayerControl.LocalPlayer.Data.IsDead;
         OnClick = button => { onClick(); CoolDownTimer?.Start(); };
@@ -408,17 +409,17 @@ public class ModAbilityButton : INebulaScriptComponent, Virial.Components.ModAbi
     }
 
     public Virial.Components.ModAbilityButton SetUpAsEffectButton(Virial.IBinder binder, float coolDown, float duration, Action onEffectStart, Action? onEffectEnd = null) => SetUpAsEffectButton(binder, null, null, coolDown, duration, onEffectStart, onEffectEnd);
-    public Virial.Components.ModAbilityButton SetUpAsEffectButton(Virial.IBinder binder, System.Func<bool>? canUseAbilityNow, System.Func<bool>? hasAbilityCharge, float coolDown, float duration, Action onEffectStart, Action? onEffectEnd = null)
+    public Virial.Components.ModAbilityButton SetUpAsEffectButton(Virial.IBinder binder, Func<bool>? canUseAbilityNow, Func<bool>? hasAbilityCharge, float coolDown, float duration, Action onEffectStart, Action? onEffectEnd = null)
     {
-        KeyBind(Virial.Compat.VirtualKeyInput.Ability);
+        KeyBind(VirtualKeyInput.Ability);
         Availability = button => (canUseAbilityNow?.Invoke() ?? true) && PlayerControl.LocalPlayer.CanMove;
         Visibility = button => (hasAbilityCharge?.Invoke() ?? true)  && !PlayerControl.LocalPlayer.Data.IsDead;
         OnClick = button => button.ActivateEffect();
-        OnEffectStart = (button) =>
+        OnEffectStart = button =>
         {
             onEffectStart.Invoke();
         };
-        OnEffectEnd = (button) =>
+        OnEffectEnd = button =>
         {
             onEffectEnd?.Invoke();
             StartCoolDown();
@@ -459,8 +460,8 @@ public static class ButtonEffect
         public KeyCodeInfo(KeyCode keyCode, string translationKey, DividedSpriteLoader spriteLoader, int num)
         {
             this.keyCode = keyCode;
-            this.TranslationKey = translationKey;
-            this.textureHolder = spriteLoader;
+            TranslationKey = translationKey;
+            textureHolder = spriteLoader;
             this.num = num;
 
             AllKeyInfo.Add(keyCode, this);
@@ -476,10 +477,10 @@ public static class ButtonEffect
             new KeyCodeInfo(KeyCode.Comma, "<", spriteLoader, 2);
             new KeyCodeInfo(KeyCode.Period, ">", spriteLoader, 3);
             spriteLoader = DividedSpriteLoader.FromResource("Nebula.Resources.KeyBindCharacters1.png", 100f, 18, 19, true);
-            for (KeyCode key = KeyCode.A; key <= KeyCode.Z; key++)
+            for (var key = KeyCode.A; key <= KeyCode.Z; key++)
                 new KeyCodeInfo(key, ((char)('A' + key - KeyCode.A)).ToString(), spriteLoader, key - KeyCode.A);
             spriteLoader = DividedSpriteLoader.FromResource("Nebula.Resources.KeyBindCharacters2.png", 100f, 18, 19, true);
-            for (int i = 0; i < 15; i++)
+            for (var i = 0; i < 15; i++)
                 new KeyCodeInfo(KeyCode.F1 + i, "F" + (i + 1), spriteLoader, i);
             spriteLoader = DividedSpriteLoader.FromResource("Nebula.Resources.KeyBindCharacters3.png", 100f, 18, 19, true);
             new KeyCodeInfo(KeyCode.RightShift, "RShift", spriteLoader, 0);
@@ -489,10 +490,10 @@ public static class ButtonEffect
             new KeyCodeInfo(KeyCode.RightAlt, "RAlt", spriteLoader, 4);
             new KeyCodeInfo(KeyCode.LeftAlt, "LAlt", spriteLoader, 5);
             spriteLoader = DividedSpriteLoader.FromResource("Nebula.Resources.KeyBindCharacters4.png", 100f, 18, 19, true);
-            for (int i = 0; i < 6; i++)
+            for (var i = 0; i < 6; i++)
                 new KeyCodeInfo(KeyCode.Mouse1 + i, "Mouse " + (i == 0 ? "Right" : i == 1 ? "Middle" : (i + 1).ToString()), spriteLoader, i);
             spriteLoader = DividedSpriteLoader.FromResource("Nebula.Resources.KeyBindCharacters5.png", 100f, 18, 19, true);
-            for (int i = 0; i < 10; i++)
+            for (var i = 0; i < 10; i++)
                 new KeyCodeInfo(KeyCode.Alpha0 + i, "0" + (i + 1), spriteLoader, i);
         }
     }
@@ -500,8 +501,8 @@ public static class ButtonEffect
     private static IDividedSpriteLoader textureUsesIconsSprite = XOnlyDividedSpriteLoader.FromResource("Nebula.Resources.UsesIcon.png", 100f, 10);
     static public GameObject ShowUsesIcon(this ActionButton button)
     {
-        Transform template = HudManager.Instance.AbilityButton.transform.GetChild(2);
-        var usesObject = GameObject.Instantiate(template.gameObject);
+        var template = HudManager.Instance.AbilityButton.transform.GetChild(2);
+        var usesObject = Object.Instantiate(template.gameObject);
         usesObject.transform.SetParent(button.gameObject.transform);
         usesObject.transform.localScale = template.localScale;
         usesObject.transform.localPosition = template.localPosition * 1.2f;
@@ -510,7 +511,7 @@ public static class ButtonEffect
 
     static public GameObject ShowUsesIcon(this ActionButton button, int iconVariation, out TMPro.TextMeshPro text)
     {
-        GameObject result = ShowUsesIcon(button);
+        var result = ShowUsesIcon(button);
         var renderer = result.GetComponent<SpriteRenderer>();
         renderer.sprite = textureUsesIconsSprite.GetSprite(iconVariation);
         text = result.transform.GetChild(0).GetComponent<TMPro.TextMeshPro>();
@@ -519,8 +520,10 @@ public static class ButtonEffect
 
     static public SpriteRenderer AddOverlay(this ActionButton button, Sprite sprite, float order)
     {
-        GameObject obj = new GameObject("Overlay");
-        obj.layer = LayerExpansion.GetUILayer();
+        var obj = new GameObject("Overlay")
+        {
+            layer = LayerExpansion.GetUILayer()
+        };
         obj.transform.SetParent(button.gameObject.transform);
         obj.transform.localScale = new(1, 1, 1);
         obj.transform.localPosition = new(0, 0, -1f - order);
@@ -539,22 +542,26 @@ public static class ButtonEffect
 
     static public GameObject? AddKeyGuide(GameObject button, KeyCode key, UnityEngine.Vector2 pos,bool removeExistingGuide, bool isAidAction = false, string? action = null)
     {
-        if(removeExistingGuide)button.gameObject.ForEachChild((Il2CppSystem.Action<GameObject>)(obj => { if (obj.name == "HotKeyGuide") GameObject.Destroy(obj); }));
+        if(removeExistingGuide)button.gameObject.ForEachChild((Il2CppSystem.Action<GameObject>)(obj => { if (obj.name == "HotKeyGuide") Object.Destroy(obj); }));
 
         Sprite? numSprite = null;
         if (KeyCodeInfo.AllKeyInfo.ContainsKey(key)) numSprite = KeyCodeInfo.AllKeyInfo[key].Sprite;
         if (numSprite == null) return null;
 
-        GameObject obj = new GameObject();
-        obj.name = "HotKeyGuide";
+        var obj = new GameObject
+        {
+            name = "HotKeyGuide"
+        };
         obj.transform.SetParent(button.transform);
         obj.layer = button.layer;
-        SpriteRenderer renderer = obj.AddComponent<SpriteRenderer>();
+        var renderer = obj.AddComponent<SpriteRenderer>();
         renderer.transform.localPosition = (UnityEngine.Vector3)pos + new UnityEngine.Vector3(0f, 0f, -10f);
         renderer.sprite = keyBindBackgroundSprite.GetSprite();
 
-        GameObject numObj = new GameObject();
-        numObj.name = "HotKeyText";
+        var numObj = new GameObject
+        {
+            name = "HotKeyText"
+        };
         numObj.transform.SetParent(obj.transform);
         numObj.layer = button.layer;
         renderer = numObj.AddComponent<SpriteRenderer>();
@@ -587,7 +594,7 @@ public static class ButtonEffect
         collider.isTrigger = true;
         collider.radius = 0.125f;
         button.OnMouseOver.AddListener(() => {
-            string str = keyCode != KeyCode.None ? Language.Translate(isAidAction ? "ui.button.aidAction" : "ui.button.mainAction") + " : " + ButtonEffect.KeyCodeInfo.GetKeyDisplayName(keyCode) : "";
+            var str = keyCode != KeyCode.None ? Language.Translate(isAidAction ? "ui.button.aidAction" : "ui.button.mainAction") + " : " + KeyCodeInfo.GetKeyDisplayName(keyCode) : "";
             if(action != null)
             {
                 if (str.Length > 0) str += "<br>";
@@ -602,16 +609,18 @@ public static class ButtonEffect
     {
         if (!show)
         {
-            button.gameObject.ForEachChild((Il2CppSystem.Action<GameObject>)(obj => { if (obj.name == "MouseAction") GameObject.Destroy(obj); }));
+            button.gameObject.ForEachChild((Il2CppSystem.Action<GameObject>)(obj => { if (obj.name == "MouseAction") Object.Destroy(obj); }));
             return null;
         }
         else
         {
-            GameObject obj = new GameObject();
-            obj.name = "MouseAction";
+            var obj = new GameObject
+            {
+                name = "MouseAction"
+            };
             obj.transform.SetParent(button.transform);
             obj.layer = button.layer;
-            SpriteRenderer renderer = obj.AddComponent<SpriteRenderer>();
+            var renderer = obj.AddComponent<SpriteRenderer>();
             renderer.transform.localPosition = new(0.48f, atBottom ? -0.29f : 0.48f, -10f);
             renderer.sprite = actionType switch
             {

@@ -24,7 +24,7 @@ public class RandomCommand : ICommand
         if (arguments.Count != 3)
             return new CoImmediateErrorTask<ICommandToken>(env.Logger, label + " integer|float <min (included)> <max (not included)>");
 
-        bool isFloat = false;
+        var isFloat = false;
         float min = 0, max = 0;
         return arguments[0].AsValue<string>(env).Action(val => isFloat = val == "float")
             .Chain(_ => arguments[1].AsValue<float>(env)).Action(val => min = val)

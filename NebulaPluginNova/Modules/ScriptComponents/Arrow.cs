@@ -1,6 +1,7 @@
 ﻿using Virial;
 using Virial.Events.Game;
 using Virial.Game;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Modules.ScriptComponents;
 
@@ -66,7 +67,7 @@ public class Arrow : INebulaScriptComponent, IGameOperator
     }
     void IGameOperator.OnReleased()
     {
-        if (arrowRenderer) GameObject.Destroy(arrowRenderer!.gameObject);
+        if (arrowRenderer) Object.Destroy(arrowRenderer!.gameObject);
         arrowRenderer = null;
     }
 
@@ -76,19 +77,19 @@ public class Arrow : INebulaScriptComponent, IGameOperator
         if (!arrowRenderer) return;
 
         //視点中心からのベクトル
-        Camera main = UnityHelper.FindCamera(LayerExpansion.GetUILayer())!;
+        var main = UnityHelper.FindCamera(LayerExpansion.GetUILayer())!;
 
         //距離を測るための表示用のカメラ
-        Camera worldCam = (NebulaGameManager.Instance?.WideCamera.IsShown ?? false) ? NebulaGameManager.Instance.WideCamera.Camera : Camera.main;
+        var worldCam = (NebulaGameManager.Instance?.WideCamera.IsShown ?? false) ? NebulaGameManager.Instance.WideCamera.Camera : Camera.main;
 
         //見た目上の矢印の位置のベクトル
-        Vector2 vector = (TargetPos - (Vector2)main.transform.position) / (worldCam.orthographicSize / 3f);
+        var vector = (TargetPos - (Vector2)main.transform.position) / (worldCam.orthographicSize / 3f);
 
         //目的地との見た目上の離れ具合
-        float num = vector.magnitude / (main.orthographicSize * perc);
+        var num = vector.magnitude / (main.orthographicSize * perc);
 
         //近くの矢印を隠す
-        bool flag = IsActive && (!IsSmallenNearPlayer || (double)num > 0.3);
+        var flag = IsActive && (!IsSmallenNearPlayer || (double)num > 0.3);
         arrowRenderer!.gameObject.SetActive(flag);
         if (!flag) return;
 
@@ -110,12 +111,12 @@ public class Arrow : INebulaScriptComponent, IGameOperator
         else
         {
             //画面外を指す矢印
-            Vector2 vector3 = new Vector2(Mathf.Clamp(viewportPoint.x * 2f - 1f, -1f, 1f), Mathf.Clamp(viewportPoint.y * 2f - 1f, -1f, 1f));
+            var vector3 = new Vector2(Mathf.Clamp(viewportPoint.x * 2f - 1f, -1f, 1f), Mathf.Clamp(viewportPoint.y * 2f - 1f, -1f, 1f));
             
             //UIのカメラに合わせて位置を調節する
-            float orthographicSize = main.orthographicSize;
-            float num3 = main.orthographicSize * main.aspect;
-            Vector3 vector4 = new Vector3(Mathf.LerpUnclamped(0f, num3 * (WithSmallArrow ? 0.82f : 0.88f), vector3.x), Mathf.LerpUnclamped(0f, orthographicSize * (WithSmallArrow ? 0.72f : 0.79f), vector3.y), 2f);
+            var orthographicSize = main.orthographicSize;
+            var num3 = main.orthographicSize * main.aspect;
+            var vector4 = new Vector3(Mathf.LerpUnclamped(0f, num3 * (WithSmallArrow ? 0.82f : 0.88f), vector3.x), Mathf.LerpUnclamped(0f, orthographicSize * (WithSmallArrow ? 0.72f : 0.79f), vector3.y), 2f);
             arrowRenderer.transform.localPosition = vector4;
             arrowRenderer.transform.localScale = Vector3.one;
         }
@@ -143,7 +144,7 @@ public class Arrow : INebulaScriptComponent, IGameOperator
 
         if (IsDisappearing)
         {
-            float a = arrowRenderer.color.a;
+            var a = arrowRenderer.color.a;
             a -= Time.deltaTime * 0.85f;
             if (a < 0f)
             {

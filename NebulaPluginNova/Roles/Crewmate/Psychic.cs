@@ -44,13 +44,13 @@ public class Psychic : DefinedRoleTemplate, DefinedRole
             {
                 var searchButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability);
                 searchButton.SetSprite(buttonSprite.GetSprite());
-                searchButton.Availability = (button) => MyPlayer.CanMove;
-                searchButton.Visibility = (button) => !MyPlayer.IsDead;
-                searchButton.OnClick = (button) =>
+                searchButton.Availability = button => MyPlayer.CanMove;
+                searchButton.Visibility = button => !MyPlayer.IsDead;
+                searchButton.OnClick = button =>
                 {
                     if(!searchButton.EffectActive) button.ToggleEffect();
                 };
-                searchButton.OnEffectEnd = (button) =>
+                searchButton.OnEffectEnd = button =>
                 {
                     button.StartCoolDown();
                 };
@@ -81,13 +81,13 @@ public class Psychic : DefinedRoleTemplate, DefinedRole
             //Psychic自身が通報した死体であるとき
             if (ev.Reporter.AmOwner && ev.Reported != null)
             {
-                List<(string tag, string message)> cand = new();
+                List<(string tag, string message)> cand = [];
 
                 //死亡時間(5秒単位)
                 {
-                    float elapsedTime = (NebulaGameManager.Instance!.CurrentTime - ev.Reported!.DeathTime!.Value);
+                    var elapsedTime = (NebulaGameManager.Instance!.CurrentTime - ev.Reported!.DeathTime!.Value);
                     if (elapsedTime > 20) lastReported = ev.Reported;
-                    int aboutTime = (int)(elapsedTime + 2.5f);
+                    var aboutTime = (int)(elapsedTime + 2.5f);
                     aboutTime -= aboutTime % 5;
 
                     if (aboutTime > 0) cand.Add(("elapsedTime", Language.Translate("options.role.psychic.message.elapsedTime").Replace("%SEC%", aboutTime.ToString())));
@@ -104,7 +104,7 @@ public class Psychic : DefinedRoleTemplate, DefinedRole
                 //特殊な死因
                 if(ev.Reported.PlayerState != PlayerState.Dead) cand.Add(("myState", Language.Translate("options.role.psychic.message.myState").Replace("%STATE%", ev.Reported.PlayerState.Text)));
 
-                (string tag, string rawText) = cand.Random();
+                (var tag, var rawText) = cand.Random();
                 NebulaAPI.CurrentGame?.GetModule<MeetingOverlayHolder>()?.RegisterOverlay(GUI.API.VerticalHolder(Virial.Media.GUIAlignment.Left,
                     new NoSGUIText(Virial.Media.GUIAlignment.Left, GUI.API.GetAttribute(Virial.Text.AttributeAsset.OverlayTitle), new TranslateTextComponent("options.role.psychic.message.header")),
                     new NoSGUIText(Virial.Media.GUIAlignment.Left, GUI.API.GetAttribute(Virial.Text.AttributeAsset.OverlayContent), new RawTextComponent(ev.Reported.Unbox().ColoredDefaultName + "<br>" + rawText)))

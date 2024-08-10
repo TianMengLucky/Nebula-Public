@@ -36,14 +36,14 @@ public class ReadOnlyArray<T> : IReadOnlyArray<T>
 
     public T this[int index]
     {
-        get => this.list[span.start + index];
+        get => list[span.start + index];
     }
 
     public int Count => span.length;
 
     public IEnumerator<T> GetEnumerator()
     {
-        for (int i = 0; i < span.length; i++) yield return list[span.start + i];
+        for (var i = 0; i < span.length; i++) yield return list[span.start + i];
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

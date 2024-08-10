@@ -1,6 +1,7 @@
 ﻿using Nebula.Behaviour;
 using Nebula.Modules.GUIWidget;
 using UnityEngine.UI;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Patches;
 
@@ -28,7 +29,7 @@ public static class MainMenuSetUpPatch
         auLogo.DoSetUp();
         auLogo.transform.localPosition += new Vector3(-0.8f, 0.25f, 0f);
 
-        float height = __instance.newsButton.transform.localPosition.y-__instance.myAccountButton.transform.localPosition.y;
+        var height = __instance.newsButton.transform.localPosition.y-__instance.myAccountButton.transform.localPosition.y;
 
         //バニラのパネルからModのパネルに切り替え
         var reworkedPanel = UnityHelper.CreateObject<SpriteRenderer>("ReworkedLeftPanel", leftPanel, new Vector3(0f, height * 0.5f, 0f));
@@ -45,10 +46,10 @@ public static class MainMenuSetUpPatch
             if (Math.Abs(button.transform.localPosition.x) < 0.1f) button.transform.localPosition += new Vector3(0f, height, 0f);
         leftPanel.FindChild("Main Buttons").FindChild("Divider").transform.localPosition += new Vector3(0f, height, 0f);
 
-        var nebulaButton = GameObject.Instantiate(__instance.settingsButton, __instance.settingsButton.transform.parent);
+        var nebulaButton = Object.Instantiate(__instance.settingsButton, __instance.settingsButton.transform.parent);
         nebulaButton.transform.localPosition += new Vector3(0f, -height, 0f);
         nebulaButton.gameObject.name = "NebulaButton";
-        nebulaButton.gameObject.ForEachChild((Il2CppSystem.Action<GameObject>)((obj) => {
+        nebulaButton.gameObject.ForEachChild((Il2CppSystem.Action<GameObject>)(obj => {
             var icon = obj.transform.FindChild("Icon");
             if (icon != null)
             {
@@ -57,7 +58,7 @@ public static class MainMenuSetUpPatch
             }
         }));
         var nebulaPassiveButton = nebulaButton.GetComponent<PassiveButton>();
-        nebulaPassiveButton.OnClick = new UnityEngine.UI.Button.ButtonClickedEvent();
+        nebulaPassiveButton.OnClick = new Button.ButtonClickedEvent();
         nebulaPassiveButton.OnClick.AddListener(() =>
         {
             VanillaAsset.PlaySelectSE();
@@ -67,23 +68,23 @@ public static class MainMenuSetUpPatch
         });
         nebulaButton.transform.FindChild("FontPlacer").GetChild(0).GetComponent<TextTranslatorTMP>().SetModText("title.buttons.nebula");
 
-        NebulaScreen = GameObject.Instantiate(__instance.accountButtons, __instance.accountButtons.transform.parent);
+        NebulaScreen = Object.Instantiate(__instance.accountButtons, __instance.accountButtons.transform.parent);
         NebulaScreen.name = "NebulaScreen";
         NebulaScreen.transform.GetChild(0).GetChild(0).GetComponent<TextTranslatorTMP>().SetModText("title.label.nebula");
         __instance.mainButtons.Add(nebulaButton);
 
-        GameObject.Destroy(NebulaScreen.transform.GetChild(4).gameObject);
+        Object.Destroy(NebulaScreen.transform.GetChild(4).gameObject);
 
         var temp = NebulaScreen.transform.GetChild(3);
-        int index = 0;
+        var index = 0;
         void SetUpButton(string button,Action clickAction)
         {
-            GameObject obj = temp.gameObject;
-            if (index > 0) obj = GameObject.Instantiate(obj, obj.transform.parent);
+            var obj = temp.gameObject;
+            if (index > 0) obj = Object.Instantiate(obj, obj.transform.parent);
 
             obj.transform.GetChild(0).GetChild(0).GetComponent<TextTranslatorTMP>().SetModText(button);
             var passiveButton = obj.GetComponent<PassiveButton>();
-            passiveButton.OnClick = new UnityEngine.UI.Button.ButtonClickedEvent();
+            passiveButton.OnClick = new Button.ButtonClickedEvent();
             passiveButton.OnClick.AddListener(() => {
                 VanillaAsset.PlaySelectSE();
                 clickAction.Invoke();
@@ -139,20 +140,20 @@ public static class MainMenuSetUpPatch
                 Alignment = TMPro.TextAlignmentOptions.Left
             };
 
-            TextAttributeOld VersionAttribute = new TextAttributeOld(TextAttributeOld.NormalAttr)
+            var VersionAttribute = new TextAttributeOld(TextAttributeOld.NormalAttr)
             {
                 FontMaterial = VanillaAsset.StandardMaskedFontMaterial,
                 Size = new Vector2(0.8f, 0.3f),
                 Alignment = TMPro.TextAlignmentOptions.Left
             }.EditFontSize(1.4f, 1f, 1.4f);
-            TextAttributeOld AuthorAttribute = new TextAttributeOld(TextAttributeOld.NormalAttr)
+            var AuthorAttribute = new TextAttributeOld(TextAttributeOld.NormalAttr)
             {
                 FontMaterial = VanillaAsset.StandardMaskedFontMaterial,
                 Size = new Vector2(1.2f, 0.3f),
                 Alignment = TMPro.TextAlignmentOptions.Left
             }.EditFontSize(1.4f, 1f, 1.4f);
 
-            TextAttributeOld DescAttribute = new TextAttributeOld(TextAttributeOld.NormalAttr) {
+            var DescAttribute = new TextAttributeOld(TextAttributeOld.NormalAttr) {
                 FontMaterial = VanillaAsset.StandardMaskedFontMaterial, 
                 Alignment = TMPro.TextAlignmentOptions.TopLeft,
                 Size = new Vector2(5.8f,0.4f),
@@ -211,7 +212,7 @@ public static class MainMenuSetUpPatch
             MetaWidgetOld staticWidget = new();
 
             MetaWidgetOld menuWidget = new();
-            menuWidget.Append(Enum.GetValues<ModUpdater.ReleasedInfo.ReleaseCategory>(), (category) =>
+            menuWidget.Append(Enum.GetValues<ModUpdater.ReleasedInfo.ReleaseCategory>(), category =>
             new MetaWidgetOld.Button(() => UpdateContents(category), new(TextAttributeOld.BoldAttr) { Size = new(0.95f, 0.28f) }) { TranslationKey = ModUpdater.ReleasedInfo.CategoryTranslationKeys[(int)category] }
                 , 1, -1, 0, 0.6f);
 
@@ -233,12 +234,15 @@ public static class MainMenuSetUpPatch
 
                 void AutoUpdateContent(string translationKey, Func<bool> predicate, Action onSelected)
                 {
-                    List<IMetaParallelPlacableOld> placable = new();
+                    List<IMetaParallelPlacableOld> placable =
+                    [
+                        new MetaWidgetOld.Text(CategoryAttribute)
+                            { RawText = Language.Translate("version.category.auto") },
+                        new MetaWidgetOld.HorizonalMargin(0.15f),
+                        new MetaWidgetOld.Text(NameAttribute) { TranslationKey = translationKey },
+                        new MetaWidgetOld.HorizonalMargin(0.15f)
+                    ];
 
-                    placable.Add(new MetaWidgetOld.Text(CategoryAttribute) { RawText = Language.Translate("version.category.auto") });
-                    placable.Add(new MetaWidgetOld.HorizonalMargin(0.15f));
-                    placable.Add(new MetaWidgetOld.Text(NameAttribute) { TranslationKey = translationKey });
-                    placable.Add(new MetaWidgetOld.HorizonalMargin(0.15f));
                     if(!predicate.Invoke())
                         placable.Add(new MetaWidgetOld.Button(() => { onSelected.Invoke(); UpdateContents(category);  MetaUI.ShowConfirmDialog(null, new TranslateTextComponent("ui.update.autoUpdate")); }, ButtonAttribute) { TranslationKey = "version.fetching.setAutoUpdate", PostBuilder = (_, renderer, _) => renderer.maskInteraction = SpriteMaskInteraction.VisibleInsideMask });
                     else
@@ -267,28 +271,33 @@ public static class MainMenuSetUpPatch
 
                     try
                     {
-                        List<IMetaParallelPlacableOld> placable = new();
-                        placable.Add(new MetaWidgetOld.Text(CategoryAttribute) { MyText = NebulaGUIWidgetEngine.Instance.TextComponent(ModUpdater.ReleasedInfo.CategoryColors[(int)version.Category], ModUpdater.ReleasedInfo.CategoryTranslationKeys[(int)version.Category]) });
-                        placable.Add(new MetaWidgetOld.HorizonalMargin(0.15f));
-                        placable.Add(new MetaWidgetOld.Text(NameAttribute)
-                        {
-                            RawText = version.Version!.Replace('_', ' '),
-                            PostBuilder = text =>
+                        List<IMetaParallelPlacableOld> placable =
+                        [
+                            new MetaWidgetOld.Text(CategoryAttribute)
                             {
-                                var button = text.gameObject.SetUpButton(true);
-                                button.gameObject.AddComponent<BoxCollider2D>().size = text.rectTransform.sizeDelta;
-                                button.OnClick.AddListener(() => Application.OpenURL("https://github.com/Dolly1016/Nebula/releases/tag/" + version.RawTag));
-                                button.OnMouseOver.AddListener(() =>
+                                MyText = NebulaGUIWidgetEngine.Instance.TextComponent(
+                                    ModUpdater.ReleasedInfo.CategoryColors[(int)version.Category],
+                                    ModUpdater.ReleasedInfo.CategoryTranslationKeys[(int)version.Category])
+                            },
+                            new MetaWidgetOld.HorizonalMargin(0.15f),
+                            new MetaWidgetOld.Text(NameAttribute)
+                            {
+                                RawText = version.Version!.Replace('_', ' '),
+                                PostBuilder = text =>
                                 {
-                                    text.color = Color.green;
-                                });
-                                button.OnMouseOut.AddListener(() =>
-                                {
-                                    text.color = Color.white;
-                                });
-                            }
-                        });
-                        placable.Add(new MetaWidgetOld.HorizonalMargin(0.15f));
+                                    var button = text.gameObject.SetUpButton(true);
+                                    button.gameObject.AddComponent<BoxCollider2D>().size = text.rectTransform.sizeDelta;
+                                    button.OnClick.AddListener(() =>
+                                        Application.OpenURL("https://github.com/Dolly1016/Nebula/releases/tag/" +
+                                                            version.RawTag));
+                                    button.OnMouseOver.AddListener(() => { text.color = Color.green; });
+                                    button.OnMouseOut.AddListener(() => { text.color = Color.white; });
+                                }
+                            },
+
+                            new MetaWidgetOld.HorizonalMargin(0.15f)
+
+                        ];
 
                         if (version.Epoch == NebulaPlugin.PluginEpoch && version.BuildNum != NebulaPlugin.PluginBuildNum)
                         {
@@ -313,15 +322,15 @@ public static class MainMenuSetUpPatch
             }
 
 
-            NebulaManager.Instance.StartCoroutine(ModUpdater.CoFetchVersionTags((list) =>
+            NebulaManager.Instance.StartCoroutine(ModUpdater.CoFetchVersionTags(list =>
             {
                 versions = list;
                 UpdateContents();
             }).WrapToIl2Cpp());
         }
 
-        foreach (var obj in GameObject.FindObjectsOfType<GameObject>(true)) {
-            if (obj.name is "FreePlayButton" or "HowToPlayButton") GameObject.Destroy(obj);
+        foreach (var obj in Object.FindObjectsOfType<GameObject>(true)) {
+            if (obj.name is "FreePlayButton" or "HowToPlayButton") Object.Destroy(obj);
         }
 
     }

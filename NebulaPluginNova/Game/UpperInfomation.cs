@@ -1,10 +1,11 @@
 ﻿using Virial;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Game;
 
 public class UpperInfomation
 {
-    List<(GameObject widget,float height, Func<GameObject>? updater,ILifespan? lifespan)> widgets = new();
+    List<(GameObject widget,float height, Func<GameObject>? updater,ILifespan? lifespan)> widgets = [];
     GameObject informationHolder;
     public bool RegisterWidgets(GUIWidget widget, ILifespan? lifespan = null, Func<GameObject>? updater = null)
     {
@@ -21,8 +22,8 @@ public class UpperInfomation
     {
         //寿命の尽きた情報を破棄する
         widgets.RemoveAll(w => {
-            bool isDead = w.lifespan?.IsDeadObject ?? false;
-            if (isDead) GameObject.Destroy(w.widget);
+            var isDead = w.lifespan?.IsDeadObject ?? false;
+            if (isDead) Object.Destroy(w.widget);
             return isDead;
         });
     }

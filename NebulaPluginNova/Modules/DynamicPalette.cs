@@ -3,6 +3,7 @@ using Il2CppInterop.Runtime.Injection;
 using Nebula.Behaviour;
 using TMPro;
 using Virial.Runtime;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Modules;
 
@@ -11,10 +12,10 @@ namespace Nebula.Modules;
 public class DynamicPalette
 {
     //PlayerIdと紐づけられたバイザーのゲーム内カラーパレット
-    static public Color[] VisorColors = new UnityEngine.Color[18];
+    static public Color[] VisorColors = new Color[18];
 
-    static public ColorPalette[] AllColorPalette = { new DefaultColorPalette() };
-    static public ShadowPattern[] AllShadowPattern = { new DefaultShadowPattern() };
+    static public ColorPalette[] AllColorPalette = [new DefaultColorPalette()];
+    static public ShadowPattern[] AllShadowPattern = [new DefaultShadowPattern()];
 
     static public Dictionary<int, (int h, int d, string? name)> ColorNameDic = new();
 
@@ -37,12 +38,12 @@ public class DynamicPalette
         MyColor = new ModColor("myColor");
         MyVisorColor = new ColorEntry("myColor.visor");
         SavedColor = new (ModColor, ColorEntry)[5];
-        for (int i = 0; i < SavedColor.Length; i++) SavedColor[i] = (new("savedColor" + i), new("savedColor" + i + ".visor"));
+        for (var i = 0; i < SavedColor.Length; i++) SavedColor[i] = (new("savedColor" + i), new("savedColor" + i + ".visor"));
 
         VanillaColorsPalette = Palette.PlayerColors.Select(c => (Color)c).ToArray();
 
-        List<RestorableColor> vanilaCatalogue = new();
-        for (int i = 0; i < 18; i++)
+        List<RestorableColor> vanilaCatalogue = [];
+        for (var i = 0; i < 18; i++)
         {
             vanilaCatalogue.Add(new RestorableColor()
             {
@@ -53,26 +54,32 @@ public class DynamicPalette
                 TranslationKey = "inventory.color.vanilla" + i
             });
         }
-        List<RestorableColor> vanilaVisorCatalogue = new(new RestorableColor[]{ new RestorableColor()
+        List<RestorableColor> vanilaVisorCatalogue =
+        [
+            ..new[]
             {
-                MainColor = new(Palette.VisorColor),
-                ShadowType = byte.MaxValue,
-                Category = "innersloth",
-                TranslationKey = "inventory.color.visor"
-            }});
+                new RestorableColor()
+                {
+                    MainColor = new(Palette.VisorColor),
+                    ShadowType = byte.MaxValue,
+                    Category = "innersloth",
+                    TranslationKey = "inventory.color.visor"
+                }
+            }
+        ];
         
         ColorCatalogue.Add("innersloth",vanilaCatalogue);
         VisorColorCatalogue.Add("innersloth", vanilaVisorCatalogue);
 
-        for (int i = 0; i < VisorColors.Length; i++) VisorColors[i] = Palette.VisorColor;
+        for (var i = 0; i < VisorColors.Length; i++) VisorColors[i] = Palette.VisorColor;
 
         //カモフラージャーカラー
         Palette.PlayerColors[16] = Palette.PlayerColors[6].Multiply(new Color32(180, 180, 180, 255));
         Palette.ShadowColors[16] = Palette.ShadowColors[6].Multiply(new Color32(180, 180, 180, 255));
         
         //プレビューカラーを設定しておく(Dev. Studio用)
-        Palette.PlayerColors[NebulaPlayerTab.PreviewColorId] = DynamicPalette.MyColor.MainColor;
-        Palette.ShadowColors[NebulaPlayerTab.PreviewColorId] = DynamicPalette.MyColor.ShadowColor;
+        Palette.PlayerColors[NebulaPlayerTab.PreviewColorId] = MyColor.MainColor;
+        Palette.ShadowColors[NebulaPlayerTab.PreviewColorId] = MyColor.ShadowColor;
 
         foreach (var addon in NebulaAddon.AllAddons)
         {
@@ -85,7 +92,7 @@ public class DynamicPalette
                 foreach (var c in colors)
                 {
                     if (!ColorCatalogue.ContainsKey(c.Category))
-                        ColorCatalogue[c.Category] = new();
+                        ColorCatalogue[c.Category] = [];
                     ColorCatalogue[c.Category].Add(c);
                 }
             }
@@ -100,7 +107,7 @@ public class DynamicPalette
                 foreach (var c in visorColors)
                 {
                     if (!VisorColorCatalogue.ContainsKey(c.Category))
-                        VisorColorCatalogue[c.Category] = new();
+                        VisorColorCatalogue[c.Category] = [];
                     VisorColorCatalogue[c.Category].Add(c);
                 }
             }
@@ -415,13 +422,15 @@ public class DynamicPalette
                 writer.Write(message.colorNameParam!.Item2);
             }
         },
-        (reader) =>
+        reader =>
         {
-            ShareColorMessage message = new ShareColorMessage();
-            message.playerId = reader.ReadByte();
-            message.mainColor = new Color(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
-            message.shadowColor = new Color(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
-            message.visorColor = new Color(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+            var message = new ShareColorMessage
+            {
+                playerId = reader.ReadByte(),
+                mainColor = new Color(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle()),
+                shadowColor = new Color(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle()),
+                visorColor = new Color(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle())
+            };
             if (reader.ReadBoolean())
                 message.colorNameParam = new(reader.ReadInt32(), reader.ReadInt32());
             else
@@ -464,13 +473,13 @@ public class DynamicPalette
             var color = Color.HSVToRGB((float)hue / 64f, 1f, 1f);
             if (distance < 6)
             {
-                float d = 1f - (float)distance / 6f;
+                var d = 1f - (float)distance / 6f;
                 color = Color.Lerp(color, Color.white, d);
             }
             else if (distance > 9)
             {
-                float s = (float)(distance - 9f) / 14f;
-                float sum = (color.r + color.g + color.b) / 3f;
+                var s = (float)(distance - 9f) / 14f;
+                var sum = (color.r + color.g + color.b) / 3f;
                 color = new Color(sum, sum, sum) * s + color * (1 - s);
             }
             return color * (brightness * 0.5f + 0.5f);
@@ -519,11 +528,11 @@ public class DynamicPalette
         foreach(var category in (isBodyColor ? ColorCatalogue : VisorColorCatalogue))
         {
             inner.Append(new MetaWidgetOld.Text(new(TextAttributeOld.BoldAttr) { FontMaterial = VanillaAsset.StandardMaskedFontMaterial}) { TranslationKey = "inventory.catalogue." + category.Key });
-            inner.Append(category.Value, (col) =>
+            inner.Append(category.Value, col =>
                 new MetaWidgetOld.Image(colorButtonSprite.GetSprite())
                 {
                     Width = 0.96f,
-                    PostBuilder = (renderer) =>
+                    PostBuilder = renderer =>
                     {
                         renderer.maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
                         renderer.sortingOrder = 20;
@@ -531,7 +540,7 @@ public class DynamicPalette
 
                         if (isBodyColor)
                         {
-                            var baseRenderer = GameObject.Instantiate(renderer, renderer.transform.parent);
+                            var baseRenderer = Object.Instantiate(renderer, renderer.transform.parent);
                             baseRenderer.sprite = colorBackSprite.GetSprite();
                             baseRenderer.transform.localPosition += new Vector3(0, 0, 0.1f);
                             baseRenderer.sortingOrder = 10;
@@ -561,7 +570,7 @@ public class DynamicPalette
                             }
                             ShownColor();
 
-                            if (AmongUsClient.Instance && AmongUsClient.Instance.IsInGame && PlayerControl.LocalPlayer) DynamicPalette.RpcShareColor.Invoke(new DynamicPalette.ShareColorMessage() { playerId = PlayerControl.LocalPlayer.PlayerId }.ReflectMyColor());
+                            if (AmongUsClient.Instance && AmongUsClient.Instance.IsInGame && PlayerControl.LocalPlayer) RpcShareColor.Invoke(new ShareColorMessage() { playerId = PlayerControl.LocalPlayer.PlayerId }.ReflectMyColor());
                         });
                         button.OnMouseOver.AddListener(() =>
                         {
@@ -650,7 +659,7 @@ public class NebulaPlayerTab : MonoBehaviour
             if (edittingVisorColor)
             {
                 ToColorParam(GetOnPalettePosition(), out var h, out var d);
-                Color c = DynamicPalette.AllColorPalette[0].GetColor(h, d, 1f);
+                var c = DynamicPalette.AllColorPalette[0].GetColor(h, d, 1f);
 
                 DynamicPalette.MyVisorColor.Edit(c);
                 TargetRenderer.gameObject.SetActive(true);
@@ -680,7 +689,7 @@ public class NebulaPlayerTab : MonoBehaviour
 
         void SetTargetRendererPos()
         {
-            DynamicPalette.MyColor.GetParam(edittingShadowColor, out byte h, out byte d, out _);
+            DynamicPalette.MyColor.GetParam(edittingShadowColor, out var h, out var d, out _);
             TargetRenderer.gameObject.SetActive(h != byte.MaxValue);
             TargetRenderer.transform.localPosition = ToPalettePosition(h, d);
         }
@@ -728,7 +737,7 @@ public class NebulaPlayerTab : MonoBehaviour
         BrTargetKnob.OnRelease = () => {
             if (DynamicPalette.MyColor.GetShadowPattern() == byte.MaxValue) DynamicPalette.MyColor.SetShadowPattern(0);
 
-            float b = ToBrightness(BrTargetKnob.transform.localPosition.y);
+            var b = ToBrightness(BrTargetKnob.transform.localPosition.y);
 
             DynamicPalette.MyColor.EditColor(edittingShadowColor,null, null, b, null);
 
@@ -737,10 +746,10 @@ public class NebulaPlayerTab : MonoBehaviour
             PreviewColor(null, null, null);
         };
 
-        float lastB = -1f;
-        float lastBTime = 0f;
-        BrTargetKnob.OnDragging = (y) => {
-            float b = (y + (BrightnessHeight * 0.5f)) / BrightnessHeight;
+        var lastB = -1f;
+        var lastBTime = 0f;
+        BrTargetKnob.OnDragging = y => {
+            var b = (y + (BrightnessHeight * 0.5f)) / BrightnessHeight;
             if (lastB == b || Mathf.Abs(Time.time - lastBTime) < 0.05f) return;
             lastBTime = Time.time;
             lastB = b;
@@ -748,9 +757,9 @@ public class NebulaPlayerTab : MonoBehaviour
             PreviewColor(null, null, b);
         };
 
-        for(int i = 0; i < DynamicPalette.SavedColor.Length; i++)
+        for(var i = 0; i < DynamicPalette.SavedColor.Length; i++)
         {
-            int copiedIndex = i;
+            var copiedIndex = i;
             var renderer = UnityHelper.CreateObject<SpriteRenderer>("SavedColor", transform, new(4.45f + (float)i * 0.81f, 2.25f, -50f));
             renderer.sprite = DynamicPalette.colorButtonSprite.GetSprite();
             renderer.color = DynamicPalette.SavedColor[copiedIndex].color.MainColor;
@@ -824,8 +833,8 @@ public class NebulaPlayerTab : MonoBehaviour
 
     public static Vector3 ToPalettePosition(byte hue,byte distance)
     {
-        float magnitude = (float)distance / 24f * 2.1f;
-        float angle = (float)hue / 64 * (2f * Mathf.PI) + Mathf.PI * 0.5f;
+        var magnitude = (float)distance / 24f * 2.1f;
+        var angle = (float)hue / 64 * (2f * Mathf.PI) + Mathf.PI * 0.5f;
         return new Vector3(Mathf.Cos(angle) * magnitude, Mathf.Sin(angle) * magnitude, -1f);
     }
 
@@ -846,7 +855,7 @@ public class NebulaPlayerTab : MonoBehaviour
         BrTargetKnob.gameObject.SetActive(DynamicPalette.MyColor.GetShadowPattern() != byte.MaxValue);
 
         var pos = GetOnPalettePosition();
-        float distance = pos.magnitude;
+        var distance = pos.magnitude;
         
         if (distance < 2.06f)
         {
@@ -882,7 +891,7 @@ public class NebulaPlayerTab : MonoBehaviour
 
     void AddIcon(int imageId, string translationKey)
     {
-        int numOfIcons = ColorIcons.Count;
+        var numOfIcons = ColorIcons.Count;
         var s = ColorIcons.Instantiate();
         s.sprite = spriteColorIcons.GetSprite(imageId);
         s.transform.localPosition = new(7f + 0.6f * numOfIcons, 1.25f, -50f);
@@ -952,7 +961,7 @@ public class NebulaPlayerTab : MonoBehaviour
     {
         try
         {
-            DynamicPalette.MyColor.GetParam(edittingShadowColor, out byte h, out byte d, out var b);
+            DynamicPalette.MyColor.GetParam(edittingShadowColor, out var h, out var d, out var b);
             concernedHue ??= h;
             concernedDistance ??= d;
             concernedBrightness ??= b;
@@ -961,7 +970,7 @@ public class NebulaPlayerTab : MonoBehaviour
 
             if (DynamicPalette.MyColor.GetShadowPattern() != byte.MaxValue)
             {
-                Color color = DynamicPalette.AllColorPalette[currentPalette].GetColor(concernedHue.Value, concernedDistance.Value, concernedBrightness.Value);
+                var color = DynamicPalette.AllColorPalette[currentPalette].GetColor(concernedHue.Value, concernedDistance.Value, concernedBrightness.Value);
                 DynamicPalette.AllShadowPattern[DynamicPalette.MyColor.GetShadowPattern()].GetShadowColor(
                     edittingShadowColor ? DynamicPalette.MyColor.MainColor : color,
                     edittingShadowColor ? color : DynamicPalette.MyColor.ShadowColor,

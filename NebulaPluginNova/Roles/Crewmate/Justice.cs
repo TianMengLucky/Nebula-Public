@@ -29,31 +29,31 @@ public class RandomMultibandMeter : IMultibandMater{
         Length = num;
         Band = new float[num];
         secretBand = new float[num];
-        for (int i = 0; i < num; i++) Band[i] = 0f;
+        for (var i = 0; i < num; i++) Band[i] = 0f;
     }
 
     public void Update() {
 
         void SpawnWave()
         {
-            float center = System.Random.Shared.NextSingle();
-            float height = 0.3f * System.Random.Shared.NextSingle() * 2f;
+            var center = System.Random.Shared.NextSingle();
+            var height = 0.3f * System.Random.Shared.NextSingle() * 2f;
             height *= height; //大きい山の生まれる頻度を下げる
-            float width = 0.2f * System.Random.Shared.NextSingle() * 0.45f;
+            var width = 0.2f * System.Random.Shared.NextSingle() * 0.45f;
 
-            for(int i = 0;i < Length; i++)
+            for(var i = 0;i < Length; i++)
             {
-                float pos = (float)i / Length;
-                float x = (pos - center) / width;
-                float y = height / (float)Math.Sqrt((x * x) + Math.Cos(x));
+                var pos = (float)i / Length;
+                var x = (pos - center) / width;
+                var y = height / (float)Math.Sqrt((x * x) + Math.Cos(x));
                 secretBand[i] = Mathf.Max(y, secretBand[i]);
             }
         }
 
         //毎ティック新たな波を生成する
-        for (int i = 0; i < 3; i++) SpawnWave();
+        for (var i = 0; i < 3; i++) SpawnWave();
 
-        for(int i = 0;i < Length; i++)
+        for(var i = 0;i < Length; i++)
         {
             //見た目上の値を上限値にシームレスに寄せる
             if (Band[i] < secretBand[i])
@@ -108,12 +108,12 @@ public class JusticeMeetingHud : MonoBehaviour
 
         IEnumerator CoAnimCircle()
         {
-            float goal = System.Random.Shared.NextSingle();
+            var goal = System.Random.Shared.NextSingle();
             material.SetFloat("_Guage", goal);
 
-            float current = 0f;
-            float t = 1f;
-            float slightT = 0.2f;
+            var current = 0f;
+            var t = 1f;
+            var slightT = 0.2f;
             while (circleFront)
             {
                 current -= (current - goal).Delta(0.8f, 0.001f);
@@ -145,8 +145,8 @@ public class JusticeMeetingHud : MonoBehaviour
         var bandHolder = UnityHelper.CreateObject<SortingGroup>("BandHolder", parent, center);
 
         SpriteRenderer[] renderers = new SpriteRenderer[num];
-        float[] filter = new float[num];
-        for (int i = 0; i < num; i++)
+        var filter = new float[num];
+        for (var i = 0; i < num; i++)
         {
             renderers[i] = UnityHelper.CreateSpriteRenderer("Graph", bandHolder.transform, new Vector3((i / (float)(num - 1) - 0.5f) * 1.8f, 0f, 0f));
             renderers[i].transform.localScale = new(1f, 0f, 1f);
@@ -162,7 +162,7 @@ public class JusticeMeetingHud : MonoBehaviour
             while (true)
             {
                 multibandMater.Update();
-                for (int i = 0; i < num; i++) renderers[i].transform.localScale = new(1f, multibandMater.Band[i] * filter[i] * 4.4f, 1f);
+                for (var i = 0; i < num; i++) renderers[i].transform.localScale = new(1f, multibandMater.Band[i] * filter[i] * 4.4f, 1f);
                 yield return null;
             }
         }
@@ -172,7 +172,7 @@ public class JusticeMeetingHud : MonoBehaviour
 
     private IEnumerator CoAnimColor(SpriteRenderer renderer, Color color1, Color color2, float duration)
     {
-        float t = 0f;
+        var t = 0f;
         while(t <  duration)
         {
             t += Time.deltaTime;
@@ -216,8 +216,8 @@ public class JusticeMeetingHud : MonoBehaviour
         lineRenderer.color = Color.black.AlphaMultiplied(0.85f);
         lineRenderer.transform.localScale = new(20f, 0f, 1f);
 
-        float t = 0f;
-        float p = 0f;
+        var t = 0f;
+        var p = 0f;
         while(t < 2f && parent)
         {
             p += (1 - p).Delta(3.5f, 0.01f);
@@ -249,14 +249,14 @@ public class JusticeMeetingHud : MonoBehaviour
         introText.Material = UnityHelper.GetMeshRendererMaterial();
         introText.Color = Color.white;
         yield return null;
-        string completedText = System.Random.Shared.NextSingle() < 0.1f ? "The balance is at will!" : "Justice meeting begins...";
+        var completedText = System.Random.Shared.NextSingle() < 0.1f ? "The balance is at will!" : "Justice meeting begins...";
 
-        for(int i = 0;i<completedText.Length;i++)
+        for(var i = 0;i<completedText.Length;i++)
         {
             introText.Text = completedText.Substring(0,i + 1);
             yield return Effects.Wait(0.078f);
         }
-        for(int i = 0; i < 3; i++)
+        for(var i = 0; i < 3; i++)
         {
             introText.gameObject.SetActive(false);
             yield return Effects.Wait(0.04f);
@@ -268,7 +268,7 @@ public class JusticeMeetingHud : MonoBehaviour
     IEnumerator CoPlayAlertFlash()
     {
         yield return Effects.Wait(0.15f);
-        for(int i = 0; i < 3; i++)
+        for(var i = 0; i < 3; i++)
         {
             AmongUsUtil.PlayCustomFlash(Color.red, 0.2f, 0.2f, 0.3f, 0.6f);
             yield return Effects.Wait(1.0f + 0.3f);
@@ -296,8 +296,8 @@ public class JusticeMeetingHud : MonoBehaviour
         yield return Effects.Wait(2.5f);
         NebulaManager.Instance.StartDelayAction(0.2f, () => NebulaAsset.PlaySE(NebulaAudioClip.Justice2));
         yield return CoAnimColor(black, new(0f, 0f, 0f, 0f), Color.black, 1.2f);
-        StartCoroutine(ManagedEffects.Sequence(Effects.Wait(1f).WrapToManaged(), CoAnimColor(black, Color.black, new(0f, 0f, 0f, 0f), 1f), ManagedEffects.Action(()=>GameObject.Destroy(black.gameObject))).WrapToIl2Cpp());
-        GameObject.Destroy(introObj);
+        StartCoroutine(ManagedEffects.Sequence(Effects.Wait(1f).WrapToManaged(), CoAnimColor(black, Color.black, new(0f, 0f, 0f, 0f), 1f), ManagedEffects.Action(()=>Destroy(black.gameObject))).WrapToIl2Cpp());
+        Destroy(introObj);
         meetingHud.TimerText.gameObject.SetActive(true);
 
         onMeetingStart.Invoke();
@@ -338,13 +338,13 @@ public class JusticeMeetingHud : MonoBehaviour
             reticleText.Text = "";
             reticleText.gameObject.SetActive(true);
             yield return null;
-            string targetText = text;
-            for(int i = 1;i<=targetText.Length; i++)
+            var targetText = text;
+            for(var i = 1;i<=targetText.Length; i++)
             {
                 reticleText.Text = targetText.Substring(0, i);
                 yield return Effects.Wait(0.08f);
             }
-            for (int i = 0; i < 3; i++)
+            for (var i = 0; i < 3; i++)
             {
                 reticleText.gameObject.SetActive(false);
                 yield return Effects.Wait(0.05f);
@@ -354,7 +354,7 @@ public class JusticeMeetingHud : MonoBehaviour
 
             yield return Effects.Wait(5f + System.Random.Shared.NextSingle() * 8f);
 
-            for (int i = 0; i < 3; i++)
+            for (var i = 0; i < 3; i++)
             {
                 reticleText.gameObject.SetActive(false);
                 yield return Effects.Wait(0.05f);
@@ -367,7 +367,7 @@ public class JusticeMeetingHud : MonoBehaviour
         IEnumerator CoRepeatAnimText()
         {
             string[] texts = [];
-            int index = 0;
+            var index = 0;
             while (true)
             {
                 if (index == texts.Length) {
@@ -421,9 +421,9 @@ public class JusticeMeetingHud : MonoBehaviour
 
         (int photoIndex, Vector2 localPos, float scale)[] PhotoData = [/*(0, new(-1.04f, 0.62f), 0.52f),*/ (1, new(-0.845f, 0.816f), 0.76f), (2, new(-1.04f, 0.77f), 0.7f), (3, new(-1.06f, 0.805f), 0.73f), (4, new(-1.06f, 0.89f), 0.9f), (5, new(-1.07f, 0.81f), 0.75f), (6, new(-0.93f, 0.73f), 0.65f), (7, new(-1.06f, 0.77f), 0.7f)];
 
-        int lastPhotoIndex = 0;
-        int lastNumberIndex = 0;
-        int lastAltIndex = 0;
+        var lastPhotoIndex = 0;
+        var lastNumberIndex = 0;
+        var lastAltIndex = 0;
         void SpawnVotingArea(GamePlayer player, Vector3 localPos, Image holder)
         {
             var flashHolder = UnityHelper.CreateObject("FlashHolder", transform, Vector3.zero);
@@ -445,20 +445,20 @@ public class JusticeMeetingHud : MonoBehaviour
                     flashBlur.color = new(1f, 1f, 1f, 0.5f - p * 0.5f);
                     flashBlur.transform.localScale = new(0.7f + p * 0.2f, 0.7f + p * 0.2f, 1f);
                 });
-                GameObject.Destroy(flashHolder.gameObject);
+                Destroy(flashHolder.gameObject);
             }
 
             IEnumerator CoShake(float duration)
             {
-                float t = duration;
+                var t = duration;
                 while (t > 0f)
                 {
-                    float p = (t / duration);
+                    var p = (t / duration);
                     flashHolder.transform.localPosition = Vector3.right.RotateZ(System.Random.Shared.NextSingle() * 360f) * p * 0.16f * (System.Random.Shared.NextSingle() * 0.6f + 0.4f);
 
-                    float ipip = (1 - p) * (1 - p);
-                    float wait = 0.001f + ipip * 0.2f;
-                    float lastTime = Time.time;
+                    var ipip = (1 - p) * (1 - p);
+                    var wait = 0.001f + ipip * 0.2f;
+                    var lastTime = Time.time;
                     yield return Effects.Wait(wait);
                     t -= Time.time - lastTime;
                 }
@@ -487,7 +487,7 @@ public class JusticeMeetingHud : MonoBehaviour
                 var textColor = Color.Lerp(playerColor, DynamicPalette.IsLightColor(playerColor) ? new(0.18f, 0.18f, 0.18f, 1f) : new(1f, 1f, 1f, 1f), 0.4f);
 
                 var graphColor = Color.Lerp(Color.Lerp(Palette.PlayerColors[player.PlayerId], Palette.ShadowColors[player.PlayerId], 0.25f), Color.white, 0.28f);
-                for (int x = 0; x < 3; x++) InstantiateCircleGraph(back.transform, new(-0.6f + (0.28f * x), -0.5f, -0.2f), graphColor);
+                for (var x = 0; x < 3; x++) InstantiateCircleGraph(back.transform, new(-0.6f + (0.28f * x), -0.5f, -0.2f), graphColor);
                 InstantiateBandGraph(24, back.transform, new(0.65f, -0.13f, -0.2f), graphColor);
 
                 var topText = NebulaAsset.InstantiateText("AchievementTopText", back.transform, new(0.67f, 0.87f, -0.5f), NebulaAsset.JusticeFont, 0.14f, Virial.Text.TextAlignment.Center, new(0.5f, 0.5f), "a.k.a.", Color.white.AlphaMultiplied(0.8f));
@@ -582,7 +582,7 @@ public class Justice : DefinedRoleTemplate, HasCitation, DefinedRole
             var justiceMeeting = UnityHelper.CreateObject<JusticeMeetingHud>("JusticeMeeting", MeetingHud.Instance.transform, Vector3.zero);
             justiceMeeting.Begin(message.p1, message.p2, () =>
             {
-                MeetingModRpc.RpcChangeVotingStyle.LocalInvoke(((1 << message.p1.PlayerId) | (1 << message.p2.PlayerId), false, Justice.JusticeMeetingTimeOption, true, false));
+                MeetingModRpc.RpcChangeVotingStyle.LocalInvoke(((1 << message.p1.PlayerId) | (1 << message.p2.PlayerId), false, JusticeMeetingTimeOption, true, false));
             });
         });
     public class Instance : RuntimeAssignableTemplate, RuntimeRole

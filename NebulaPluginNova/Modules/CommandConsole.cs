@@ -11,7 +11,7 @@ public class CommandConsole
 {
     private class GuestExecutor : ICommandExecutor, IPermissionHolder
     {
-        bool IPermissionHolder.Test(Virial.Common.Permission permission) => false;
+        bool IPermissionHolder.Test(Permission permission) => false;
     }
 
     TextField myInput;
@@ -30,12 +30,12 @@ public class CommandConsole
         log = UnityHelper.CreateObject<ConsoleShower>("ConsoleLog", uiCamTransform, new Vector3(-2.15f, -2.8f, -800f) + new Vector3(0.05f, 0.3f, 0f));
         log.ConsoleInputHolder = consoleObject;
 
-        Vector2 size = new Vector2(6f, 0.225f);
+        var size = new Vector2(6f, 0.225f);
 
         myInput = UnityHelper.CreateObject<TextField>("InputField", consoleObject.transform, new Vector3(0, 0, -1f));
         myInput.SetSize(size,1.6f);
 
-        myInput.EnterAction = (text) =>
+        myInput.EnterAction = text =>
         {
             if (text == "")
             {

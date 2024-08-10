@@ -4,7 +4,7 @@ namespace Nebula.Utilities;
 
 public interface IKeyAssignment
 {
-    static protected List<IKeyAssignment> allKeyAssignments = new();
+    static protected List<IKeyAssignment> allKeyAssignments = [];
     static public IEnumerable<IKeyAssignment> AllKeyAssignments => allKeyAssignments;
     public string DisplayName { get; }
     public KeyCode KeyInput { get; set; }
@@ -43,13 +43,13 @@ public class VirtualInput
 
     public VirtualInput(IEnumerable<KeyCode> enumerable,params Func<KeyCode>[] assignments)
     {
-        this.assignmentEnumerator = enumerable;
+        assignmentEnumerator = enumerable;
         this.assignments = assignments;
     }
 
     public VirtualInput(KeyCode keyCode)
     {
-        assignments = new Func<KeyCode>[] { () => keyCode };
+        assignments = [() => keyCode];
     }
 
     public IEnumerable<KeyCode> AllKeyCode()

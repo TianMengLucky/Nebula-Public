@@ -31,7 +31,7 @@ public class ShipStatusPatch
             //ベントを見えなくする
             foreach (var vent in ShipStatus.Instance.AllVents)
             {
-                GameObject shadowObj = new GameObject("ShadowVent");
+                var shadowObj = new GameObject("ShadowVent");
                 shadowObj.transform.SetParent(vent.transform);
                 shadowObj.transform.localPosition = new Vector3(0f, 0f, 0f);
                 shadowObj.transform.localScale = new Vector3(1f, 1f, 1f);

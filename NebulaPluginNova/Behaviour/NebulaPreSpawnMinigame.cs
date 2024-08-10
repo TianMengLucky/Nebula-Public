@@ -7,10 +7,10 @@ namespace Nebula.Behaviour;
 
 public class NebulaPreSpawnLocation
 {
-    static public string[] MapName = new string[] { "Skeld", "Mira", "Polus", "Invalid", "Airship", "Fungle" };
+    static public string[] MapName = ["Skeld", "Mira", "Polus", "Invalid", "Airship", "Fungle"];
 
     static public NebulaPreSpawnLocation[][] Locations = new NebulaPreSpawnLocation[][]{
-        new NebulaPreSpawnLocation[]{ 
+        [
             new("Admin", new Vector2(2.9753f, -7.4595f)),
             new("Cafeteria", new Vector2(-0.8721f, 3.6115f)),
             new("Comms", new Vector2(4.5986f, -15.618f)),
@@ -25,8 +25,8 @@ public class NebulaPreSpawnLocation
             new("Storage", new Vector2(-2.3901f, -15.1296f)),
             new("UpperEngine", new Vector2(-17.6972f, -0.9157f)),
             new("Weapons", new Vector2(9.5354f, 1.3911f))
-        },
-        new NebulaPreSpawnLocation[]{
+        ],
+        [
             new("Admin", new Vector2(19.4462f, 19.0366f)),
             new("Balcony", new Vector2(26.7091f, -1.9142f)),
             new("Cafeteria", new Vector2(25.433f, 2.553f)),
@@ -41,8 +41,8 @@ public class NebulaPreSpawnLocation
             new("Reactor", new Vector2(2.4809f, 13.2443f)),
             new("Rendezvous", new Vector2(17.8176f, 11.3095f)),
             new("Storage", new Vector2(19.9159f, 4.718f))
-        },
-        new NebulaPreSpawnLocation[]{
+        ],
+        [
             new("Abditory", new Vector2(25.7226f, -12.8779f)),
             new("Admin", new Vector2(21.1384f, -22.7731f)),
             new("Drill", new Vector2(27.5518f, -7.3609f)),
@@ -57,9 +57,9 @@ public class NebulaPreSpawnLocation
             new("Specimens", new Vector2(36.5f, -21.2f)),
             new("Storage", new Vector2(20.6f, -11.7f)),
             new("Weapons", new Vector2(12.2f, -23.3f))
-        },
-        new NebulaPreSpawnLocation[0],
-        new NebulaPreSpawnLocation[]{ 
+        ],
+        [],
+        [
             new("Brig",0,140,new(-0.5f,8.5f)),
             new("Engine",1,180,new(0f,-1f)),
             new("Hallway",2,226, new(15.5f,0f)),
@@ -79,9 +79,8 @@ public class NebulaPreSpawnLocation
             new("Toilet", new Vector2(32.3184f, 7.0118f)),
             new("Vault", new Vector2(-8.789f, 8.049f)),
             new("ViewingDeck", new Vector2(-13.9798f, -15.8316f))
-        },
-        new NebulaPreSpawnLocation[]
-        {
+        ],
+        [
             new("Campfire", new Vector2(-9.79f, 3.0949f)),
             new("Comms", new Vector2(24.0248f, 13.625f)),
             new("Laboratory", new Vector2(-5.2573f, -9.1099f)),
@@ -96,16 +95,16 @@ public class NebulaPreSpawnLocation
             new("MiningPit", new Vector2(11.9868f, 9.4421f)),
             new("Lookout", new Vector2(7.1789f, 1.5662f)),
             new("Reactor", new Vector2(21.9125f, -7.0967f)),
-            new("Jungle", new Vector2[]{ 
+            new("Jungle", [
                 new Vector2(18.44f, -12.3383f),//リアクター左下
                 new Vector2(9.4571f, -15.5648f),//グリーンハウス下
                 new Vector2(3.8322f, -6.0519f),//グリーンハウス左上
                 new Vector2(-4.2053f, -14.8184f),//ラボ下
                 new Vector2(2.3421f, -12.0085f),//グリーンハウス・ラボ間
                 new Vector2(15.2272f, -6.1833f)//リアクター左
-                })
-        }
-        };
+            ])
+        ]
+    };
 
     public string LocationName { get; private init; }
     public string GetDisplayName(byte mapId)
@@ -121,24 +120,24 @@ public class NebulaPreSpawnLocation
     private int ImageSize { get; set; } = 200;
     public IOrderedSharableVariable<bool> Configuration { get; set; }
     public NebulaPreSpawnLocation(string locationName,Vector2 pos,string? audioClip = null) { 
-        this.LocationName = locationName;
-        this.Positions = new Vector2[] { pos };
-        this.AudioClip = audioClip;
+        LocationName = locationName;
+        Positions = [pos];
+        AudioClip = audioClip;
     }
 
     public NebulaPreSpawnLocation(string locationName, Vector2[] pos, string? audioClip = null)
     {
-        this.LocationName = locationName;
-        this.Positions = pos;
-        this.AudioClip = audioClip;
+        LocationName = locationName;
+        Positions = pos;
+        AudioClip = audioClip;
     }
 
     public NebulaPreSpawnLocation(string locationName, int vanillaIndex,int imageSize,Vector2 tempPosition)
     {
-        this.LocationName= locationName;
-        this.VanillaIndex= vanillaIndex;
-        this.ImageSize = imageSize;
-        this.Positions = new Vector2[] { tempPosition };
+        LocationName= locationName;
+        VanillaIndex= vanillaIndex;
+        ImageSize = imageSize;
+        Positions = [tempPosition];
     }
 }
 
@@ -146,17 +145,17 @@ public class NebulaPreSpawnMinigame : Minigame
 {
 
     static NebulaPreSpawnMinigame() => ClassInjector.RegisterTypeInIl2Cpp<NebulaPreSpawnMinigame>();
-    public NebulaPreSpawnMinigame(System.IntPtr ptr) : base(ptr) { }
+    public NebulaPreSpawnMinigame(IntPtr ptr) : base(ptr) { }
     public NebulaPreSpawnMinigame() : base(ClassInjector.DerivedConstructorPointer<NebulaPreSpawnMinigame>())
     { ClassInjector.DerivedConstructorBody(this); }
 
-    TMPro.TextMeshPro UnderText = null!;
+    TextMeshPro UnderText = null!;
 
     Vector2 spawnAt = new Vector2(0, 0);
 
     public static NebulaPreSpawnLocation[] PreSpawnLocations { get
         {
-            byte mapId = AmongUsUtil.CurrentMapId;
+            var mapId = AmongUsUtil.CurrentMapId;
             var cand = NebulaPreSpawnLocation.Locations[mapId];
 
             //スポーンポイントを抽出する
@@ -183,24 +182,24 @@ public class NebulaPreSpawnMinigame : Minigame
         }
         PlayerControl.LocalPlayer.NetTransform.RpcSnapTo(spawnAt);
 
-        for (float timer = 0f; timer < 0.25f; timer += Time.deltaTime)
+        for (var timer = 0f; timer < 0.25f; timer += Time.deltaTime)
         {
-            float num = timer / 0.25f;
-            base.transform.localPosition = new Vector3(0f, Mathf.SmoothStep(0f, -8f, num), -50f);
+            var num = timer / 0.25f;
+            transform.localPosition = new Vector3(0f, Mathf.SmoothStep(0f, -8f, num), -50f);
             yield return null;
         }
-        GameObject.Destroy(base.gameObject);
+        Destroy(gameObject);
     }
 
     public override void Begin(PlayerTask task)
     {
-        Minigame.Instance = this;
-        this.amOpening = true;
-        this.amClosing = Minigame.CloseState.None;
+        Instance = this;
+        amOpening = true;
+        amClosing = CloseState.None;
 
         if (PlayerControl.LocalPlayer) PlayerControl.LocalPlayer.NetTransform.Halt();
         
-        byte mapId = AmongUsUtil.CurrentMapId;
+        var mapId = AmongUsUtil.CurrentMapId;
 
         var cand = PreSpawnLocations;
         var rand = Helpers.GetRandomArray(cand.Length);
@@ -208,7 +207,7 @@ public class NebulaPreSpawnMinigame : Minigame
         SpawnInMinigame? minigamePrefab = null;
         if (mapId == 4) minigamePrefab = ShipStatus.Instance.Cast<AirshipStatus>().SpawnInGame;
 
-        UnderText = GameObject.Instantiate(VanillaAsset.StandardTextPrefab,transform);
+        UnderText = Instantiate(VanillaAsset.StandardTextPrefab,transform);
         UnderText.transform.localPosition = new Vector3(0,-1.18f,0f);
         UnderText.transform.localScale= Vector3.one;
         UnderText.fontSizeMax = 4;
@@ -219,7 +218,7 @@ public class NebulaPreSpawnMinigame : Minigame
         UnderText.text = "";
 
 
-        int candidates = Mathf.Min(GeneralConfigurations.SpawnCandidatesOption, cand.Length);
+        var candidates = Mathf.Min(GeneralConfigurations.SpawnCandidatesOption, cand.Length);
 
         if (GeneralConfigurations.SpawnMethodOption.GetValue() == 2) candidates = 1;
 
@@ -229,8 +228,8 @@ public class NebulaPreSpawnMinigame : Minigame
 
         IEnumerator CoAnim(SpriteRenderer renderer,IDividedSpriteLoader sprite)
         {
-            float t = 0f;
-            int i = 0;
+            var t = 0f;
+            var i = 0;
             while (true)
             {
                 t += Time.deltaTime;
@@ -248,17 +247,17 @@ public class NebulaPreSpawnMinigame : Minigame
             renderer.sprite = sprite.GetSprite(0);
         }
 
-        bool gotSelect = false;
+        var gotSelect = false;
 
         IEnumerator CoFadeOutOthers(int selected)
         {
-            float othersAlpha = 1f;
+            var othersAlpha = 1f;
 
             while (true)
             {
                 othersAlpha = Mathf.Clamp01(othersAlpha - Time.deltaTime * 1.45f);
 
-                for (int i = 0; i < candidates; i++)
+                for (var i = 0; i < candidates; i++)
                 {
                     if (i == selected) continue;
                     allButton[i].Item1.color = Color.white.AlphaMultiplied(othersAlpha);
@@ -281,7 +280,7 @@ public class NebulaPreSpawnMinigame : Minigame
 
             var selectedTransform = allButton[selected].Item1.transform;
 
-            for(int i = 0; i < 3; i++)
+            for(var i = 0; i < 3; i++)
             {
                 yield return new WaitForSeconds(0.02f);
                 allButton[selected].Item1.color = Color.clear;
@@ -308,13 +307,13 @@ public class NebulaPreSpawnMinigame : Minigame
         //選択肢が2つ以上ある場合
         IEnumerator CoCountDown()
         {
-            float t = 10f;
-            int ceilCount = -1;
+            var t = 10f;
+            var ceilCount = -1;
 
             while (t > 0f)
             {
                 t -= Time.deltaTime;
-                int next = Mathf.CeilToInt(t);
+                var next = Mathf.CeilToInt(t);
                 if (next != ceilCount)
                 {
                     ceilCount = next;
@@ -344,20 +343,20 @@ public class NebulaPreSpawnMinigame : Minigame
             StartCoroutine(CoSelect(0).WrapToIl2Cpp());
         }
 
-        float width = new float[] { 0f, 0f, 2.8f, 2.2f, 2.2f, 1.9f, 1.7f, 1.5f, 1.26f }[candidates];
-        float scale = new float[] { 1f, 1f, 1f, 1f, 1f, 0.95f, 0.8f, 0.7f, 0.6f }[candidates];
+        var width = new[] { 0f, 0f, 2.8f, 2.2f, 2.2f, 1.9f, 1.7f, 1.5f, 1.26f }[candidates];
+        var scale = new[] { 1f, 1f, 1f, 1f, 1f, 0.95f, 0.8f, 0.7f, 0.6f }[candidates];
         
         foreach(var loc in cand)
         {
             if (loc.VanillaIndex.HasValue)
-                loc.Positions = new Vector2[] { minigamePrefab!.Locations[loc.VanillaIndex.Value].Location };
+                loc.Positions = [minigamePrefab!.Locations[loc.VanillaIndex.Value].Location];
         }
 
         //ランダムなスポーン先を適当に代入しておく
         spawnAt = cand[rand[System.Random.Shared.Next(candidates)]].Position!.Value;
 
-        for (int i = 0; i < candidates; i++){
-            int copiedIndex = i;
+        for (var i = 0; i < candidates; i++){
+            var copiedIndex = i;
 
             var loc = cand[rand[i]];
 
@@ -369,7 +368,7 @@ public class NebulaPreSpawnMinigame : Minigame
 
             renderer.sprite = sprite.GetSprite(0);
 
-            var text = GameObject.Instantiate(VanillaAsset.StandardTextPrefab,renderer.transform);
+            var text = Instantiate(VanillaAsset.StandardTextPrefab,renderer.transform);
             text.transform.localPosition=new Vector3(0f,-0.31f,0f);
             text.transform.localScale= Vector3.one;
             text.fontSize = 2.85f;
@@ -377,7 +376,7 @@ public class NebulaPreSpawnMinigame : Minigame
             text.fontSizeMin = 1f;
             text.text = Language.Translate(loc.GetDisplayName(mapId));
             text.font = VanillaAsset.PreSpawnFont;
-            AudioClip hoverClip = VanillaAsset.HoverClip;
+            var hoverClip = VanillaAsset.HoverClip;
 
             if (loc.VanillaIndex.HasValue)
                 hoverClip = minigamePrefab!.Locations[loc.VanillaIndex.Value].RolloverSfx;
@@ -394,7 +393,7 @@ public class NebulaPreSpawnMinigame : Minigame
 
                 if (currentAnim != null) StopCoroutine(currentAnim);
 
-                for (int i = 0; i < candidates; i++) allButton[i].Item1.sprite = allSprite[i].GetSprite(0);
+                for (var i = 0; i < candidates; i++) allButton[i].Item1.sprite = allSprite[i].GetSprite(0);
                 
                 currentAnim = StartCoroutine(CoAnim(renderer,sprite).WrapToIl2Cpp());
             });
@@ -431,15 +430,15 @@ public class NebulaPreSpawnMinigame : Minigame
 
     public void CloseSpawnInMinigame()
     {
-        ControllerManager.Instance.CloseOverlayMenu(base.name);
-        this.amClosing = Minigame.CloseState.Closing;
+        ControllerManager.Instance.CloseOverlayMenu(name);
+        amClosing = CloseState.Closing;
         StartCoroutine(CoClose().WrapToIl2Cpp());
     }
 
     public IEnumerator WaitForFinish()
     {
         yield return null;
-        while (this.amClosing == Minigame.CloseState.None)
+        while (amClosing == CloseState.None)
         {
             yield return null;
         }

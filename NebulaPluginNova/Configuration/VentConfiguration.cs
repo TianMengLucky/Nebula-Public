@@ -36,15 +36,15 @@ internal class VentConfiguration : IVentConfiguration
 
     string? IConfiguration.GetDisplayText()
     {
-        List<string> sb = new();
-        bool hasParameter = usesEntry != null || coolDownEntry != null || durationEntry != null;
+        List<string> sb = [];
+        var hasParameter = usesEntry != null || coolDownEntry != null || durationEntry != null;
 
         if (canUseEntry != null && (!canUseEntry.GetValue() || !hasParameter)) 
             sb.Add(Language.Translate("role.general.canUseVent") + ": " + Language.Translate(canUseEntry.GetValue() ? "options.switch.on" : "options.switch.off"));
 
         if (hasParameter && (canUseEntry == null || canUseEntry.GetValue()))
         {
-            string str = Language.Translate("role.general.ventOption") + ": (";
+            var str = Language.Translate("role.general.ventOption") + ": (";
             string?[] vals = [
                 usesEntry != null ? (Language.Translate("role.general.ventUses") + ": " + usesEntry.Value) : null,
                 coolDownEntry != null ? (Language.Translate("role.general.ventCoolDown") + ": " + coolDownEntry.Value + Language.Translate("options.sec")) : null,
@@ -59,22 +59,22 @@ internal class VentConfiguration : IVentConfiguration
     GUIWidgetSupplier IConfiguration.GetEditor()
     => () =>
     {
-        List<GUIWidget> result = new();
+        List<GUIWidget> result = [];
 
         if(canUseEntry != null) result.Add(canUseEntry.GetEditor().Invoke());
 
         if ((this as IVentConfiguration).CanUseVent)
         {
-            List<GUIWidget> widgets = new();
+            List<GUIWidget> widgets = [];
 
             void AddOptionToEditor(IOrderedSharableEntry config, Func<string> shower, string translationKey)
             {
                 widgets.AddRange([
                     GUI.API.HorizontalMargin(0.1f),
-                    GUI.API.LocalizedText(GUIAlignment.Center, GUI.API.GetAttribute(Virial.Text.AttributeAsset.OptionsValue), translationKey),
-                    GUI.API.RawText(GUIAlignment.Center, GUI.API.GetAttribute(Virial.Text.AttributeAsset.OptionsFlexible), ":"),
+                    GUI.API.LocalizedText(GUIAlignment.Center, GUI.API.GetAttribute(AttributeAsset.OptionsValue), translationKey),
+                    GUI.API.RawText(GUIAlignment.Center, GUI.API.GetAttribute(AttributeAsset.OptionsFlexible), ":"),
                     GUI.API.HorizontalMargin(0.1f),
-                    GUI.API.RawText(GUIAlignment.Center, GUI.API.GetAttribute(Virial.Text.AttributeAsset.OptionsValueShorter), shower.Invoke()),
+                    GUI.API.RawText(GUIAlignment.Center, GUI.API.GetAttribute(AttributeAsset.OptionsValueShorter), shower.Invoke()),
                     GUI.API.SpinButton(GUIAlignment.Center, v => { config.ChangeValue(v, true); NebulaAPI.Configurations.RequireUpdateSettingScreen(); }),
                     ]);
             }

@@ -2,7 +2,7 @@
 
 public class StackfullCoroutine
 {
-    private List<IEnumerator> stack = new();
+    private List<IEnumerator> stack = [];
 
     public StackfullCoroutine(IEnumerator enumerator)
     {

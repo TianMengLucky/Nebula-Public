@@ -7,7 +7,7 @@ static public class CoroutineHelper
 {
     static public IEnumerator HighSpeedEnumerator(this IEnumerator enumerator)
     {
-        IEnumerator? currentCs = enumerator;
+        var currentCs = enumerator;
         Il2CppSystem.Collections.IEnumerator? currentIl = null;
 
         Stack<object> stack = new Stack<object>();
@@ -16,7 +16,7 @@ static public class CoroutineHelper
         {
             if (currentCs?.MoveNext() ?? currentIl?.MoveNext() ?? false)
             {
-                object? next = currentCs?.Current ?? currentIl?.Current;
+                var next = currentCs?.Current ?? currentIl?.Current;
                 if (next != null)
                 {
                     stack.Push(((object?)currentCs ?? (object?)currentIl)!);

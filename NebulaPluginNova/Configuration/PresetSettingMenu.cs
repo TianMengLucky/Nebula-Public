@@ -16,12 +16,12 @@ public class PresetSettingMenu : MonoBehaviour
     public GameSettingMenu GameSettingMenu { get; set; }
     public void Start()
     {
-        var screen = new GUIScreenImpl(Virial.Media.Anchor.At(new(0.5f,0.5f)), new(2f, 3.6f),transform, new(-3.3f, -0.4f, -10f));
+        var screen = new GUIScreenImpl(Anchor.At(new(0.5f,0.5f)), new(2f, 3.6f),transform, new(-3.3f, -0.4f, -10f));
 
         Virial.Compat.Artifact<GUIScreen> innerRef = null!;
         void ShowInner()
         {
-            List<GUIWidget> widget = new();
+            List<GUIWidget> widget = [];
             foreach (var preset in IConfigPreset.AllPresets)
             {
                 if (preset.IsHidden || preset.RelatedHolder != null) continue;
@@ -32,7 +32,7 @@ public class PresetSettingMenu : MonoBehaviour
                     _ => {
                         void Load()
                         {
-                            bool success = preset.LoadPreset();
+                            var success = preset.LoadPreset();
                             if (success) ConfigurationValues.RpcSharePresetName.Invoke(preset.DisplayName);
                             //値を再読み込み
                             foreach (var child in GameSettingMenu.GameSettingsTab.Children) child.Initialize();
@@ -57,9 +57,9 @@ public class PresetSettingMenu : MonoBehaviour
             innerRef.Do(screen => screen.SetWidget(GUI.Instance.VerticalHolder(GUIAlignment.Center, widget), out _));
         }
 
-        var widget = NebulaAPI.GUI.VerticalHolder(Virial.Media.GUIAlignment.Center,
+        var widget = NebulaAPI.GUI.VerticalHolder(GUIAlignment.Center,
             GUI.Instance.LocalizedButton(
-                Virial.Media.GUIAlignment.Center,
+                GUIAlignment.Center,
                 GUI.Instance.GetAttribute(Virial.Text.AttributeAsset.StandardMediumMasked),
                 "preset.saveAs",
                 _ =>
@@ -73,9 +73,9 @@ public class PresetSettingMenu : MonoBehaviour
                     widget.Append(new MetaWidgetOld.VerticalMargin(0.1f));
                     widget.Append(new MetaWidgetOld.Button(() =>
                     {
-                        string name = fieldRef.Value!.Text;
+                        var name = fieldRef.Value!.Text;
                         if (name.Length == 0) name = "Current Output";
-                        bool success = ConfigPreset.OutputAndReloadSettings(name);
+                        var success = ConfigPreset.OutputAndReloadSettings(name);
                         ShowInner();
                         popup.CloseScreen();
 
@@ -87,7 +87,7 @@ public class PresetSettingMenu : MonoBehaviour
                     TextField.EditFirstField();
                 }),
             GUI.Instance.LocalizedButton(
-                Virial.Media.GUIAlignment.Center,
+                GUIAlignment.Center,
                 GUI.Instance.GetAttribute(Virial.Text.AttributeAsset.StandardMediumMasked),
                 "preset.reload",
                 _ => {
@@ -98,8 +98,8 @@ public class PresetSettingMenu : MonoBehaviour
 
         screen.SetWidget(widget, out _);
 
-        MetaScreen mainScreen = MetaScreen.GenerateScreen(new Vector2(6f, 4f), transform, new(1.5f, -0.1f, -10f), false, false, false);
-        mainScreen.SetWidget(GUI.Instance.ScrollView(Virial.Media.GUIAlignment.Top, new(5f, 4f), "Preset", null, out innerRef), out _);
+        var mainScreen = MetaScreen.GenerateScreen(new Vector2(6f, 4f), transform, new(1.5f, -0.1f, -10f), false, false, false);
+        mainScreen.SetWidget(GUI.Instance.ScrollView(GUIAlignment.Top, new(5f, 4f), "Preset", null, out innerRef), out _);
 
         ShowInner();
     }

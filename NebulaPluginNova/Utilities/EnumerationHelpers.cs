@@ -5,10 +5,10 @@ namespace Nebula.Utilities;
 
 public static class EnumerationHelpers
 {
-    public static System.Collections.Generic.IEnumerable<T> GetFastEnumerator<T>(this Il2CppSystem.Collections.Generic.List<T> list) where T : Il2CppSystem.Object => new Il2CppListEnumerable<T>(list);
+    public static IEnumerable<T> GetFastEnumerator<T>(this Il2CppSystem.Collections.Generic.List<T> list) where T : Il2CppSystem.Object => new Il2CppListEnumerable<T>(list);
 }
 
-public unsafe class Il2CppListEnumerable<T> : System.Collections.Generic.IEnumerable<T>, System.Collections.Generic.IEnumerator<T> where T : Il2CppSystem.Object
+public unsafe class Il2CppListEnumerable<T> : IEnumerable<T>, IEnumerator<T> where T : Il2CppSystem.Object
 {
     private struct Il2CppListStruct
     {
@@ -32,7 +32,7 @@ public unsafe class Il2CppListEnumerable<T> : System.Collections.Generic.IEnumer
         _elemSize = IntPtr.Size;
         _offset = 4 * IntPtr.Size;
 
-        var constructor = typeof(T).GetConstructor(new[] { typeof(IntPtr) });
+        var constructor = typeof(T).GetConstructor([typeof(IntPtr)]);
         var ptr = Expression.Parameter(typeof(IntPtr));
         var create = Expression.New(constructor!, ptr);
         var lambda = Expression.Lambda<Func<IntPtr, T>>(create, ptr);
@@ -66,7 +66,7 @@ public unsafe class Il2CppListEnumerable<T> : System.Collections.Generic.IEnumer
         _index = -1;
     }
 
-    public System.Collections.Generic.IEnumerator<T> GetEnumerator()
+    public IEnumerator<T> GetEnumerator()
     {
         return this;
     }

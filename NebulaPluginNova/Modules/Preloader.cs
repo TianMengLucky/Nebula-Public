@@ -1,14 +1,10 @@
 ﻿using Nebula.Behaviour;
 using Nebula.Roles;
-using Nebula.Roles.Abilities;
-using Nebula.Roles.Crewmate;
-using Nebula.Roles.Impostor;
 using System.Reflection;
 using Virial;
 using Virial.Assignable;
 using Virial.DI;
 using Virial.Runtime;
-using static Virial.Attributes.NebulaPreprocess;
 
 namespace Nebula.Modules;
 
@@ -24,7 +20,7 @@ internal class NebulaPreprocessorImpl : NebulaPreprocessor
         NebulaAPI.preprocessor = this;
         preprocessList = new List<IEnumerator>[(int)PreprocessPhase.NumOfPhases];
 
-        for (int i = 0; i < preprocessList.Length; i++) preprocessList[i] = new();
+        for (var i = 0; i < preprocessList.Length; i++) preprocessList[i] = [];
     }
 
     void NebulaPreprocessor.PickUpPreprocess(Assembly assembly)
@@ -70,9 +66,9 @@ internal class NebulaPreprocessorImpl : NebulaPreprocessor
         preprocessList[(int)phase].Add(process);
     }
 
-    IEnumerator NebulaPreprocessor.RunPreprocess(Virial.Attributes.PreprocessPhase preprocess)
+    IEnumerator NebulaPreprocessor.RunPreprocess(PreprocessPhase preprocess)
     {
-        for(int i=0; i < preprocessList[(int)preprocess].Count; i++) {
+        for(var i=0; i < preprocessList[(int)preprocess].Count; i++) {
             yield return preprocessList[(int)preprocess][i];
         }
     }
@@ -104,12 +100,12 @@ public static class ToolsInstaller
 
     private static void InstallTool(string name)
     {
-        Assembly assembly = Assembly.GetExecutingAssembly();
-        Stream? stream = assembly.GetManifestResourceStream("Nebula.Resources.Tools." + name);
+        var assembly = Assembly.GetExecutingAssembly();
+        var stream = assembly.GetManifestResourceStream("Nebula.Resources.Tools." + name);
         if (stream == null) return;
 
         var file = File.Create(name);
-        byte[] data = new byte[stream.Length];
+        var data = new byte[stream.Length];
         stream.Read(data);
         file.Write(data);
         stream.Close();
@@ -157,7 +153,7 @@ public static class PreloadManager
 
         yield return NebulaPreprocessorImpl.Instance.SetLoadingText("Checking Component Dependencies");
 
-        for(int i=0;i<(int)PreprocessPhase.NumOfPhases;i++) yield return NebulaPreprocessorImpl.Instance. RunPreprocess((PreprocessPhase)i).HandleException(OnRaisedExcep);
+        for(var i=0;i<(int)PreprocessPhase.NumOfPhases;i++) yield return NebulaPreprocessorImpl.Instance. RunPreprocess((PreprocessPhase)i).HandleException(OnRaisedExcep);
 
         FinishedPreload = true;
     }

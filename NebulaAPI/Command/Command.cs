@@ -28,7 +28,7 @@ public static class CommandStructureHelper
 
 public class CommandStructureConverter<T>
 {
-    List<Func<T,CommandEnvironment, CommandStructure, CoTask<ICommandToken>>> suppliers = new();
+    List<Func<T,CommandEnvironment, CommandStructure, CoTask<ICommandToken>>> suppliers = [];
 
     /// <summary>
     /// 親クラスの変換器の定義をそのまま継承します。
@@ -50,7 +50,7 @@ public class CommandStructureConverter<T>
 
     public CommandStructureConverter<T> Add<V>(string label, Action<T,V> setter)
     {
-        bool isBool = typeof(V) == typeof(bool);
+        var isBool = typeof(V) == typeof(bool);
 
         suppliers.Add((t, env, structure) =>
         {
@@ -256,20 +256,20 @@ public static class NebulaCommandHelper
     /// 全プレイヤー名の候補を返します。
     /// </summary>
     public static IEnumerable<CommandComplement> AllPlayersNameComplement =>
-        NebulaAPI.CurrentGame?.GetAllPlayers().Select(p => new CommandComplement(p.Name, p.Name.Contains(' '))) ?? Enumerable.Empty<CommandComplement>();
+        NebulaAPI.CurrentGame?.GetAllPlayers().Select(p => new CommandComplement(p.Name, p.Name.Contains(' '))) ?? [];
 
     /// <summary>
     /// 条件に適うプレイヤー名の候補を返します。
     /// </summary>
     public static IEnumerable<CommandComplement> PlayersNameComplement(Predicate<Game.Player>? predicate = null) =>
-        NebulaAPI.CurrentGame?.GetAllPlayers().Where(p => predicate?.Invoke(p) ?? true).Select(p => new CommandComplement(p.Name, p.Name.Contains(' '))) ?? Enumerable.Empty<CommandComplement>();
+        NebulaAPI.CurrentGame?.GetAllPlayers().Where(p => predicate?.Invoke(p) ?? true).Select(p => new CommandComplement(p.Name, p.Name.Contains(' '))) ?? [];
 
     public static CoTask<bool> InterpretClause(IReadOnlyArray<ICommandToken> tokens, IEnumerable<CommandClause> clauses, CommandEnvironment env)
     {
         IEnumerator CoExecute(CoBuiltInTask<bool> myTask)
         {
             myTask.Result = true;
-            for (int i= 0;i<tokens.Count;i++)
+            for (var i= 0;i<tokens.Count;i++)
             {
                 var token = tokens[i];
                 var labelTask = token.AsValue<string>(env);

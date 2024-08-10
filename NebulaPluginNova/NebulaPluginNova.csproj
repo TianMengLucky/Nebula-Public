@@ -1,7 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
 	<PropertyGroup>
-		<OutputType>Library</OutputType>
 		<TargetFramework>net6.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<RootNamespace>Nebula</RootNamespace>
@@ -16,61 +14,11 @@
 		<Platforms>AnyCPU;x86;x64</Platforms>
 		<NeutralLanguage>en-US</NeutralLanguage>
 		<GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 	
 	
-	
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-		<WarningLevel>4</WarningLevel>
-		<DefineConstants>$(DefineConstants);STEAM</DefineConstants>
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<GenerateAssemblyInfo>True</GenerateAssemblyInfo>
-		<Optimize>False</Optimize>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-	  <WarningLevel>4</WarningLevel>
-	  <DefineConstants>$(DefineConstants);STEAM</DefineConstants>
-	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-	  <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
-	  <Optimize>False</Optimize>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
-	  <WarningLevel>4</WarningLevel>
-	  <DefineConstants>$(DefineConstants);STEAM</DefineConstants>
-	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-	  <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
-	  <Optimize>False</Optimize>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-		<WarningLevel>4</WarningLevel>
-		<DefineConstants>STEAM</DefineConstants>
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<GenerateAssemblyInfo>True</GenerateAssemblyInfo>
-		<Optimize>True</Optimize>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-		<WarningLevel>4</WarningLevel>
-		<DefineConstants>STEAM</DefineConstants>
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<GenerateAssemblyInfo>True</GenerateAssemblyInfo>
-		<Optimize>True</Optimize>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
-		<WarningLevel>4</WarningLevel>
-		<DefineConstants>STEAM</DefineConstants>
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<GenerateAssemblyInfo>True</GenerateAssemblyInfo>
-		<Optimize>True</Optimize>
-	</PropertyGroup>
-
 	<ItemGroup>
-		<Reference Include="$(AmongUs)\BepInEx\core\*.dll" />
-		<Reference Include="$(AmongUs)\BepInEx\interop\*.dll" />
 		<Compile Remove="Resources\**" />
 		<Compile Remove="Roles\Perks\**" />
 		<EmbeddedResource Remove="Roles\Perks\**" />
@@ -83,6 +31,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <PackageReference Include="AmongUs.GameLibs.Steam" Version="2024.6.18" />
+	  <PackageReference Include="BepInEx.IL2CPP.MSBuild" Version="2.1.0-rc.1">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+	  <PackageReference Include="BepInEx.Unity.IL2CPP" Version="6.0.0-be.692" />
 	  <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.9.2" />
 	  <PackageReference Include="NAudio.Core" Version="2.2.1" />
 	  <PackageReference Include="NAudio.Wasapi" Version="2.2.1" />
@@ -100,10 +54,7 @@
 
 	<Target Name="CopyCustomContent" AfterTargets="AfterBuild">
 		<Message Text="Second occurrence" />
-		<Copy SourceFiles="bin\x86\Release\net6.0\Nebula.dll" DestinationFolder="$(AmongUsRelease)\" />
-		<Exec Command="rm -f $(AmongUsRelease)\Nebula.zip %26 cd $(AmongUsRelease)\Nebula %26 %22$(ZipArchiver)\7z.exe%22 a $(AmongUsRelease)\Nebula.zip" />
-		<Copy SourceFiles="bin\x86\Release\net6.0\Nebula.dll" DestinationFolder="$(AmongUsRelease)\Nebula\BepInEx\nebula" />
-		<Copy SourceFiles="bin\x86\Release\net6.0\Nebula.dll" DestinationFolder="$(AmongUsMod)\BepInEx\nebula\" />
+		<Copy SourceFiles="bin\x86\Release\net6.0\Nebula.dll" DestinationFolder="E:\ImpostorTest_Nebula\BepInEx\nebula\" />
 	</Target>
 
 </Project>

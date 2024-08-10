@@ -200,7 +200,7 @@ public static class CoChainedTasksHelper
         return new CoChainedTask<IEnumerable<T>, IEnumerable<V>>(precedeTask, result =>
         {
             IEnumerator CoExecute(CoBuiltInTask<IEnumerable<T>> myResult) {
-                List<T> list = new();
+                List<T> list = [];
 
                 foreach (var v in result ?? [])
                 {

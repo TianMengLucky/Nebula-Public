@@ -28,16 +28,16 @@ public class NebulaLoader : BasePlugin
     {
         if (!System.IO.File.Exists("GameAssembly.dll")) return -1;
 
-        FileInfo file = new FileInfo("GameAssembly.dll");
+        var file = new FileInfo("GameAssembly.dll");
         return file.Length;
     }
 
     static string GetTagsUrl(int page) => "https://api.github.com/repos/Dolly1016/Nebula/tags?per_page=100&page=" + (page);
     private async Task<List<(string Tag, string Category, int Epoch, int Build, string VisualName)>> FetchAsync(HttpClient http)
     {
-        List<(string Tag, string Category, int Epoch, int Build, string VisualName)> releases = new();
+        List<(string Tag, string Category, int Epoch, int Build, string VisualName)> releases = [];
 
-        int page = 1;
+        var page = 1;
         while (true)
         {
             var response = await http.GetAsync(GetTagsUrl(page));
@@ -48,7 +48,7 @@ public class NebulaLoader : BasePlugin
                 break;
             }
 
-            string json = await response.Content.ReadAsStringAsync();
+            var json = await response.Content.ReadAsStringAsync();
             
             var tags = JsonSerializer.Deserialize<ReleaseContent[]>(json);
             
@@ -78,7 +78,7 @@ public class NebulaLoader : BasePlugin
 
     private async Task UpdateAsync(HttpClient http, string tag, string dllFilePath)
     {
-        string url = $"https://github.com/Dolly1016/Nebula/releases/download/{tag}/Nebula.dll";
+        var url = $"https://github.com/Dolly1016/Nebula/releases/download/{tag}/Nebula.dll";
         var response = await http.GetAsync(url);
         if (response.StatusCode != HttpStatusCode.OK) return;
         var dllStream = await response.Content.ReadAsStreamAsync();
@@ -99,13 +99,13 @@ public class NebulaLoader : BasePlugin
 
     private async Task<List<(int Epoch, long Size)>> GetAssemblyInfoAsync(HttpClient http)
     {
-        string url = "https://raw.githubusercontent.com/Dolly1016/Nebula/master/epoch.dat";
+        var url = "https://raw.githubusercontent.com/Dolly1016/Nebula/master/epoch.dat";
         var response = await http.GetAsync(url);
         if (response.StatusCode != HttpStatusCode.OK) return [];
-        string result = await response.Content.ReadAsStringAsync();
+        var result = await response.Content.ReadAsStringAsync();
         var strings = result.Replace("\r\n","\n").Split('\n');
 
-        List<(int Epoch, long Size)> list = new();
+        List<(int Epoch, long Size)> list = [];
         foreach (var s in strings)
         {
             var splited = s.Split(',');
@@ -129,10 +129,10 @@ public class NebulaLoader : BasePlugin
         AutoUpdate = Config.Bind("Options", "AutoUpdate", false, "When enabled, the automatic update feature is enabled.");
         AutoUpdateIfVersionMismatch = Config.Bind("Options", "AutoUpdateIfVersionMismatching", true, "Automatically updates when a version mismatch of Among Us is detected. This setting is ignored when AutoUpdate is enabled.");
 
-        bool autoUpdate = AutoUpdate.Value;
-        bool autoUpdateIfVersionMismatch = AutoUpdateIfVersionMismatch.Value;
-        string dllDirectoryPath = "BepInEx" + Path.DirectorySeparatorChar + "nebula";
-        string dllFilePath = dllDirectoryPath + Path.DirectorySeparatorChar + "Nebula.dll";
+        var autoUpdate = AutoUpdate.Value;
+        var autoUpdateIfVersionMismatch = AutoUpdateIfVersionMismatch.Value;
+        var dllDirectoryPath = "BepInEx" + Path.DirectorySeparatorChar + "nebula";
+        var dllFilePath = dllDirectoryPath + Path.DirectorySeparatorChar + "Nebula.dll";
 
         if (!SkipCheckingConsistency.Value)
         {
@@ -142,7 +142,7 @@ public class NebulaLoader : BasePlugin
             if (autoUpdate || autoUpdateIfVersionMismatch)
             {
 
-                long size = GetVanillaSize();
+                var size = GetVanillaSize();
                 if (size == -1)
                 {
                     Log.LogWarning("Assembly Is Not Found.\nAttempts to load an existing NoS.");
@@ -185,13 +185,13 @@ public class NebulaLoader : BasePlugin
 
                 Directory.CreateDirectory(dllDirectoryPath);
 
-                bool shouldDownload = true;
+                var shouldDownload = true;
 
                 if (System.IO.File.Exists(dllFilePath))
                 {
-                    FileVersionInfo file = FileVersionInfo.GetVersionInfo(dllFilePath);
-                    int currentEpoch = file.FileMajorPart;
-                    int currentBuild = file.FileMinorPart;
+                    var file = FileVersionInfo.GetVersionInfo(dllFilePath);
+                    var currentEpoch = file.FileMajorPart;
+                    var currentBuild = file.FileMinorPart;
 
                     if (candidates[0].Epoch == currentEpoch && candidates[0].Build == currentBuild)
                     {
@@ -219,10 +219,10 @@ public class NebulaLoader : BasePlugin
 
     static void TryLoadNebula(string dllFilePath)
     {
-        string dllFullFilePath = System.IO.Path.GetFullPath(dllFilePath);
+        var dllFullFilePath = Path.GetFullPath(dllFilePath);
         if (System.IO.File.Exists(dllFullFilePath))
         {
-            Assembly NebulaAssembly = Assembly.LoadFile(dllFullFilePath);
+            var NebulaAssembly = Assembly.LoadFile(dllFullFilePath);
 
             NebulaAssembly.GetType("Nebula.NebulaPlugin")?.GetMethod("Load", BindingFlags.Static | BindingFlags.Public)?.Invoke(null, null);
         }

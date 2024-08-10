@@ -44,30 +44,32 @@ public class Madmate : DefinedRoleTemplate, HasCitation, DefinedRole
             + ")", Color.gray),
         () =>
         {
-            List<GUIWidget> widgets = new([CanIdentifyImpostorsOption.GetEditor().Invoke()]);
+            List<GUIWidget> widgets = [CanIdentifyImpostorsOption.GetEditor().Invoke()];
 
             if (CanIdentifyImpostorsOption.GetValue() > 0)
             {
-                List<GUIWidget> inner = new([
-                    GUI.API.LocalizedText(GUIAlignment.Left, GUI.API.GetAttribute(AttributeAsset.OptionsTitleHalf), "options.role.madmate.requiredTasksForIdentifying"),
+                List<GUIWidget> inner =
+                [
+                    GUI.API.LocalizedText(GUIAlignment.Left, GUI.API.GetAttribute(AttributeAsset.OptionsTitleHalf),
+                        "options.role.madmate.requiredTasksForIdentifying"),
                     GUI.API.RawText(GUIAlignment.Left, GUI.API.GetAttribute(AttributeAsset.OptionsFlexible), ":"),
                     GUI.API.HorizontalMargin(0.05f)
-                    ]);
-                int length = CanIdentifyImpostorsOption.GetValue();
-                for (int i = 0; i < length; i++)
+                ];
+                var length = CanIdentifyImpostorsOption.GetValue();
+                for (var i = 0; i < length; i++)
                 {
-                    if (i != 0) inner.AddRange([GUI.API.HorizontalMargin(0.05f), GUI.API.RawText(GUIAlignment.Center, GUI.API.GetAttribute(Virial.Text.AttributeAsset.OptionsFlexible), ",")]);
+                    if (i != 0) inner.AddRange([GUI.API.HorizontalMargin(0.05f), GUI.API.RawText(GUIAlignment.Center, GUI.API.GetAttribute(AttributeAsset.OptionsFlexible), ",")]);
 
                     var option = NumOfTasksToIdentifyImpostorsOptions[i];
 
                     inner.AddRange([
-                        GUI.API.RawText(GUIAlignment.Center, GUI.API.GetAttribute(Virial.Text.AttributeAsset.OptionsValueShorter), option.CurrentValue.ToString()),
+                        GUI.API.RawText(GUIAlignment.Center, GUI.API.GetAttribute(AttributeAsset.OptionsValueShorter), option.CurrentValue.ToString()),
                         GUI.API.SpinButton(GUIAlignment.Center, v => { option.ChangeValue(v, true); NebulaAPI.Configurations.RequireUpdateSettingScreen(); })
                         ]);
                 }
-                widgets.Add(new HorizontalWidgetsHolder(Virial.Media.GUIAlignment.Left, inner));
+                widgets.Add(new HorizontalWidgetsHolder(GUIAlignment.Left, inner));
             }
-            return new VerticalWidgetsHolder(Virial.Media.GUIAlignment.Left, widgets);
+            return new VerticalWidgetsHolder(GUIAlignment.Left, widgets);
         }
         );
 
@@ -77,7 +79,7 @@ public class Madmate : DefinedRoleTemplate, HasCitation, DefinedRole
     {
         DefinedRole RuntimeRole.Role => MyRole;
 
-        List<byte> impostors = new();
+        List<byte> impostors = [];
 
         public Instance(GamePlayer player) : base(player) {}
 
@@ -94,7 +96,7 @@ public class Madmate : DefinedRoleTemplate, HasCitation, DefinedRole
                 if (CanIdentifyImpostorsOption > 0)
                 {
                     var numOfTasksOptions = NumOfTasksToIdentifyImpostorsOptions.Take(CanIdentifyImpostorsOption);
-                    int max = numOfTasksOptions.Max(option => option.Value);
+                    var max = numOfTasksOptions.Max(option => option.Value);
 
                     using (RPCRouter.CreateSection("MadmateTask"))
                     {

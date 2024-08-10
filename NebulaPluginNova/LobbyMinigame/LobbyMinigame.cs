@@ -36,8 +36,8 @@ public static class LobbyMinigameManager
     static private JsonDataSaver<ILobbyMinigameData> LobbyMinigameSaver = new("LobbyGame");
     static public bool HasSavedMinigame => !(LobbyMinigameSaver.Data?.IsInvalidGame ?? true);
 
-    public record LobbyMinigameType(string InternalName, Virial.Media.Image? Image, Func<string[],ILobbyMinigameData> GameGenerator);
-    static private List<LobbyMinigameType> AllTypes = new();
+    public record LobbyMinigameType(string InternalName, Image? Image, Func<string[],ILobbyMinigameData> GameGenerator);
+    static private List<LobbyMinigameType> AllTypes = [];
 
     static public void RegisterMinigame(LobbyMinigameType minigameType) => AllTypes.Add(minigameType);
 }

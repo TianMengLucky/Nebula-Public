@@ -12,8 +12,8 @@ public abstract class MapData
     {
         if (radious > 0f)
         {
-            int num = Physics2D.OverlapCircleNonAlloc(position, radious, PhysicsHelpers.colliderHits, Constants.ShipAndAllObjectsMask);
-            if (num > 0) for (int i = 0; i < num; i++) if (!PhysicsHelpers.colliderHits[i].isTrigger) return false;
+            var num = Physics2D.OverlapCircleNonAlloc(position, radious, PhysicsHelpers.colliderHits, Constants.ShipAndAllObjectsMask);
+            if (num > 0) for (var i = 0; i < num; i++) if (!PhysicsHelpers.colliderHits[i].isTrigger) return false;
         }
 
         return CheckMapAreaInternal(position);
@@ -24,7 +24,7 @@ public abstract class MapData
         Vector2 vector;
         float magnitude;
 
-        foreach (Vector2 p in NonMapArea)
+        foreach (var p in NonMapArea)
         {
             vector = p - position;
             magnitude = vector.magnitude;
@@ -33,7 +33,7 @@ public abstract class MapData
             if (!PhysicsHelpers.AnyNonTriggersBetween(position, vector.normalized, magnitude, Constants.ShipAndAllObjectsMask)) return false;
         }
 
-        foreach (Vector2 p in MapArea)
+        foreach (var p in MapArea)
         {
             vector = p - position;
             magnitude = vector.magnitude;
@@ -49,9 +49,9 @@ public abstract class MapData
     {
         Vector2 vector;
         float magnitude;
-        int count = 0;
+        var count = 0;
 
-        foreach (Vector2 p in NonMapArea)
+        foreach (var p in NonMapArea)
         {
             vector = p - position;
             magnitude = vector.magnitude;
@@ -60,7 +60,7 @@ public abstract class MapData
             if (!PhysicsHelpers.AnyNonTriggersBetween(position, vector.normalized, magnitude, Constants.ShipAndAllObjectsMask)) return 0;
         }
 
-        foreach (Vector2 p in MapArea)
+        foreach (var p in MapArea)
         {
             vector = p - position;
             magnitude = vector.magnitude;
@@ -74,7 +74,7 @@ public abstract class MapData
 
     private static Texture2D CreateReadabeTexture(Texture texture, int margin = 0)
     {
-        RenderTexture renderTexture = RenderTexture.GetTemporary(
+        var renderTexture = RenderTexture.GetTemporary(
                     texture.width,
                     texture.height,
                     0,
@@ -82,9 +82,9 @@ public abstract class MapData
                     RenderTextureReadWrite.Linear);
 
         Graphics.Blit(texture, renderTexture);
-        RenderTexture previous = RenderTexture.active;
+        var previous = RenderTexture.active;
         RenderTexture.active = renderTexture;
-        Texture2D readableTextur2D = new Texture2D(texture.width + margin * 2, texture.height + margin * 2);
+        var readableTextur2D = new Texture2D(texture.width + margin * 2, texture.height + margin * 2);
         readableTextur2D.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), margin, margin);
         readableTextur2D.Apply();
         RenderTexture.active = previous;
@@ -113,14 +113,14 @@ public abstract class MapData
             y2 = temp;
         }
 
-        Color color = new Color(40 / 255f, 40 / 255f, 40 / 255f);
+        var color = new Color(40 / 255f, 40 / 255f, 40 / 255f);
         var texture = new Texture2D(x2 - x1, y2 - y1, TextureFormat.RGB24, false);
 
         int num;
-        int r = 0;
-        for (int y = y1; y < y2; y++)
+        var r = 0;
+        for (var y = y1; y < y2; y++)
         {
-            for (int x = x1; x < x2; x++)
+            for (var x = x1; x < x2; x++)
             {
                 num = CheckMapAreaDebug(new Vector2(((float)x) / resolution, ((float)y) / resolution));
                 texture.SetPixel(x - x1, y - y1, (num == 0) ? color : new Color((num > 1 ? 100 : 0) / 255f, (150 + (num * 5)) / 255f, 0));
@@ -133,6 +133,7 @@ public abstract class MapData
         return CreateReadabeTexture(texture);
     }
 
-    static private MapData[] AllMapData = new MapData[] { new SkeldData(), new MiraData(), new PolusData(), null!, new AirshipData(), new FungleData() };
+    static private MapData[] AllMapData = [new SkeldData(), new MiraData(), new PolusData(), null!, new AirshipData(), new FungleData()
+    ];
     static public MapData GetCurrentMapData() => AllMapData[AmongUsUtil.CurrentMapId];
 }

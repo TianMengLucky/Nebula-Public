@@ -7,6 +7,7 @@ using Virial.Events.Game.Meeting;
 using Virial.Events.Player;
 using Virial.Game;
 using Virial.Helpers;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Roles.Crewmate;
 
@@ -25,7 +26,7 @@ public class Ghost : INebulaScriptComponent, IGameOperator
     public Ghost(Vector2 pos, float time, AchievementToken<bool>? commonToken, bool canSeeGhostsInShadow, float colliderSize = 0f) : base()
     {
         this.commonToken = commonToken;
-        this.isWhiteGhost = !(colliderSize > 0f);
+        isWhiteGhost = !(colliderSize > 0f);
 
         renderer = UnityHelper.CreateObject<SpriteRenderer>("Ghost", null, (Vector3)pos + new Vector3(0, 0, -1f));
         this.time = time;
@@ -62,7 +63,7 @@ public class Ghost : INebulaScriptComponent, IGameOperator
 
     void IGameOperator.OnReleased()
     {
-        if (renderer) GameObject.Destroy(renderer.gameObject);
+        if (renderer) Object.Destroy(renderer.gameObject);
     }
 }
 

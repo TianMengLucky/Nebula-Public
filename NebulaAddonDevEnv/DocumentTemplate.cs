@@ -35,10 +35,11 @@ static public class RoleDocumentHelper
             if (citation?.Citaion.LogoImage != null) citationWidget = gui.Image(GUIAlignment.Bottom, citation.Citaion.LogoImage, new(1.5f, 0.37f), onClick, overlay);
             else
             {
+                (Action, bool)? click;
                 citationWidget = new NoSGUIText(GUIAlignment.Bottom, gui.GetAttribute(Virial.Text.AttributeAsset.DocumentTitle), citation!.Citaion.Name)
                 {
                     OverlayWidget = overlay,
-                    OnClickText = onClick != null ? (() => onClick?.Invoke(null!), false) : null
+                    OnClickText = click
                 };
             }
         }

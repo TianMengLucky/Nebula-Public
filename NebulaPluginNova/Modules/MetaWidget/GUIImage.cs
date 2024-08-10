@@ -6,20 +6,20 @@ namespace Nebula.Modules.GUIWidget;
 
 public class NoSGUIImage : AbstractGUIWidget
 {
-    protected Virial.Media.Image Image;
+    protected Image Image;
     protected FuzzySize Size;
     public Color? Color = null;
     public GUIClickableAction? OnClick;
     public GUIWidgetSupplier? Overlay;
     public bool IsMasked { get; init; }
 
-    public NoSGUIImage(GUIAlignment alignment, Virial.Media.Image image, FuzzySize size,Color? color = null, GUIClickableAction? onClick = null, GUIWidgetSupplier? overlay = null) : base(alignment)
+    public NoSGUIImage(GUIAlignment alignment, Image image, FuzzySize size,Color? color = null, GUIClickableAction? onClick = null, GUIWidgetSupplier? overlay = null) : base(alignment)
     {
-        this.Image = image;
-        this.Size = size;
-        this.Color = color;
-        this.OnClick = onClick;
-        this.Overlay = overlay;
+        Image = image;
+        Size = size;
+        Color = color;
+        OnClick = onClick;
+        Overlay = overlay;
     }
 
     internal override GameObject? Instantiate(Size size, out Size actualSize)
@@ -36,7 +36,7 @@ public class NoSGUIImage : AbstractGUIWidget
         if (IsMasked) renderer.maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
 
         var spriteSize = renderer.sprite.bounds.size;
-        float scale = Math.Min(
+        var scale = Math.Min(
             Size.Width.HasValue ? (Size.Width.Value / spriteSize.x) : float.MaxValue,
             Size.Height.HasValue ? (Size.Height.Value / spriteSize.y) : float.MaxValue
             );
@@ -48,7 +48,7 @@ public class NoSGUIImage : AbstractGUIWidget
 
         if(OnClick != null || Overlay != null)
         {
-            var button = renderer.gameObject.SetUpButton(false, renderer, renderer.color, renderer.color * new UnityEngine.Color(0.7f,1f,0.7f));
+            var button = renderer.gameObject.SetUpButton(false, renderer, renderer.color, renderer.color * new Color(0.7f,1f,0.7f));
             var collider = renderer.gameObject.AddComponent<BoxCollider2D>();
             collider.size = renderer.sprite.bounds.size;
             collider.isTrigger = true;

@@ -6,6 +6,7 @@ using Virial.Events.Game;
 using Virial.Events.Player;
 using Virial.Game;
 using Virial.Helpers;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Roles.Crewmate;
 
@@ -47,7 +48,7 @@ public class Necromancer : DefinedRoleTemplate, DefinedRole
 
             if (AmOwner)
             {
-                fullScreen = GameObject.Instantiate(HudManager.Instance.FullScreen, HudManager.Instance.transform);
+                fullScreen = Object.Instantiate(HudManager.Instance.FullScreen, HudManager.Instance.transform);
                 Bind(new GameObjectBinding(fullScreen.gameObject));
                 fullScreen.color = MyRole.UnityColor.AlphaMultiplied(0f);
                 fullScreen.gameObject.SetActive(true);
@@ -57,18 +58,18 @@ public class Necromancer : DefinedRoleTemplate, DefinedRole
         [Local]
         void LocalUpdate(GameUpdateEvent ev)
         {
-            bool flag = MyPlayer.HoldingAnyDeadBody;
+            var flag = MyPlayer.HoldingAnyDeadBody;
 
             message.gameObject.SetActive(flag);
             if (flag) message.color = MyRole.UnityColor.AlphaMultiplied(MathF.Sin(Time.time * 2.4f) * 0.2f + 0.8f);
 
             if (fullScreen)
             {
-                bool detected = false;
+                var detected = false;
                 var myPos = MyPlayer.VanillaPlayer.GetTruePosition();
                 float maxDis = DetectedRangeOption;
 
-                byte currentHolding = MyPlayer.HoldingDeadBody?.PlayerId ?? byte.MaxValue;
+                var currentHolding = MyPlayer.HoldingDeadBody?.PlayerId ?? byte.MaxValue;
                 foreach (var deadbody in Helpers.AllDeadBodies())
                 {
                     if (currentHolding == deadbody.ParentId) continue;
@@ -78,7 +79,7 @@ public class Necromancer : DefinedRoleTemplate, DefinedRole
                     break;
                 }
 
-                float a = fullScreen!.color.a;
+                var a = fullScreen!.color.a;
                 a += ((detected ? 0.32f : 0) - a) * Time.deltaTime * 1.8f;
                 fullScreen!.color = MyRole.UnityColor.AlphaMultiplied(a);
             }
@@ -90,7 +91,7 @@ public class Necromancer : DefinedRoleTemplate, DefinedRole
 
             if (AmOwner)
             {
-                message = GameObject.Instantiate(VanillaAsset.StandardTextPrefab, HudManager.Instance.transform);
+                message = Object.Instantiate(VanillaAsset.StandardTextPrefab, HudManager.Instance.transform);
                 new TextAttributeOld(TextAttributeOld.NormalAttr) { Size = new Vector2(5f, 0.9f) }.EditFontSize(2.7f, 2.7f, 2.7f).Reflect(message);
                 message.transform.localPosition = new Vector3(0, -1.2f, -4f);
                 Bind(new GameObjectBinding(message.gameObject));
@@ -106,7 +107,7 @@ public class Necromancer : DefinedRoleTemplate, DefinedRole
                 myArrow.IsActive = false;
                 myArrow.SetColor(MyRole.UnityColor);
 
-                GameOperatorManager.Instance?.Register<GameUpdateEvent>((ev) => {
+                GameOperatorManager.Instance?.Register<GameUpdateEvent>(ev => {
                     if (MyPlayer.HoldingAnyDeadBody && currentTargetRoom.HasValue && !canReviveHere())
                     {
                         myArrow.IsActive = true;
@@ -118,17 +119,17 @@ public class Necromancer : DefinedRoleTemplate, DefinedRole
                     }
                 }, this);
 
-                draggable!.OnHoldingDeadBody = (deadBody) =>
+                draggable!.OnHoldingDeadBody = deadBody =>
                 {
                     if (!resurrectionRoom.ContainsKey(deadBody.ParentId))
                     {
                         //復活部屋を計算
-                        List<Tuple<float, PlainShipRoom>> cand = new();
+                        List<Tuple<float, PlainShipRoom>> cand = [];
                         foreach (var entry in ShipStatus.Instance.FastRooms)
                         {
                             if (entry.Key == SystemTypes.Ventilation) continue;
                             
-                            float d = Physics2D.ClosestPoint_Collider(MyPlayer.VanillaPlayer.transform.position, entry.Value.roomArea).magnitude;
+                            var d = Physics2D.ClosestPoint_Collider(MyPlayer.VanillaPlayer.transform.position, entry.Value.roomArea).magnitude;
                             if (d < ReviveMinRangeOption) continue;
 
                             cand.Add(new(d, entry.Value));
@@ -136,7 +137,7 @@ public class Necromancer : DefinedRoleTemplate, DefinedRole
 
                         //近い順にソートし、遠すぎる部屋は候補から外す 少なくとも1部屋は候補に入るようにする
                         cand.Sort((c1, c2) => Math.Sign(c1.Item1 - c2.Item1));
-                        int lastIndex = cand.FindIndex((tuple) => tuple.Item1 > ReviveMaxRangeOption);
+                        var lastIndex = cand.FindIndex(tuple => tuple.Item1 > ReviveMaxRangeOption);
                         if (lastIndex == -1) lastIndex = cand.Count;
                         if (lastIndex == 0) lastIndex = 1;
 
@@ -152,10 +153,10 @@ public class Necromancer : DefinedRoleTemplate, DefinedRole
 
                 reviveButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.SecondaryAbility);
                 reviveButton.SetSprite(buttonSprite.GetSprite());
-                reviveButton.Availability = (button) => MyPlayer.VanillaPlayer.CanMove && MyPlayer.HoldingAnyDeadBody && canReviveHere();
-                reviveButton.Visibility = (button) => !MyPlayer.IsDead;
-                reviveButton.OnClick = (button) => button.ActivateEffect();
-                reviveButton.OnEffectEnd = (button) =>
+                reviveButton.Availability = button => MyPlayer.VanillaPlayer.CanMove && MyPlayer.HoldingAnyDeadBody && canReviveHere();
+                reviveButton.Visibility = button => !MyPlayer.IsDead;
+                reviveButton.OnClick = button => button.ActivateEffect();
+                reviveButton.OnEffectEnd = button =>
                 {
                     if (!button.EffectTimer!.IsProgressing)
                     {
@@ -170,11 +171,11 @@ public class Necromancer : DefinedRoleTemplate, DefinedRole
                         button.CoolDownTimer!.Start();
                     }
                 };
-                reviveButton.OnMeeting = (button) =>
+                reviveButton.OnMeeting = button =>
                 {
                     reviveButton.InactivateEffect();
                 };
-                reviveButton.OnUpdate = (button) => {
+                reviveButton.OnUpdate = button => {
                     if (!button.EffectActive) return;
                     if (!canReviveHere()) button.InactivateEffect();
                 };

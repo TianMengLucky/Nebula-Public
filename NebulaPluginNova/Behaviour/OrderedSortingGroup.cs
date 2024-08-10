@@ -11,8 +11,8 @@ public class ZOrderedSortingGroup : MonoBehaviour
     public int ConsiderParents = 0;
     public void SetConsiderParentsTo(Transform parent)
     {
-        int num = 0;
-        Transform t = transform;
+        var num = 0;
+        var t = transform;
         while(!(t == parent || t == null))
         {
             num++;
@@ -29,14 +29,14 @@ public class ZOrderedSortingGroup : MonoBehaviour
     private int baseValue = 5;
     public void Update()
     {
-        float z = transform.localPosition.z;
-        Transform t = transform;
-        for (int i = 0; i < ConsiderParents; i++)
+        var z = transform.localPosition.z;
+        var t = transform;
+        for (var i = 0; i < ConsiderParents; i++)
         {
             t = t.parent;
             z += t.localPosition.z;
         }
-        int layer = baseValue - (int)(rate * z);
+        var layer = baseValue - (int)(rate * z);
         if (group != null)group.sortingOrder = layer;
         if(renderer != null) renderer.sortingOrder = layer;
     }

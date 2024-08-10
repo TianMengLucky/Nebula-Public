@@ -19,7 +19,7 @@ public class GUIButton : NoSGUIText
     public float TextMargin { get; init; } = 0.26f;
     override protected bool AllowGenerateCollider => false;
 
-    public GUIButton(GUIAlignment alignment, Virial.Text.TextAttribute attribute, TextComponent text) : base(alignment,attribute,text)
+    public GUIButton(GUIAlignment alignment, TextAttribute attribute, TextComponent text) : base(alignment,attribute,text)
     {
         Attr = attribute;
         AsMaskedButton = attribute.Font.FontMaterial != null;
@@ -111,7 +111,7 @@ public class GUISpinButton : AbstractGUIWidget
 
         actualSize = new(0.38f + 0.1f, (0.18f + 0.13f) * 2f);
 
-        GameObject holder = UnityHelper.CreateObject("DualButton", null, UnityEngine.Vector3.zero, LayerExpansion.GetUILayer());
+        var holder = UnityHelper.CreateObject("DualButton", null, UnityEngine.Vector3.zero, LayerExpansion.GetUILayer());
 
         GenerateButton(holder.transform, true);
         GenerateButton(holder.transform, false);

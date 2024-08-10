@@ -1,6 +1,7 @@
 ﻿using Virial;
 using Virial.Events.Game;
 using Virial.Game;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Roles;
 
@@ -8,7 +9,7 @@ namespace Nebula.Roles;
 public record PerkDefinition(string localizedName, Image backSprite, Image iconSprite, Color perkColor)
 {
     public PerkDefinition(string localizedName, int backId, int iconId, Color perkColor) : this(localizedName, GetPerkBackIcon(backId), GetPerkIcon(iconId), perkColor) { }
-    public PerkInstance? Instantiate(Virial.ILifespan? lifespan = null)
+    public PerkInstance? Instantiate(ILifespan? lifespan = null)
     {
         var perk = NebulaAPI.CurrentGame?.GetModule<PerkHolder>()?.RegisterPerk(this);
         if (lifespan != null) perk?.Register(lifespan);
@@ -70,7 +71,7 @@ public class PerkInstance : IGameOperator, ILifespan, IReleasable
 
         isDead = true;
 
-        if (obj) GameObject.Destroy(obj);
+        if (obj) Object.Destroy(obj);
         MyTimer?.ReleaseIt();
     }
 
@@ -111,10 +112,10 @@ public class PerkInstance : IGameOperator, ILifespan, IReleasable
 
     public PerkInstance SetDisplayColor(Color color)
     {
-        this.perkColor = color;
+        perkColor = color;
 
-        this.back.color = this.backColor * this.perkColor;
-        this.icon.color = this.perkColor;
+        back.color = backColor * perkColor;
+        icon.color = perkColor;
 
         return this;
     }
@@ -133,11 +134,11 @@ public class PerkInstance : IGameOperator, ILifespan, IReleasable
     {
         if (isDead) return;
 
-        this.icon.sprite = iconSprite;
-        this.back.sprite = backSprite;
-        this.backColor = color ?? Color.white;
+        icon.sprite = iconSprite;
+        back.sprite = backSprite;
+        backColor = color ?? Color.white;
         
-        this.back.color = this.backColor * this.perkColor;
+        back.color = backColor * perkColor;
         
     }
 
@@ -145,6 +146,6 @@ public class PerkInstance : IGameOperator, ILifespan, IReleasable
     {
         if (isDead) return;
 
-        this.obj.transform.localPosition = pos;
+        obj.transform.localPosition = pos;
     }
 }

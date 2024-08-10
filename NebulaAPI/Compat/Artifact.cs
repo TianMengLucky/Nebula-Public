@@ -14,7 +14,7 @@ public interface Artifact<T> : IEnumerable<T>
 
 internal class ListArtifact<T> : Artifact<T>
 {
-    internal List<T> Values { get; init; } = new();
+    internal List<T> Values { get; init; } = [];
 
     public ListArtifact()
     {

@@ -89,13 +89,15 @@ public class VCClient : IDisposable
         var floatConverter = new WaveToSampleProvider(new Wave16ToFloatProvider(bufferedProvider));
         volumeFilter = new(floatConverter);
         volumeMeter = new(volumeFilter, player.AmOwner ? (() => !(NebulaGameManager.Instance?.VoiceChatManager?.CanListenSelf ?? false)) : (() => false));
-        panningFilter = new(volumeMeter);
-        panningFilter.Pan = 0f;
+        panningFilter = new(volumeMeter)
+        {
+            Pan = 0f
+        };
 
-        
+
         IEnumerator CoSetVolumeEntry()
         {
-            string puid = "";
+            var puid = "";
             while (puid.Length == 0)
             {
                 yield return new WaitForSeconds(1f);
@@ -123,9 +125,9 @@ public class VCClient : IDisposable
             if (InputtedVoiceType == VoiceType.Ghost) lightRadius = 1.8f;
 
             Vector2 ownerPos = PlayerControl.LocalPlayer.transform.position;
-            Vector2 myPos = speeker;
+            var myPos = speeker;
 
-            float distance = myPos.Distance(ownerPos);
+            var distance = myPos.Distance(ownerPos);
 
             //幽霊の語りかけは壁を無視する
             if (InputtedVoiceType != VoiceType.Ghost && GeneralConfigurations.WallsBlockAudioOption && PhysicsHelpers.AnyNonTriggersBetween(ownerPos, (myPos - ownerPos).normalized, distance, Constants.ShadowMask))
@@ -133,7 +135,7 @@ public class VCClient : IDisposable
             else
                 wallRatio += (1f - wallRatio) * 0.9f;
 
-            float distanceRatio = 1f;
+            var distanceRatio = 1f;
 
             if (distance > lightRadius * 1.7f)
                 distanceRatio = 0f;
@@ -142,7 +144,7 @@ public class VCClient : IDisposable
 
             volume = Mathf.Clamp01(distanceRatio) * wallRatio;
 
-            float xDis = myPos.x - ownerPos.x;
+            var xDis = myPos.x - ownerPos.x;
             pan = Mathf.Clamp(xDis / 1.4f, -1f, 1f);
         }
         catch
@@ -154,8 +156,8 @@ public class VCClient : IDisposable
 
     private void UpdateAudio()
     {
-        bool atLobby = AmongUsClient.Instance.GameState == InnerNet.InnerNetClient.GameStates.Joined;
-        bool atEnd = AmongUsClient.Instance.GameState == InnerNet.InnerNetClient.GameStates.Ended;
+        var atLobby = AmongUsClient.Instance.GameState == InnerNet.InnerNetClient.GameStates.Joined;
+        var atEnd = AmongUsClient.Instance.GameState == InnerNet.InnerNetClient.GameStates.Ended;
 
         //常に出来る限り普通に聞こうとするものとする
         SetListenAsVoiceType(VoiceType.Normal);
@@ -223,7 +225,7 @@ public class VCClient : IDisposable
             {
                 foreach (var mic in NebulaGameManager.Instance!.VoiceChatManager!.AllMics())
                 {
-                    float micVolume = mic.CanCatch(relatedControl.transform.position);
+                    var micVolume = mic.CanCatch(relatedControl.transform.position);
                     if (!(micVolume > 0f)) continue;
 
                     foreach (var speaker in NebulaGameManager.Instance!.VoiceChatManager!.AllSpeakers())
@@ -264,13 +266,13 @@ public class VCClient : IDisposable
         level -= Time.deltaTime * 1.4f;
         level = Mathf.Max(level, volumeMeter.Level);
 
-        stock.RemoveAll(s => s.sId <= this.sId);
+        stock.RemoveAll(s => s.sId <= sId);
         while (stock.Count > 0)
         {
             var lastCount = stock.Count;
-            for(int i = 0; i < stock.Count; i++)
+            for(var i = 0; i < stock.Count; i++)
             {
-                if(stock[i].sId == this.sId + 1)
+                if(stock[i].sId == sId + 1)
                 {
                     PushData(stock[i].sId, stock[i].isRadio, stock[i].radioMask, stock[i].data);
                     stock.RemoveAt(i);
@@ -313,7 +315,7 @@ public class VCClient : IDisposable
 
         this.radioMask = radioMask;
 
-        int rawSize = myDecoder!.Decode(data, data.Length, rawAudioData, rawAudioData.Length);
+        var rawSize = myDecoder!.Decode(data, data.Length, rawAudioData, rawAudioData.Length);
 
         try
         {
@@ -329,7 +331,7 @@ public class VCClient : IDisposable
         }
     }
 
-    private List<(uint sId, bool isRadio, int radioMask, byte[] data)> stock = new();
+    private List<(uint sId, bool isRadio, int radioMask, byte[] data)> stock = [];
 
     private void KeepData(uint sId, bool isRadio, int radioMask, byte[] data)
     {

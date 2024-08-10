@@ -43,7 +43,7 @@ public class EffectCommand : ICommand
         if (arguments.Count != 3)
             return new CoImmediateErrorTask<ICommandToken>(env.Logger, label + " <type> <target> <structure>");
 
-        string id = "";
+        var id = "";
         IEnumerable<GamePlayer> targets = [];
         return arguments[0].AsValue<string>(env).Action(val => id = val)
             .Chain(_ => arguments[1].AsEnumerable(env).As<GamePlayer>(env).Action(p => targets = p))

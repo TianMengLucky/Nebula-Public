@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine.Events;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Patches;
 
@@ -12,10 +13,10 @@ file static class MultipleExileHelper
 {
     public static PoolablePlayer SpawnMultiplePlayer(ExileController __instance, PlayerControl exiled)
     {
-        var result = GameObject.Instantiate(__instance.Player, __instance.Player.transform.parent);
+        var result = Object.Instantiate(__instance.Player, __instance.Player.transform.parent);
         result.UpdateFromEitherPlayerDataOrCache(exiled.Data, PlayerOutfitType.Default, PlayerMaterial.MaskType.Exile, false, (Il2CppSystem.Action)(()=>
         {
-            SkinViewData skin = ShipStatus.Instance.CosmeticsCache.GetSkin(exiled.Data.Outfits[PlayerOutfitType.Default].SkinId);
+            var skin = ShipStatus.Instance.CosmeticsCache.GetSkin(exiled.Data.Outfits[PlayerOutfitType.Default].SkinId);
             if (!DestroyableSingleton<HatManager>.Instance.CheckLongModeValidCosmetic(exiled.Data.Outfits[PlayerOutfitType.Default].SkinId, result.GetIgnoreLongMode()))
             {
                 skin = ShipStatus.Instance.CosmeticsCache.GetSkin("skin_None");
@@ -33,11 +34,11 @@ file static class MultipleExileHelper
 
     public static void SpawnMultiplePlayers(ExileController __instance, Action<PoolablePlayer, int> setup)
     {
-        int num = 0;
+        var num = 0;
         foreach (var p in MeetingHudExtension.ExiledAll ?? [])
         {
             if (p.PlayerId == __instance.exiled.PlayerId) continue;
-            var display = MultipleExileHelper.SpawnMultiplePlayer(__instance, p);
+            var display = SpawnMultiplePlayer(__instance, p);
             setup.Invoke(display, num);
             num++;
         }
@@ -45,8 +46,8 @@ file static class MultipleExileHelper
 
     public static IEnumerator CoSpin(PoolablePlayer p, int i, Vector2 from, Vector2 to, Vector2 diffVectorNorm, float duration, AnimationCurve curve, float rotateSpeed, Action<Vector2>? callback = null)
     {
-        float random = System.Random.Shared.NextSingle() * Math.Max(5f, rotateSpeed * 0.5f);
-        float randomVec = 0.3f + System.Random.Shared.NextSingle() * 0.8f;
+        var random = System.Random.Shared.NextSingle() * Math.Max(5f, rotateSpeed * 0.5f);
+        var randomVec = 0.3f + System.Random.Shared.NextSingle() * 0.8f;
         if (i % 2 == 0) randomVec *= -1f;
         from += diffVectorNorm * randomVec;
         to += diffVectorNorm * randomVec;
@@ -54,11 +55,11 @@ file static class MultipleExileHelper
 
         p.transform.localScale *= 0.75f;
 
-        for (float t = 0f; t <= duration; t += Time.deltaTime)
+        for (var t = 0f; t <= duration; t += Time.deltaTime)
         {
-            float num = t / duration;
+            var num = t / duration;
             p.transform.localPosition = Vector2.Lerp(from, to, curve.Evaluate(num));
-            float num2 = (t + 0.75f) * 25f / Mathf.Exp(t * 0.75f + 1f);
+            var num2 = (t + 0.75f) * 25f / Mathf.Exp(t * 0.75f + 1f);
             p.transform.Rotate(new Vector3(0f, 0f, num2 * Time.deltaTime * (rotateSpeed + random)));
             yield return null;
         }
@@ -77,7 +78,7 @@ internal class SkeldMultipleExilePatch
 
             p.gameObject.SetActive(true);
 
-            float l = Camera.main.orthographicSize * Camera.main.aspect + 1f;
+            var l = Camera.main.orthographicSize * Camera.main.aspect + 1f;
             yield return MultipleExileHelper.CoSpin(p, i, Vector2.left * l, Vector2.right * l, Vector2.up, __instance.Duration, __instance.LerpCurve, 30f);
         }
         MultipleExileHelper.SpawnMultiplePlayers(__instance, (p, i) => {
@@ -98,7 +99,7 @@ internal class MiraMultipleExilePatch
 
             p.gameObject.SetActive(true);
 
-            float l = Camera.main.orthographicSize + 1f;
+            var l = Camera.main.orthographicSize + 1f;
             yield return MultipleExileHelper.CoSpin(p, i, Vector2.up * l, Vector2.down * l, Vector2.left, __instance.Duration, __instance.LerpCurve, 5f);
         }
         MultipleExileHelper.SpawnMultiplePlayers(__instance, (p, i) => {
@@ -115,7 +116,7 @@ internal class PbMultipleExilePatch
     {
         IEnumerator CoWaitAndPlaySplash(PoolablePlayer p, Vector2 vec)
         {
-            var sploosher = GameObject.Instantiate(__instance.Sploosher, __instance.Sploosher.transform.parent);
+            var sploosher = Object.Instantiate(__instance.Sploosher, __instance.Sploosher.transform.parent);
             
             sploosher.gameObject.SetActive(false);
             sploosher.transform.localPosition += (Vector3)vec;
@@ -132,8 +133,8 @@ internal class PbMultipleExilePatch
 
             p.gameObject.SetActive(true);
 
-            float l = Camera.main.orthographicSize + 1f;
-            yield return MultipleExileHelper.CoSpin(p, i, Vector2.up * l, Vector2.down * 2.81f, Vector2.left, __instance.Duration / 1.4f, __instance.LerpCurve, 5f, (vec) => __instance.StartCoroutine(CoWaitAndPlaySplash(p, vec).WrapToIl2Cpp()));
+            var l = Camera.main.orthographicSize + 1f;
+            yield return MultipleExileHelper.CoSpin(p, i, Vector2.up * l, Vector2.down * 2.81f, Vector2.left, __instance.Duration / 1.4f, __instance.LerpCurve, 5f, vec => __instance.StartCoroutine(CoWaitAndPlaySplash(p, vec).WrapToIl2Cpp()));
         }
         MultipleExileHelper.SpawnMultiplePlayers(__instance, (p, i) => {
 
@@ -155,26 +156,26 @@ internal class AirshipMultipleExilePatch
             PlayerMaterial.SetColors(p.ColorId, p.transform.GetChild(3).GetComponent<SpriteRenderer>());
             p.transform.localScale *= 0.76f;
 
-            Camera main = Camera.main;
-            float num = main.orthographicSize + 1.5f;
-            float num2 = main.orthographicSize * main.aspect;
-            Vector2 sourcePos = Vector2.up * num + Vector2.right * num2 / 4f;
-            Vector2 targetPos = Vector2.down * num + Vector2.left * num2 / 4f;
+            var main = Camera.main;
+            var num = main.orthographicSize + 1.5f;
+            var num2 = main.orthographicSize * main.aspect;
+            var sourcePos = Vector2.up * num + Vector2.right * num2 / 4f;
+            var targetPos = Vector2.down * num + Vector2.left * num2 / 4f;
 
-            float randomVec = 0.3f + System.Random.Shared.NextSingle() * 0.8f;
+            var randomVec = 0.3f + System.Random.Shared.NextSingle() * 0.8f;
             if (i % 2 == 0) randomVec *= -1f;
             sourcePos += Vector2.right * randomVec;
             targetPos += Vector2.right * randomVec;
 
-            Vector2 vector = (targetPos - sourcePos) / 2f;
-            Vector2 anchor = sourcePos + vector + vector.Rotate(-90f).normalized * 0.5f;
-            float d = __instance.Duration;
-            for (float t = 0f; t <= d; t += Time.deltaTime * 1.05f)
+            var vector = (targetPos - sourcePos) / 2f;
+            var anchor = sourcePos + vector + vector.Rotate(-90f).normalized * 0.5f;
+            var d = __instance.Duration;
+            for (var t = 0f; t <= d; t += Time.deltaTime * 1.05f)
             {
-                float num3 = t / d;
-                Vector2 vector2 = Effects.Bezier(num3, sourcePos, targetPos, anchor);
+                var num3 = t / d;
+                var vector2 = Effects.Bezier(num3, sourcePos, targetPos, anchor);
                 p.transform.localPosition = vector2.AsVector3(i * 0.5f);
-                float num4 = Mathf.Lerp(0f, 80f, num3);
+                var num4 = Mathf.Lerp(0f, 80f, num3);
                 p.transform.localEulerAngles = new Vector3(0f, 0f, num4);
                 yield return null;
             }
@@ -192,14 +193,14 @@ internal class FungleMultipleExilePatch
 {
     public static void Postfix(FungleExileController __instance)
     {
-        List<PoolablePlayer> extraPlayers = new();
+        List<PoolablePlayer> extraPlayers = [];
         MultipleExileHelper.SpawnMultiplePlayers(__instance, (p, i) => {
             extraPlayers.Add(p);
             __instance.StartCoroutine(Effects.Sequence(Effects.Wait(1.7f), Effects.Action((Il2CppSystem.Action)(() => p.FadeBlackAll(1.5f)))));
         });
 
-        int i = 0;
-        float left = extraPlayers.Count * 0.5f * -0.85f;
+        var i = 0;
+        var left = extraPlayers.Count * 0.5f * -0.85f;
         
         foreach(var p in extraPlayers.Prepend(__instance.Player))
         {

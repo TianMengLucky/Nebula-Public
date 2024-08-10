@@ -84,7 +84,7 @@ static public class LayerExpansion
 
     static public int GetLayerMask(params int[] layer)
     {
-        int result = 0;
+        var result = 0;
         foreach (var l in layer) result |= 1 << l;
         return result;
     }

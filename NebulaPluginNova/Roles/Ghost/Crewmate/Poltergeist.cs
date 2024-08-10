@@ -34,13 +34,13 @@ public class Poltergeist : DefinedGhostRoleTemplate, DefinedGhostRole
         {
             if (AmOwner)
             {
-                var deadBodyTracker = Bind(ObjectTrackers.ForDeadBody(null, MyPlayer, (d) => d.RelatedDeadBody?.GetHolder() == null));
+                var deadBodyTracker = Bind(ObjectTrackers.ForDeadBody(null, MyPlayer, d => d.RelatedDeadBody?.GetHolder() == null));
 
                 var poltergeistButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability);
                 poltergeistButton.SetSprite(buttonSprite.GetSprite());
-                poltergeistButton.Availability = (button) => MyPlayer.CanMove && deadBodyTracker.CurrentTarget != null;
-                poltergeistButton.Visibility = (button) => MyPlayer.IsDead;
-                poltergeistButton.OnClick = (button) =>
+                poltergeistButton.Availability = button => MyPlayer.CanMove && deadBodyTracker.CurrentTarget != null;
+                poltergeistButton.Visibility = button => MyPlayer.IsDead;
+                poltergeistButton.OnClick = button =>
                 {
                     RpcPoltergeist.Invoke((deadBodyTracker.CurrentTarget!.PlayerId, MyPlayer.VanillaPlayer.GetTruePosition()));
                     new StaticAchievementToken("poltergeist.common1");
@@ -56,7 +56,7 @@ public class Poltergeist : DefinedGhostRoleTemplate, DefinedGhostRole
     {
         if (deadBody == null) yield break;
 
-        float p = 0f;
+        var p = 0f;
         Vector2 beginPos = deadBody.transform.position;
 
         while (deadBody)
@@ -64,7 +64,7 @@ public class Poltergeist : DefinedGhostRoleTemplate, DefinedGhostRole
             p += Time.deltaTime * 0.85f;
             if (!(p < 1f)) break;
 
-            float pp = p * p;
+            var pp = p * p;
             Vector3 currentPos = beginPos * (1 - pp) + pos * pp;
             currentPos.z = currentPos.y / 1000f;
             deadBody.transform.position = currentPos;

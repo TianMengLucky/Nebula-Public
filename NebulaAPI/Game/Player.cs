@@ -125,14 +125,16 @@ public class Outfit
     {
         if (clone)
         {
-            this.outfit = new();
-            this.outfit.HatId = outfit.HatId;
-            this.outfit.VisorId = outfit.VisorId;
-            this.outfit.SkinId = outfit.SkinId;
-            this.outfit.ColorId = outfit.ColorId;
-            this.outfit.PetId = outfit.PetId;
-            this.outfit.PlayerName = outfit.PlayerName;
-            this.outfit.NamePlateId = outfit.NamePlateId;
+            this.outfit = new()
+            {
+                HatId = outfit.HatId,
+                VisorId = outfit.VisorId,
+                SkinId = outfit.SkinId,
+                ColorId = outfit.ColorId,
+                PetId = outfit.PetId,
+                PlayerName = outfit.PlayerName,
+                NamePlateId = outfit.NamePlateId
+            };
         }
         else
         {
@@ -160,14 +162,14 @@ public class Outfit
 }
 
 public record OutfitTag {
-    public Virial.Media.Image TagImage { get;private init; }
+    public Media.Image TagImage { get;private init; }
     private string TranslationKey { get; init; }
     public string DisplayName => NebulaAPI.Language.Translate("outfit.tag." + TranslationKey);
     public int Id { get; private init; }
 
     internal Predicate<NetworkedPlayerInfo.PlayerOutfit> Checker { get; private init; }
 
-    internal OutfitTag(Virial.Media.Image tagImage, string translationKey, Predicate<NetworkedPlayerInfo.PlayerOutfit> checker)
+    internal OutfitTag(Media.Image tagImage, string translationKey, Predicate<NetworkedPlayerInfo.PlayerOutfit> checker)
     {
         TagImage = tagImage;
         TranslationKey = translationKey;
@@ -191,11 +193,11 @@ public class OutfitCandidate
 
     internal OutfitCandidate(string tag, int priority, bool selfAware, NetworkedPlayerInfo.PlayerOutfit outfit, OutfitTag[] outfitTags)
     {
-        this.Tag = tag;
-        this.Priority = priority;
-        this.SelfAware = selfAware;
+        Tag = tag;
+        Priority = priority;
+        SelfAware = selfAware;
         this.outfit = outfit;
-        this.OutfitTags = outfitTags;
+        OutfitTags = outfitTags;
     }
 
     internal OutfitCandidate(string tag, int priority, bool selfAware, Outfit outfit)
@@ -348,7 +350,7 @@ public interface Player : IModuleContainer, ICommandExecutor
     /// <returns></returns>
     public KillResult MurderPlayer(Player player, CommunicableTextTag playerState, CommunicableTextTag? eventDetail, KillParameter killParams);
     public KillResult Suicide(CommunicableTextTag playerState, CommunicableTextTag? eventDetail,KillParameter killParams);
-    public void Revive(Player? healer, Virial.Compat.Vector2 position, bool eraseDeadBody, bool recordEvent = true);
+    public void Revive(Player? healer, Compat.Vector2 position, bool eraseDeadBody, bool recordEvent = true);
     public Player? MyKiller { get; }
 
 

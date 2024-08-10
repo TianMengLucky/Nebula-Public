@@ -12,7 +12,7 @@ public class PlayerTaskRemoveLocalEvent : AbstractPlayerEvent
 
     internal PlayerTaskRemoveLocalEvent(Virial.Game.Player player, PlayerTask task) : base(player)
     {
-        this.Task = task;
+        Task = task;
     }
 }
 

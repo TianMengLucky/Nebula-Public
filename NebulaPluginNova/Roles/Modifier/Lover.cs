@@ -15,7 +15,7 @@ namespace Nebula.Roles.Modifier;
 public class Lover : DefinedModifierTemplate, DefinedAllocatableModifier, HasCitation, RoleFilter
 {
     private Lover() : base("lover", new(255, 0, 184), [NumOfPairsOption, RoleChanceOption, ChanceOfAssigningImpostorsOption, AllowExtraWinOption, AvengerModeOption]) {
-        ConfigurationHolder?.ScheduleAddRelated(() => [Neutral.Avenger.MyRole.ConfigurationHolder!]);
+        ConfigurationHolder?.ScheduleAddRelated(() => [Avenger.MyRole.ConfigurationHolder!]);
         ConfigurationHolder?.SetDisplayState(() => NumOfPairsOption == 0 ? ConfigurationHolderState.Inactivated : RoleChanceOption == 100 ? ConfigurationHolderState.Emphasized : ConfigurationHolderState.Activated);
     }
     string ICodeName.CodeName => "LVR";
@@ -23,7 +23,7 @@ public class Lover : DefinedModifierTemplate, DefinedAllocatableModifier, HasCit
 
     bool AssignableFilter<DefinedRole>.Test(DefinedRole role) => role.ModifierFilter?.Test(this) ?? false;
     void AssignableFilter<DefinedRole>.ToggleAndShare(DefinedRole role) => role.ModifierFilter?.ToggleAndShare(this);
-    void AssignableFilter<DefinedRole>.SetAndShare(Virial.Assignable.DefinedRole role, bool val) => role.ModifierFilter?.SetAndShare(this, val);
+    void AssignableFilter<DefinedRole>.SetAndShare(DefinedRole role, bool val) => role.ModifierFilter?.SetAndShare(this, val);
     RoleFilter HasRoleFilter.RoleFilter => this;
     bool ISpawnable.IsSpawnable => NumOfPairsOption > 0;
 
@@ -39,21 +39,21 @@ public class Lover : DefinedModifierTemplate, DefinedAllocatableModifier, HasCit
     RuntimeModifier RuntimeAssignableGenerator<RuntimeModifier>.CreateInstance(GamePlayer player, int[] arguments) => new Instance(player, arguments[0]);
 
 
-    void HasAssignmentRoutine.TryAssign(Virial.Assignable.IRoleTable roleTable){
+    void HasAssignmentRoutine.TryAssign(IRoleTable roleTable){
         var impostors = roleTable.GetPlayers(RoleCategory.ImpostorRole).Where(p => p.role.CanLoad(this)).OrderBy(_=>Guid.NewGuid()).ToArray();
         var others = roleTable.GetPlayers(RoleCategory.CrewmateRole | RoleCategory.NeutralRole).Where(p => p.role.CanLoad(this)).OrderBy(_ => Guid.NewGuid()).ToArray();
-        int impostorsIndex = 0;
-        int othersIndex = 0;
+        var impostorsIndex = 0;
+        var othersIndex = 0;
 
 
         int maxPairs = NumOfPairsOption;
-        float chanceImpostor = ChanceOfAssigningImpostorsOption / 100f;
+        var chanceImpostor = ChanceOfAssigningImpostorsOption / 100f;
         (byte playerId, DefinedRole role)? first,second;
 
-        int assigned = 0;
-        for (int i = 0; i < maxPairs; i++)
+        var assigned = 0;
+        for (var i = 0; i < maxPairs; i++)
         {
-            float chance = RoleChanceOption / 100f;
+            var chance = RoleChanceOption / 100f;
             if ((float)System.Random.Shared.NextDouble() >= chance) continue;
 
             try
@@ -61,8 +61,8 @@ public class Lover : DefinedModifierTemplate, DefinedAllocatableModifier, HasCit
                 first = others[othersIndex++];
                 second = (impostorsIndex < impostors.Length && (float)System.Random.Shared.NextDouble() < chanceImpostor) ? impostors[impostorsIndex++] : second = others[othersIndex++];
 
-                roleTable.SetModifier(first.Value.playerId, this, new int[] { assigned });
-                roleTable.SetModifier(second.Value.playerId, this, new int[] { assigned });
+                roleTable.SetModifier(first.Value.playerId, this, [assigned]);
+                roleTable.SetModifier(second.Value.playerId, this, [assigned]);
 
                 assigned++;
             }
@@ -85,13 +85,16 @@ public class Lover : DefinedModifierTemplate, DefinedAllocatableModifier, HasCit
     {
         DefinedModifier RuntimeModifier.Modifier => MyRole;
 
-        static private Color[] colors = new Color[] { MyRole.UnityColor,
+        static private Color[] colors =
+        [
+            MyRole.UnityColor,
         (Color)new Color32(254, 132, 3, 255) ,
         (Color)new Color32(3, 254, 188, 255) ,
         (Color)new Color32(255, 255, 0, 255) ,
         (Color)new Color32(3, 183, 254, 255) ,
         (Color)new Color32(8, 255, 10, 255) ,
-        (Color)new Color32(132, 3, 254, 255) };
+        (Color)new Color32(132, 3, 254, 255)
+        ];
         private int loversId; 
         public Instance(GamePlayer player,int loversId) : base(player)
         {
@@ -103,16 +106,16 @@ public class Lover : DefinedModifierTemplate, DefinedAllocatableModifier, HasCit
 
         void RuntimeAssignable.DecorateNameConstantly(ref string name, bool canSeeAllInfo)
         {
-            Color loverColor = colors[loversId];
+            var loverColor = colors[loversId];
             var myLover = MyLover;
-            bool canSee = false;
+            var canSee = false;
 
             if (AmOwner || canSeeAllInfo || (MyLover?.AmOwner ?? false))
             {
                 canSee = true;
             }else if (myLover?.Role.Role == Avenger.MyRole && !myLover.IsDead && MyPlayer.IsDead)
             {
-                int optionValue = Avenger.CanKnowExistanceOfAvengerOption.GetValue();
+                var optionValue = Avenger.CanKnowExistanceOfAvengerOption.GetValue();
                 if(optionValue == 2 || ((optionValue == 1) && ((myLover!.Role as Avenger.Instance)?.AvengerTarget?.AmOwner ?? false))){
                     canSee = true;
                     loverColor = Avenger.MyRole.UnityColor;
@@ -207,7 +210,7 @@ public class Lover : DefinedModifierTemplate, DefinedAllocatableModifier, HasCit
             ev.IsExtraWin = true;
         }
 
-        public GamePlayer? MyLover => NebulaGameManager.Instance?.AllPlayerInfo().FirstOrDefault(p => p.PlayerId != MyPlayer.PlayerId && p.Modifiers.Any(m => m is Lover.Instance lover && lover.loversId == loversId));
+        public GamePlayer? MyLover => NebulaGameManager.Instance?.AllPlayerInfo().FirstOrDefault(p => p.PlayerId != MyPlayer.PlayerId && p.Modifiers.Any(m => m is Instance lover && lover.loversId == loversId));
         string? RuntimeModifier.DisplayIntroBlurb => Language.Translate("role.lover.blurb").Replace("%NAME%", (MyLover?.Name ?? "ERROR").Color(MyRole.UnityColor));
         bool RuntimeModifier.InvalidateCrewmateTask => true;
         bool RuntimeModifier.MyCrewmateTaskIsIgnored => true;

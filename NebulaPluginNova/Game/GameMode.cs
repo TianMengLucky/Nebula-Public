@@ -25,8 +25,8 @@ internal class GameModeDefinitionImpl : GameModeDefinition
 
     public GameModeDefinitionImpl(string translationKey, int minPlayers, Type gameModeType, Func<IRoleAllocator> roleAllocator)
     {
-        this.display = new TranslateTextComponent(translationKey);
-        this.bit = 1u << GameModes.allGameModes.Count;
+        display = new TranslateTextComponent(translationKey);
+        bit = 1u << GameModes.allGameModes.Count;
         this.gameModeType = gameModeType;
         this.roleAllocator = roleAllocator;
         this.minPlayers = minPlayers;

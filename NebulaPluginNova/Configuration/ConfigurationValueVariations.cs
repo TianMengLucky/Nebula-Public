@@ -13,8 +13,8 @@ internal abstract class ConfigurationValueBase<T, LocalEntry> : ISharableVariabl
 
     public ConfigurationValueBase(string name, LocalEntry entry)
     {
-        this.localEntry = entry;
-        this.currentValue = entry.Value;
+        localEntry = entry;
+        currentValue = entry.Value;
 
         ConfigurationValues.RegisterEntry(this);
     }
@@ -67,7 +67,7 @@ internal abstract class ComparableConfigurationValueBase<T, LocalEntry> : Config
 
     void IOrderedSharableEntry.ChangeValue(bool increase, bool allowLoop)
     {
-        int nextIndex = myIndex + (increase ? 1 : -1);
+        var nextIndex = myIndex + (increase ? 1 : -1);
 
         if (allowLoop)
         {
@@ -86,18 +86,18 @@ internal abstract class ComparableConfigurationValueBase<T, LocalEntry> : Config
 
     private void AdjustValue()
     {
-        T localVal =  localEntry.Value;
-        T nearVal = myMapper.MinBy(v => CalcAbsDiff(v, localVal));
+        var localVal =  localEntry.Value;
+        var nearVal = myMapper.MinBy(v => CalcAbsDiff(v, localVal));
         (this as ISharableVariable<T>).SetValueWithoutSaveUnsafe(nearVal);
         myIndex = Array.IndexOf(myMapper, nearVal);
     }
 
     public ComparableConfigurationValueBase(string name, T[] mapper, LocalEntry entry) : base(name, entry)
     {
-        this.myMapper = mapper;
+        myMapper = mapper;
 
-        T localVal = entry.Value;
-        int index = Array.IndexOf(myMapper, localVal);
+        var localVal = entry.Value;
+        var index = Array.IndexOf(myMapper, localVal);
 
         if (index == -1)
             AdjustValue();
@@ -187,7 +187,7 @@ internal class RawIntegerSharableVariable : ISharableVariable<int>
 
     public RawIntegerSharableVariable(string id, int defaultValue)
     {
-        this.name = id;
+        name = id;
         this.id = -1;
 
         localEntry = new(name, ConfigurationValues.ConfigurationSaver, defaultValue);

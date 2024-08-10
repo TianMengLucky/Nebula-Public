@@ -41,7 +41,7 @@ public class PlayerDisplay : MonoBehaviour
 
     public void UpdateFromPlayerOutfit(PlayerControl player, bool isDead, bool includePet)
     {
-        NetworkedPlayerInfo.PlayerOutfit outfit = player.Data.Outfits[player.CurrentOutfitType];
+        var outfit = player.Data.Outfits[player.CurrentOutfitType];
         UpdateFromPlayerOutfit(outfit, isDead, includePet);
     }
 
@@ -50,7 +50,7 @@ public class PlayerDisplay : MonoBehaviour
         Cosmetics.SetBodyColor(outfit.ColorId);
 
         Cosmetics.SetSkin(isDead ? string.Empty : outfit.SkinId, outfit.ColorId);
-        Color c = isDead ? Palette.HalfWhite : Palette.White;
+        var c = isDead ? Palette.HalfWhite : Palette.White;
         Cosmetics.SetHatColor(c);
         Cosmetics.SetVisorAlpha(c.a);
 
@@ -71,7 +71,7 @@ public class PlayerDisplay : MonoBehaviour
     {
         void SetLayerRecursively(Transform transform)
         {
-            for (int i = 0; i < transform.childCount; i++)
+            for (var i = 0; i < transform.childCount; i++)
             {
                 var child = transform.GetChild(i);
                 child.gameObject.layer = layer;

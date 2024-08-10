@@ -1,5 +1,6 @@
 ﻿using Nebula.Compat;
 using Virial;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Patches;
 
@@ -43,7 +44,7 @@ public static class ShowIntroPatch
         switch (myInfo?.Role.Role.Team.RevealType)
         {
             case Virial.Assignable.TeamRevealType.OnlyMe:
-                shownPlayers = new PlayerControl[] { PlayerControl.LocalPlayer };
+                shownPlayers = new[] { PlayerControl.LocalPlayer };
                 break;
             case Virial.Assignable.TeamRevealType.Teams:
                 shownPlayers = shownPlayers.Where(p => p.GetModInfo()?.Role.Role.Team == myInfo.Role.Role.Team);
@@ -53,7 +54,7 @@ public static class ShowIntroPatch
         yield return CoShowTeam(__instance,myInfo!,shownPlayers.ToArray(), 3f);
         yield return CoShowRole(__instance,myInfo!);
         ShipStatus.Instance.StartSFX();
-        GameObject.Destroy(__instance.gameObject);
+        Object.Destroy(__instance.gameObject);
     }
 
     static IEnumerator CoShowTeam(IntroCutscene __instance, GamePlayer myInfo, PlayerControl[] shownPlayers, float duration)
@@ -64,24 +65,24 @@ public static class ShowIntroPatch
         }
         yield return ShipStatus.Instance.CosmeticsCache.PopulateFromPlayers();
 
-        Color c = myInfo.Role!.Role.Team.UnityColor;
+        var c = myInfo.Role!.Role.Team.UnityColor;
 
-        Vector3 position = __instance.BackgroundBar.transform.position;
+        var position = __instance.BackgroundBar.transform.position;
         position.y -= 0.25f;
         __instance.BackgroundBar.transform.position = position;
         __instance.BackgroundBar.material.SetColor("_Color", c);
         __instance.TeamTitle.text = Language.Translate(myInfo.Role.Role.Team.TranslationKey);
         __instance.TeamTitle.color = c;
-        int maxDepth = Mathf.CeilToInt(7.5f);
-        for (int i = 0; i < shownPlayers.Length; i++)
+        var maxDepth = Mathf.CeilToInt(7.5f);
+        for (var i = 0; i < shownPlayers.Length; i++)
         {
-            PlayerControl playerControl = shownPlayers[i];
+            var playerControl = shownPlayers[i];
             if (playerControl)
             {
-                NetworkedPlayerInfo data = playerControl.Data;
+                var data = playerControl.Data;
                 if (data != null)
                 {
-                    PoolablePlayer poolablePlayer = __instance.CreatePlayer(i, maxDepth, data, false);
+                    var poolablePlayer = __instance.CreatePlayer(i, maxDepth, data, false);
                     if (i == 0 && data.PlayerId == PlayerControl.LocalPlayer.PlayerId)
                     {
                         __instance.ourCrewmate = poolablePlayer;
@@ -93,14 +94,14 @@ public static class ShowIntroPatch
         __instance.overlayHandle.color = c;
 
         
-        Color fade = Color.black;
-        Color impColor = Color.white;
-        Vector3 titlePos = __instance.TeamTitle.transform.localPosition;
-        float timer = 0f;
+        var fade = Color.black;
+        var impColor = Color.white;
+        var titlePos = __instance.TeamTitle.transform.localPosition;
+        var timer = 0f;
         while (timer < duration)
         {
             timer += Time.deltaTime;
-            float num = Mathf.Min(1f, timer / duration);
+            var num = Mathf.Min(1f, timer / duration);
             __instance.Foreground.material.SetFloat("_Rad", __instance.ForegroundRadius.ExpOutLerp(num * 2f));
             fade.a = Mathf.Lerp(1f, 0f, num * 3f);
             __instance.FrontMost.color = fade;
@@ -118,7 +119,7 @@ public static class ShowIntroPatch
         while (timer < 1f)
         {
             timer += Time.deltaTime;
-            float num2 = timer / 1f;
+            var num2 = timer / 1f;
             fade.a = Mathf.Lerp(0f, 1f, num2 * 3f);
             __instance.FrontMost.color = fade;
             __instance.overlayHandle.color = c.AlphaMultiplied(1f - fade.a);
@@ -138,7 +139,7 @@ public static class ShowIntroPatch
 
         foreach(var m in myInfo.Modifiers)
         {
-            string? mBlurb = m.DisplayIntroBlurb;
+            var mBlurb = m.DisplayIntroBlurb;
             if (mBlurb != null) __instance.RoleBlurbText.text += "\n" + mBlurb;
         }
         __instance.RoleText.color = role.UnityColor;

@@ -3,7 +3,7 @@
 [NebulaRPCHolder]
 public class FakeSabotageStatus
 {
-    HashSet<SystemTypes> fictitiousTasks = new();
+    HashSet<SystemTypes> fictitiousTasks = [];
 
     public IEnumerable<SystemTypes> MyFakeTasks => fictitiousTasks;
     public bool HasFakeSabotage(params SystemTypes[] types) => types.Any(fictitiousTasks.Contains);

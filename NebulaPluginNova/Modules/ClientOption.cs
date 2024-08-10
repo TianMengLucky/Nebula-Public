@@ -5,6 +5,7 @@ using Rewired.UI.ControlMapper;
 using System.Diagnostics;
 using TMPro;
 using Virial.Runtime;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Modules;
 
@@ -23,7 +24,8 @@ public class ClientOption
         ButtonArrangement,
         ShowNoSLogoInLobby,
         ShowOnlySpawnableAssignableOnFilter,
-        ShowVanillaColor
+        ShowVanillaColor,
+        GameEndAutoSave,
     }
 
     static private DataSaver ClientOptionSaver = new("ClientOption");
@@ -44,13 +46,14 @@ public class ClientOption
 
     
 
+    // ReSharper disable Unity.PerformanceAnalysis
     static public void ShowWebhookSetting(Action? onDetermine = null)
     {
         var window = MetaScreen.GenerateWindow(new(4.2f, 2.3f), HudManager.InstanceExists ? HudManager.Instance.transform : null, Vector3.zero, true, true, withMask: true);
 
         string GetCurrentWebhookString() => (Language.Translate("ui.discordWebhook.current") + ": ").Bold() + WebhookOption.urlShorten;
         bool SetWebhookStringFromClipboard() {
-            string copied = Helpers.GetClipboardString();
+            var copied = Helpers.GetClipboardString();
             if (!copied.StartsWith(DiscordWebhookPrefix)) return false; //先頭がおかしい場合
             if (copied.Length < DiscordWebhookPrefix.Length + 8) return false; //短すぎる場合
             WebhookOption.urlEntry.Value = copied.Substring(DiscordWebhookPrefix.Length);
@@ -107,21 +110,24 @@ public class ClientOption
     }
     static public void Preprocess(NebulaPreprocessor preprocessor)
     {
-        new ClientOption(ClientOptionType.OutputCosmicHash, "outputHash", new string[] { "options.switch.off", "options.switch.on" }, 0);
+        new ClientOption(ClientOptionType.OutputCosmicHash, "outputHash", ["options.switch.off", "options.switch.on"], 0);
         //new ClientOption(ClientOptionType.UseNoiseReduction, "noiseReduction", new string[] { "options.switch.off", "options.switch.on" }, 0);
-        new ClientOption(ClientOptionType.ProcessorAffinity, "processorAffinity", new string[] {
-        "config.client.processorAffinity.dontCare",
+        new ClientOption(ClientOptionType.ProcessorAffinity, "processorAffinity", [
+                "config.client.processorAffinity.dontCare",
         "config.client.processorAffinity.dualCoreHT",
         "config.client.processorAffinity.dualCore",
-        "config.client.processorAffinity.singleCore"}, 0)
+        "config.client.processorAffinity.singleCore"
+            ], 0)
         { OnValueChanged = ReflectProcessorAffinity };
-        new ClientOption(ClientOptionType.ForceSkeldMeetingSE, "forceSkeldMeetingSE", new string[] { "options.switch.off", "options.switch.on" }, 0);
-        new ClientOption(ClientOptionType.SpoilerAfterDeath, "spoilerAfterDeath", new string[] { "options.switch.off", "options.switch.on" }, 1);
-        new ClientOption(ClientOptionType.PlayLobbyMusic, "playLobbyMusic", new string[] { "options.switch.off", "options.switch.on" }, 1) { 
+        new ClientOption(ClientOptionType.ForceSkeldMeetingSE, "forceSkeldMeetingSE", ["options.switch.off", "options.switch.on"
+        ], 0);
+        new ClientOption(ClientOptionType.SpoilerAfterDeath, "spoilerAfterDeath", ["options.switch.off", "options.switch.on"
+        ], 1);
+        new ClientOption(ClientOptionType.PlayLobbyMusic, "playLobbyMusic", ["options.switch.off", "options.switch.on"], 1) { 
             OnValueChanged = () =>
             {
                 if (!LobbyBehaviour.Instance) return;
-                bool playMusic = AllOptions[ClientOptionType.PlayLobbyMusic].Value == 1;
+                var playMusic = AllOptions[ClientOptionType.PlayLobbyMusic].Value == 1;
 
                 if (playMusic)
                 {
@@ -133,14 +139,19 @@ public class ClientOption
                 }
             }
         };
-        new ClientOption(ClientOptionType.ButtonArrangement, "buttonArrangement", new string[] {
+        new ClientOption(ClientOptionType.ButtonArrangement, "buttonArrangement", [
             "config.client.buttonArrangement.default", 
             "config.client.buttonArrangement.raiseOnlyLeft",
-            "config.client.buttonArrangement.raiseBoth",
-        }, 0);
-        new ClientOption(ClientOptionType.ShowNoSLogoInLobby, "showNebulaLogoInLobby", new string[] { "options.switch.off", "options.switch.on" }, 1);
-        new ClientOption(ClientOptionType.ShowOnlySpawnableAssignableOnFilter, "showOnlySpawnableAssignableOnFilter", new string[] { "options.switch.off", "options.switch.on" }, 0) { ShowOnClientSetting = false };
-        new ClientOption(ClientOptionType.ShowVanillaColor, "externalModColor", new string[] { "options.switch.off", "options.switch.on" }, 0);
+            "config.client.buttonArrangement.raiseBoth"
+        ], 0);
+        new ClientOption(ClientOptionType.ShowNoSLogoInLobby, "showNebulaLogoInLobby", ["options.switch.off", "options.switch.on"
+        ], 1);
+        new ClientOption(ClientOptionType.ShowOnlySpawnableAssignableOnFilter, "showOnlySpawnableAssignableOnFilter",
+            ["options.switch.off", "options.switch.on"], 0) { ShowOnClientSetting = false };
+        new ClientOption(ClientOptionType.ShowVanillaColor, "externalModColor", ["options.switch.off", "options.switch.on"
+        ], 0);
+        new ClientOption(ClientOptionType.GameEndAutoSave, "AutoSaveResult",
+            ["options.switch.off", "options.switch.on"], 0);
         ReflectProcessorAffinity();
     }
 
@@ -167,14 +178,16 @@ public class ClientOption
 
             if (mode == null) return;
 
-            var process = System.Diagnostics.Process.GetCurrentProcess();
-            string id = process.Id.ToString();
+            var process = Process.GetCurrentProcess();
+            var id = process.Id.ToString();
 
-            ProcessStartInfo processStartInfo = new ProcessStartInfo();
-            processStartInfo.FileName = "CPUAffinityEditor.exe";
-            processStartInfo.Arguments = id + " " + mode;
-            processStartInfo.CreateNoWindow = true;
-            processStartInfo.UseShellExecute = false;
+            var processStartInfo = new ProcessStartInfo
+            {
+                FileName = "CPUAffinityEditor.exe",
+                Arguments = id + " " + mode,
+                CreateNoWindow = true,
+                UseShellExecute = false
+            };
             Process.Start(processStartInfo);
         }
         catch
@@ -205,7 +218,7 @@ public static class StartOptionMenuPatch
 
         //設定項目を追加する
 
-        GameObject nebulaTab = new GameObject("NebulaTab");
+        var nebulaTab = new GameObject("NebulaTab");
         nebulaTab.transform.SetParent(__instance.transform);
         nebulaTab.transform.localScale = new Vector3(1f, 1f, 1f);
         nebulaTab.SetActive(false);
@@ -216,7 +229,7 @@ public static class StartOptionMenuPatch
         {
             var buttonAttr = new TextAttributeOld(TextAttributeOld.BoldAttr) { Size = new Vector2(2.05f, 0.26f) };
             MetaWidgetOld nebulaWidget = new();
-            nebulaWidget.Append(ClientOption.AllOptions.Values.Where(o => o.ShowOnClientSetting), (option) => new MetaWidgetOld.Button(()=> {
+            nebulaWidget.Append(ClientOption.AllOptions.Values.Where(o => o.ShowOnClientSetting), option => new MetaWidgetOld.Button(()=> {
                 option.Increament();
                 SetNebulaWidget();
             }, buttonAttr) { RawText = option.DisplayName + " : " + option.DisplayValue }, 2, -1, 0, 0.55f);
@@ -257,7 +270,7 @@ public static class StartOptionMenuPatch
             nebulaScreen.SetWidget(nebulaWidget);
         }
 
-        GameObject keyBindingTab = new GameObject("KeyBindingTab");
+        var keyBindingTab = new GameObject("KeyBindingTab");
         keyBindingTab.transform.SetParent(__instance.transform);
         keyBindingTab.transform.localScale = new Vector3(1f, 1f, 1f);
         keyBindingTab.SetActive(false);
@@ -269,8 +282,8 @@ public static class StartOptionMenuPatch
         void SetKeyBindingWidget()
         {
             MetaWidgetOld keyBindingWidget = new();
-            TMPro.TextMeshPro? text = null;
-            keyBindingWidget.Append(IKeyAssignment.AllKeyAssignments, (assignment) =>
+            TextMeshPro? text = null;
+            keyBindingWidget.Append(IKeyAssignment.AllKeyAssignments, assignment =>
             new MetaWidgetOld.Button(() =>
             {
                 currentAssignment = assignment;
@@ -304,7 +317,7 @@ public static class StartOptionMenuPatch
 
         //タブを追加する
 
-        tabs[tabs.Count - 1] = (GameObject.Instantiate(tabs[1], null));
+        tabs[tabs.Count - 1] = (Object.Instantiate(tabs[1], null));
         var nebulaButton = tabs[tabs.Count - 1];
         nebulaButton.gameObject.name = "NebulaButton";
         nebulaButton.transform.SetParent(tabs[0].transform.parent);
@@ -312,9 +325,9 @@ public static class StartOptionMenuPatch
         nebulaButton.Content = nebulaTab;
         var textObj = nebulaButton.transform.FindChild("Text_TMP").gameObject;
         textObj.GetComponent<TextTranslatorTMP>().enabled = false;
-        textObj.GetComponent<TMPro.TMP_Text>().text = "NoS";
+        textObj.GetComponent<TMP_Text>().text = "NoS";
 
-        tabs.Add((GameObject.Instantiate(tabs[1], null)));
+        tabs.Add((Object.Instantiate(tabs[1], null)));
         var keyBindingTabButton = tabs[tabs.Count - 1];
         keyBindingTabButton.gameObject.name = "KeyBindingButton";
         keyBindingTabButton.transform.SetParent(tabs[0].transform.parent);
@@ -333,9 +346,9 @@ public static class StartOptionMenuPatch
 
         float y = tabs[0].transform.localPosition.y, z = tabs[0].transform.localPosition.z;
         if (tabs.Count == 4)
-            for (int i = 0; i < 3; i++) tabs[i].transform.localPosition = new Vector3(1.7f * (float)(i - 1), y, z);
+            for (var i = 0; i < 3; i++) tabs[i].transform.localPosition = new Vector3(1.7f * (float)(i - 1), y, z);
         else if (tabs.Count == 5)
-            for (int i = 0; i < 4; i++) tabs[i].transform.localPosition = new Vector3(1.62f * ((float)i - 1.5f), y, z);
+            for (var i = 0; i < 4; i++) tabs[i].transform.localPosition = new Vector3(1.62f * ((float)i - 1.5f), y, z);
 
         __instance.Tabs = new Il2CppReferenceArray<TabGroup>(tabs.ToArray());
 

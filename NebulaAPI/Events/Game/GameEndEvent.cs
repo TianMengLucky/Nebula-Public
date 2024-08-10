@@ -10,7 +10,7 @@ public class GameEndEvent : AbstractGameEvent
 {
     public Virial.Game.EndState EndState { get; private init; }
     internal GameEndEvent(Virial.Game.Game game, Virial.Game.EndState endState) : base(game) {
-        this.EndState = endState;
+        EndState = endState;
     }
 }
 

@@ -59,10 +59,10 @@ internal class AssignmentPreview
     private record AssignmentPhaseArgument(int Consumed, int RoleCount, int Propagation, AssignmentPhase[] Followers);
     public static AssignmentFlag[] CalcPreview(int players)
     {
-        AssignmentFlag[] result = new AssignmentFlag[players];
-        for (int i = 0; i < players; i++) result[i] = 0;
+        var result = new AssignmentFlag[players];
+        for (var i = 0; i < players; i++) result[i] = 0;
 
-        int impostors = GameOptionsManager.Instance.CurrentGameOptions.GetAdjustedNumImpostors(players);
+        var impostors = GameOptionsManager.Instance.CurrentGameOptions.GetAdjustedNumImpostors(players);
         int modImpostors = GeneralConfigurations.AssignmentImpostorOption;
         if (modImpostors < 0) modImpostors = 99;
         int modNeutral = GeneralConfigurations.AssignmentNeutralOption;
@@ -75,7 +75,7 @@ internal class AssignmentPreview
         ulong PickUpExOptionsIndecies(DefinedRole role)
         {
             ulong bit = 0;
-            for (int i = 0; i < exOptions.Length; i++) if (exOptions[i].Contains(role)) bit |= 1u << i;
+            for (var i = 0; i < exOptions.Length; i++) if (exOptions[i].Contains(role)) bit |= 1u << i;
             return bit;
         }
         AssignmentPhase GetPhase(RoleCategory category, bool get100) => new(
@@ -92,7 +92,7 @@ internal class AssignmentPreview
             (
             _ => Math.Min(impostors, modImpostors),
             arg => {
-                for(int i =0;i< arg.RoleCount;i++) result[arg.Consumed + i] |= AssignmentFlag.ModImpostor;
+                for(var i =0;i< arg.RoleCount;i++) result[arg.Consumed + i] |= AssignmentFlag.ModImpostor;
                 return (arg.Consumed + arg.RoleCount, arg.RoleCount);
             }
             ),
@@ -100,10 +100,10 @@ internal class AssignmentPreview
             (
             prop => Math.Min(impostors - prop, modImpostors - prop),
             arg => {
-                for (int i = 0; i < arg.RoleCount; i++) result[arg.Consumed + i] |= AssignmentFlag.ModImpostor;
+                for (var i = 0; i < arg.RoleCount; i++) result[arg.Consumed + i] |= AssignmentFlag.ModImpostor;
 
-                int vanillaImpostors = impostors - arg.Propagation - arg.RoleCount;
-                for(int i = 0; i < vanillaImpostors; i++) result[arg.Consumed + arg.RoleCount + i] |= AssignmentFlag.VanillaImpostor;
+                var vanillaImpostors = impostors - arg.Propagation - arg.RoleCount;
+                for(var i = 0; i < vanillaImpostors; i++) result[arg.Consumed + arg.RoleCount + i] |= AssignmentFlag.VanillaImpostor;
                 Debug.Log("Impostors: " + impostors);
                 Debug.Log("Prop: " + arg.Propagation);
                 Debug.Log("RoleCount: " + arg.RoleCount);
@@ -115,7 +115,7 @@ internal class AssignmentPreview
             (
             _ => modNeutral,
             arg => {
-                for(int i =0;i<arg.RoleCount;i++) result[arg.Consumed + i] |= AssignmentFlag.ModNeutral;
+                for(var i =0;i<arg.RoleCount;i++) result[arg.Consumed + i] |= AssignmentFlag.ModNeutral;
                 return (arg.Consumed + arg.RoleCount, arg.RoleCount);
             }
             ),
@@ -123,7 +123,7 @@ internal class AssignmentPreview
             (
             prop =>modNeutral - prop,
             arg => {
-                for (int i = 0; i < arg.RoleCount; i++) result[arg.Consumed + i] |= AssignmentFlag.ModNeutral;
+                for (var i = 0; i < arg.RoleCount; i++) result[arg.Consumed + i] |= AssignmentFlag.ModNeutral;
                 return (arg.Consumed + arg.RoleCount, 0);
             }
             ),
@@ -131,7 +131,7 @@ internal class AssignmentPreview
             (
             _ => modCrewmates,
             arg => {
-                for(int i =0;i<arg.RoleCount;i++) result[arg.Consumed + i] |= AssignmentFlag.ModCrewmate;
+                for(var i =0;i<arg.RoleCount;i++) result[arg.Consumed + i] |= AssignmentFlag.ModCrewmate;
                 return (arg.Consumed + arg.RoleCount, arg.RoleCount);
             }
             ),
@@ -139,8 +139,8 @@ internal class AssignmentPreview
             (
             prop => modCrewmates - prop,
             arg => {
-                for (int i = 0; i < arg.RoleCount; i++) result[arg.Consumed + i] |= AssignmentFlag.ModCrewmate;
-                for(int i = arg.Consumed + arg.RoleCount; i < players;i++) result[i] |= AssignmentFlag.VanillaCrewmate;
+                for (var i = 0; i < arg.RoleCount; i++) result[arg.Consumed + i] |= AssignmentFlag.ModCrewmate;
+                for(var i = arg.Consumed + arg.RoleCount; i < players;i++) result[i] |= AssignmentFlag.VanillaCrewmate;
                 return (players, 0);
             }
             )

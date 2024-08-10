@@ -13,6 +13,6 @@ public class PlayerCheckWinEvent : AbstractPlayerEvent
 
     internal PlayerCheckWinEvent(Virial.Game.Player player, Virial.Game.GameEnd gameEnd) : base(player)
     {
-        this.GameEnd = gameEnd;
+        GameEnd = gameEnd;
     }
 }

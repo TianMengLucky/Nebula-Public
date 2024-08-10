@@ -86,8 +86,8 @@ public class Mayor : DefinedRoleTemplate, HasCitation, DefinedRole
                 countText.text = "";
 
                 myVote = Mathf.Min(myVote + VoteAssignment, VotesStock);
-                int min = Mathf.Min(MinVote, myVote);
-                int max = Mathf.Min(MaxVote, myVote);
+                var min = Mathf.Min(MinVote, myVote);
+                var max = Mathf.Min(MaxVote, myVote);
                 currentVote = Mathf.Clamp(currentVote, min, max);
                 countText.text = currentVote.ToString() + "/" + myVote;
 

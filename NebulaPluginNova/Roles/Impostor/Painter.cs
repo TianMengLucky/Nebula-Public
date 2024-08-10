@@ -3,6 +3,7 @@ using Virial.Assignable;
 using Virial.Configuration;
 using Virial.Game;
 using Virial.Helpers;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Roles.Impostor;
 
@@ -48,12 +49,12 @@ public class Painter : DefinedRoleTemplate, DefinedRole
 
                 sampleButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability, "illusioner.sample");
                 sampleButton.SetSprite(sampleButtonSprite.GetSprite());
-                sampleButton.Availability = (button) => MyPlayer.CanMove;
-                sampleButton.Visibility = (button) => !MyPlayer.IsDead;
-                sampleButton.OnClick = (button) => {
+                sampleButton.Availability = button => MyPlayer.CanMove;
+                sampleButton.Visibility = button => !MyPlayer.IsDead;
+                sampleButton.OnClick = button => {
                     sample = sampleTracker.CurrentTarget?.GetOutfit(75) ?? null;
 
-                    if (sampleIcon != null) GameObject.Destroy(sampleIcon.gameObject);
+                    if (sampleIcon != null) Object.Destroy(sampleIcon.gameObject);
                     if (sample == null) return;
                     sampleIcon = AmongUsUtil.GetPlayerIcon(sample!.outfit, paintButton!.VanillaButton.transform, new Vector3(-0.4f, 0.35f, -0.5f), new(0.3f, 0.3f)).SetAlpha(0.5f);
                 };
@@ -62,9 +63,9 @@ public class Painter : DefinedRoleTemplate, DefinedRole
                 
                 paintButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.SecondaryAbility, "illusioner.paint");
                 paintButton.SetSprite(PaintButtonSprite.GetSprite());
-                paintButton.Availability = (button) => sampleTracker.CurrentTarget != null && MyPlayer.CanMove;
-                paintButton.Visibility = (button) => !MyPlayer.IsDead;
-                paintButton.OnClick = (button) => {
+                paintButton.Availability = button => sampleTracker.CurrentTarget != null && MyPlayer.CanMove;
+                paintButton.Visibility = button => !MyPlayer.IsDead;
+                paintButton.OnClick = button => {
                     var outfit = sample ?? MyPlayer.GetOutfit(75);
 
                     acTokenCommon ??= new("painter.common1");
@@ -78,11 +79,11 @@ public class Painter : DefinedRoleTemplate, DefinedRole
                         invoker.InvokeSingle();
                     button.StartCoolDown();
                 };
-                paintButton.OnMeeting = (button) =>
+                paintButton.OnMeeting = button =>
                 {
                     if (LoseSampleOnMeetingOption)
                     {
-                        if (sampleIcon != null) GameObject.Destroy(sampleIcon.gameObject);
+                        if (sampleIcon != null) Object.Destroy(sampleIcon.gameObject);
                         sampleIcon = null;
                         sample = null;
                     }

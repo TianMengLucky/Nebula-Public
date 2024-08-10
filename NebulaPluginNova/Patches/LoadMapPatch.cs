@@ -13,7 +13,7 @@ public static class LoadShipInstancePatch
             if (!reference.AssetGUID.Equals(__instance.AssetGUID)) continue;
 
             //ShipStatusの生成時
-            __result = UnityEngine.AddressableAssets.Addressables.InstantiateAsync(__instance.RuntimeKey, null, false, false);
+            __result = Addressables.InstantiateAsync(__instance.RuntimeKey, null, false, false);
             NebulaGameManager.Instance?.RuntimeAsset.SetHandle(__result);
             __result.Acquire();
             return false;

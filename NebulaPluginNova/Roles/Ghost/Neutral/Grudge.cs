@@ -11,6 +11,7 @@ using Virial.Events.Game;
 using Steamworks;
 using Virial.Events.Game.Meeting;
 using Virial.Events.Player;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Roles.Ghost.Neutral;
 
@@ -73,7 +74,7 @@ public class Grudge : DefinedGhostRoleTemplate, DefinedGhostRole
 
         void IGameOperator.OnReleased()
         {
-            if (player) GameObject.Destroy(player.gameObject);
+            if (player) Object.Destroy(player.gameObject);
         }
     }
 
@@ -165,7 +166,7 @@ public class Grudge : DefinedGhostRoleTemplate, DefinedGhostRole
         [Local]
         void UpdateTaskText(PlayerTaskTextLocalEvent ev)
         {
-            string text = Language.Translate("role.grudge.taskText");
+            var text = Language.Translate("role.grudge.taskText");
             if (canWin)
             {
                 text = text.Color(Color.green);
@@ -173,7 +174,7 @@ public class Grudge : DefinedGhostRoleTemplate, DefinedGhostRole
             else
             {
                 text += string.Format(" {0:0.#}", progress) + "s/" + TotalStandingTimeToWin.GetValue() + "s";
-                Color color = progress > 0f ? Color.yellow : Color.white;
+                var color = progress > 0f ? Color.yellow : Color.white;
                 if (standingTime < 0.8f) color = color.RGBMultiplied(0.5f);
                 text = text.Color(color);
             }
@@ -193,7 +194,7 @@ public class Grudge : DefinedGhostRoleTemplate, DefinedGhostRole
         RemoteProcess<(GamePlayer player, Vector3 pos, bool flipX)> RpcShowIllusion = new("ShowGrudgeIllusion",
             (message, _) =>
             {
-                var grudge = message.player.Unbox().GhostRole as Grudge.Instance;
+                var grudge = message.player.Unbox().GhostRole as Instance;
                 if (grudge != null)
                 {
                     if(grudge.currentIllusion != null) grudge.currentIllusion.IsActive = false;
@@ -205,7 +206,7 @@ public class Grudge : DefinedGhostRoleTemplate, DefinedGhostRole
         RemoteProcess<GamePlayer> RpcDisappearIllusion = new("DisappearIllusion",
             (message, _) =>
             {
-                var grudge = message.Unbox().GhostRole as Grudge.Instance;
+                var grudge = message.Unbox().GhostRole as Instance;
                 if (grudge != null && grudge.currentIllusion != null)
                 {
                     grudge.currentIllusion.IsActive = false;
@@ -216,7 +217,7 @@ public class Grudge : DefinedGhostRoleTemplate, DefinedGhostRole
         RemoteProcess<GamePlayer> RpcShareCanWin = new("ShareGrudgeCanWin",
             (message, _) =>
             {
-                var grudge = message.Unbox().GhostRole as Grudge.Instance;
+                var grudge = message.Unbox().GhostRole as Instance;
                 if (grudge != null) grudge.canWin = true;
             });
     }

@@ -1,16 +1,18 @@
-﻿using Nebula.Behaviour;
+﻿using BepInEx;
+using Nebula.Behaviour;
 using Virial.Game;
 using Nebula.Roles.Modifier;
 using Virial;
 using Virial.Events.Game;
 using Virial.Runtime;
 using Nebula.Game.Statistics;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Game;
 
-public class CustomEndCondition : Virial.Game.GameEnd
+public class CustomEndCondition : GameEnd
 {
-    static private HashSet<CustomEndCondition> allEndConditions= new();
+    static private HashSet<CustomEndCondition> allEndConditions= [];
     static public CustomEndCondition? GetEndCondition(byte id) => allEndConditions.FirstOrDefault(end => end.Id == id);
     
     public byte Id { get; init; }
@@ -33,7 +35,7 @@ public class CustomEndCondition : Virial.Game.GameEnd
 
 public class CustomExtraWin : ExtraWin
 {
-    static private HashSet<CustomExtraWin> allExtraWin = new();
+    static private HashSet<CustomExtraWin> allExtraWin = [];
     static public CustomExtraWin? GetEndCondition(byte id) => allExtraWin.FirstOrDefault(end => end.Id == id);
     static public IEnumerable<CustomExtraWin> AllExtraWins => allExtraWin;
     public byte Id { get; private set; }
@@ -63,25 +65,25 @@ public class NebulaGameEnd
     static public CustomEndCondition JesterWin = new(25, "jester", Roles.Neutral.Jester.MyRole.UnityColor, 32);
     static public CustomEndCondition JackalWin = new(26, "jackal", Roles.Neutral.Jackal.MyRole.UnityColor, 18);
     static public CustomEndCondition ArsonistWin = new(27, "arsonist", Roles.Neutral.Arsonist.MyRole.UnityColor, 32);
-    static public CustomEndCondition LoversWin = new(28, "lover", Roles.Modifier.Lover.MyRole.UnityColor, 18);
+    static public CustomEndCondition LoversWin = new(28, "lover", Lover.MyRole.UnityColor, 18);
     static public CustomEndCondition PaparazzoWin = new(29, "paparazzo", Roles.Neutral.Paparazzo.MyRole.UnityColor, 31);
     static public CustomEndCondition AvengerWin = new(30, "avenger", Roles.Neutral.Avenger.MyRole.UnityColor, 64);
     static public CustomEndCondition DancerWin = new(31, "dancer", Roles.Neutral.Dancer.MyRole.UnityColor, 32);
     static public CustomEndCondition NoGame = new(128, "nogame", InvalidColor, 128);
 
-    static public CustomExtraWin ExtraLoversWin = new(0, "lover", Roles.Modifier.Lover.MyRole.UnityColor);
-    static public CustomExtraWin ExtraObsessionalWin = new(1, "obsessional", Roles.Modifier.Obsessional.MyRole.UnityColor);
+    static public CustomExtraWin ExtraLoversWin = new(0, "lover", Lover.MyRole.UnityColor);
+    static public CustomExtraWin ExtraObsessionalWin = new(1, "obsessional", Obsessional.MyRole.UnityColor);
     static public CustomExtraWin ExtraGrudgeWin = new(2, "grudge", Roles.Ghost.Neutral.Grudge.MyRole.UnityColor);
 
     static void Preprocess(NebulaPreprocessor preprocessor)
     {
-        Virial.Game.NebulaGameEnds.CrewmateGameEnd = CrewmateWin;
-        Virial.Game.NebulaGameEnds.ImpostorGameEnd = ImpostorWin;
-        Virial.Game.NebulaGameEnds.VultureGameEnd = VultureWin;
-        Virial.Game.NebulaGameEnds.JesterGameEnd = JesterWin;
-        Virial.Game.NebulaGameEnds.JackalGameEnd = JackalWin;
-        Virial.Game.NebulaGameEnds.ArsonistGameEnd = ArsonistWin;
-        Virial.Game.NebulaGameEnds.PaparazzoGameEnd = PaparazzoWin;
+        NebulaGameEnds.CrewmateGameEnd = CrewmateWin;
+        NebulaGameEnds.ImpostorGameEnd = ImpostorWin;
+        NebulaGameEnds.VultureGameEnd = VultureWin;
+        NebulaGameEnds.JesterGameEnd = JesterWin;
+        NebulaGameEnds.JackalGameEnd = JackalWin;
+        NebulaGameEnds.ArsonistGameEnd = ArsonistWin;
+        NebulaGameEnds.PaparazzoGameEnd = PaparazzoWin;
     }
 
     private readonly static RemoteProcess<(byte conditionId, int winnersMask,ulong extraWinMask, GameEndReason endReason)> RpcEndGame = new(
@@ -90,7 +92,7 @@ public class NebulaGameEnd
        {
            if (NebulaGameManager.Instance != null)
            {
-               var end = CustomEndCondition.GetEndCondition(message.conditionId) ?? NebulaGameEnd.NoGame;
+               var end = CustomEndCondition.GetEndCondition(message.conditionId) ?? NoGame;
                var winners = BitMasks.AsPlayer((uint)message.winnersMask);
                EditableBitMask<ExtraWin> extraWin = new HashSetMask<ExtraWin>();
                foreach(var exW in CustomExtraWin.AllExtraWins) if((exW.ExtraWinMask & message.extraWinMask) != 0) extraWin.Add(exW);
@@ -103,17 +105,17 @@ public class NebulaGameEnd
        }
        );
 
-    public static bool RpcSendGameEnd(Virial.Game.GameEnd winCondition, int winnersMask, ulong extraWinMask, GameEndReason endReason)
+    public static bool RpcSendGameEnd(GameEnd winCondition, int winnersMask, ulong extraWinMask, GameEndReason endReason)
     {
         if (NebulaGameManager.Instance?.EndState != null) return false;
         RpcEndGame.Invoke((winCondition.Id, winnersMask, extraWinMask, endReason));
         return true;
     }
 
-    public static bool RpcSendGameEnd(Virial.Game.GameEnd winCondition,HashSet<byte> winners, ulong extraWinMask, GameEndReason endReason)
+    public static bool RpcSendGameEnd(GameEnd winCondition,HashSet<byte> winners, ulong extraWinMask, GameEndReason endReason)
     {
-        int winnersMask = 0;
-        foreach (byte w in winners) winnersMask |= ((int)1 << w);
+        var winnersMask = 0;
+        foreach (var w in winners) winnersMask |= ((int)1 << w);
         return RpcSendGameEnd(winCondition, winnersMask, extraWinMask, endReason);
     }
 }
@@ -131,13 +133,13 @@ public class LastGameHistory
     {
         var gameObject = UnityHelper.CreateObject("History", null, Vector3.zero, 30);
 
-        float height = LastWidget!.Generate(gameObject, new Vector2(0,0),new Vector2(10f,10f),out var width);
+        var height = LastWidget!.Generate(gameObject, new Vector2(0,0),new Vector2(10f,10f),out var width);
 
         gameObject.ForEachAllChildren(obj => obj.layer = 30);
 
         var camObject = UnityHelper.CreateObject("Cam", null, new Vector3((width.min + width.max) * 0.5f, -height * 0.5f, -10f));
 
-        Camera cam = camObject.AddComponent<Camera>();
+        var cam = camObject.AddComponent<Camera>();
         cam.orthographic = true;
         cam.orthographicSize = (height + 0.35f) * 0.5f;
         cam.transform.localScale = Vector3.one;
@@ -146,22 +148,22 @@ public class LastGameHistory
         cam.cullingMask = 1 << 30;
         cam.enabled = true;
 
-        RenderTexture rt = new RenderTexture((int)((width.max - width.min) * 100f), (int)(height * 100f), 16);
+        var rt = new RenderTexture((int)((width.max - width.min) * 100f), (int)(height * 100f), 16);
         rt.Create();
 
         cam.targetTexture = rt;
         cam.Render();
 
         RenderTexture.active = cam.targetTexture;
-        Texture2D texture2D = new Texture2D(rt.width, rt.height, TextureFormat.ARGB32, false, false);
+        var texture2D = new Texture2D(rt.width, rt.height, TextureFormat.ARGB32, false, false);
         texture2D.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
         texture2D.Apply();
 
         RenderTexture.active = null;
         cam.targetTexture = null;
-        GameObject.Destroy(rt);
-        GameObject.Destroy(gameObject);
-        GameObject.Destroy(camObject);
+        Object.Destroy(rt);
+        Object.Destroy(gameObject);
+        Object.Destroy(camObject);
 
         return texture2D;
     }
@@ -197,31 +199,32 @@ public class EndGameManagerSetUpPatch
     static SpriteLoader InfoButtonSprite = SpriteLoader.FromResource("Nebula.Resources.InformationButton.png", 100f);
     static SpriteLoader DiscordButtonSprite = SpriteLoader.FromResource("Nebula.Resources.DiscordIcon.png", 100f);
 
+    // ReSharper disable Unity.PerformanceAnalysis
     private static IMetaWidgetOld GetRoleContent(TMPro.TMP_FontAsset font)
     {
         MetaWidgetOld widget = new();
-        string text = "";
+        var text = "";
 
         NebulaGameManager.Instance?.ChangeToSpectator();
 
         foreach (var p in NebulaGameManager.Instance!.AllPlayerInfo())
         {
             //Name Text
-            string nameText = p.Name.Color(NebulaGameManager.Instance.EndState!.Winners.Test(p) ? Color.yellow : Color.white);
+            var nameText = p.Name.Color(NebulaGameManager.Instance.EndState!.Winners.Test(p) ? Color.yellow : Color.white);
             if (p.TryGetModifier<ExtraMission.Instance>(out var mission)) nameText += (" <size=60%>(" + (mission.target?.Name ?? "ERROR") + ")</size>").Color(ExtraMission.MyRole.UnityColor);
 
-            string stateText = p.PlayerState.Text;
+            var stateText = p.PlayerState.Text;
             if (p.IsDead && p.MyKiller != null) stateText += "<color=#FF6666><size=75%> by " + (p.MyKiller?.Name ?? "ERROR") + "</size></color>";
-            string taskText = (!p.IsDisconnected && p.Tasks.Quota > 0) ? $" ({p.Tasks.Unbox().ToString(true)})".Color(p.Tasks.IsCrewmateTask ? PlayerModInfo.CrewTaskColor : PlayerModInfo.FakeTaskColor) : "";
+            var taskText = (!p.IsDisconnected && p.Tasks.Quota > 0) ? $" ({p.Tasks.Unbox().ToString(true)})".Color(p.Tasks.IsCrewmateTask ? PlayerModInfo.CrewTaskColor : PlayerModInfo.FakeTaskColor) : "";
 
             //Role Text
-            string roleText = "";
+            var roleText = "";
             var entries = NebulaGameManager.Instance.RoleHistory.EachMoment(history => history.PlayerId == p.PlayerId,
                 (role, ghostRole, modifiers) => (RoleHistoryHelper.ConvertToRoleName(role, ghostRole, modifiers, true), RoleHistoryHelper.ConvertToRoleName(role, ghostRole, modifiers, false))).ToArray();
 
             if (entries.Length < 8)
             {
-                for (int i = 0; i < entries.Length - 1; i++)
+                for (var i = 0; i < entries.Length - 1; i++)
                 {
                     if (roleText.Length > 0) roleText += " → ";
                     roleText += entries[i].Item1;
@@ -260,12 +263,12 @@ public class EndGameManagerSetUpPatch
         */
 
         //元の勝利チームを削除する
-        foreach (PoolablePlayer pb in __instance.transform.GetComponentsInChildren<PoolablePlayer>()) UnityEngine.Object.Destroy(pb.gameObject);
+        foreach (var pb in __instance.transform.GetComponentsInChildren<PoolablePlayer>()) UnityEngine.Object.Destroy(pb.gameObject);
 
 
         //勝利メンバーを載せる
-        List<byte> winners = new List<byte>();
-        bool amWin = false;
+        List<byte> winners = [];
+        var amWin = false;
         foreach(var p in NebulaGameManager.Instance.AllPlayerInfo())
         {
             if (endState.Winners.Test(p))
@@ -282,18 +285,18 @@ public class EndGameManagerSetUpPatch
             }
         }
 
-        int num = Mathf.CeilToInt(7.5f);
-        for (int i = 0; i < winners.Count; i++)
+        var num = Mathf.CeilToInt(7.5f);
+        for (var i = 0; i < winners.Count; i++)
         {
-            int num2 = (i % 2 == 0) ? -1 : 1;
-            int num3 = (i + 1) / 2;
-            float num4 = (float)num3 / (float)num;
-            float num5 = Mathf.Lerp(1f, 0.75f, num4);
-            float num6 = (float)((i == 0) ? -8 : -1);
-            PoolablePlayer poolablePlayer = UnityEngine.Object.Instantiate<PoolablePlayer>(__instance.PlayerPrefab, __instance.transform);
+            var num2 = (i % 2 == 0) ? -1 : 1;
+            var num3 = (i + 1) / 2;
+            var num4 = (float)num3 / (float)num;
+            var num5 = Mathf.Lerp(1f, 0.75f, num4);
+            var num6 = (float)((i == 0) ? -8 : -1);
+            var poolablePlayer = UnityEngine.Object.Instantiate<PoolablePlayer>(__instance.PlayerPrefab, __instance.transform);
             poolablePlayer.transform.localPosition = new Vector3(1f * (float)num2 * (float)num3 * num5, FloatRange.SpreadToEdges(-1.125f, 0f, num3, num), num6 + (float)num3 * 0.01f) * 0.9f;
-            float num7 = Mathf.Lerp(1f, 0.65f, num4) * 0.9f;
-            Vector3 vector = new Vector3(num7, num7, 1f);
+            var num7 = Mathf.Lerp(1f, 0.65f, num4) * 0.9f;
+            var vector = new Vector3(num7, num7, 1f);
             poolablePlayer.transform.localScale = vector;
 
             var player = NebulaGameManager.Instance.GetPlayer(winners[i])!;
@@ -316,13 +319,13 @@ public class EndGameManagerSetUpPatch
         }
 
         // テキストを追加する
-        GameObject bonusText = UnityEngine.Object.Instantiate(__instance.WinText.gameObject);
+        var bonusText = UnityEngine.Object.Instantiate(__instance.WinText.gameObject);
         bonusText.transform.SetParent(null);
         bonusText.transform.position = new Vector3(__instance.WinText.transform.position.x, __instance.WinText.transform.position.y - 0.5f, __instance.WinText.transform.position.z);
         bonusText.transform.localScale = new Vector3(0.7f, 0.7f, 1f);
-        TMPro.TMP_Text textRenderer = bonusText.GetComponent<TMPro.TMP_Text>();
+        var textRenderer = bonusText.GetComponent<TMPro.TMP_Text>();
 
-        string extraText = "";
+        var extraText = "";
         var wins = NebulaGameManager.Instance.EndState!.ExtraWins;
         CustomExtraWin.AllExtraWins.Where(e => wins.Test(e)).Do(e => extraText += e.DisplayText);
         textRenderer.text = endCondition?.Unbox().DisplayText.Replace("%EXTRA%", extraText) ?? "Error";
@@ -334,6 +337,13 @@ public class EndGameManagerSetUpPatch
         __instance.WinText.color = amWin ? new Color(0f, 0.549f, 1f, 1f) : Color.red;
 
         LastGameHistory.SetHistory(__instance.WinText.font, GetRoleContent(__instance.WinText.font), textRenderer.text.Color(endCondition?.Unbox().Color ?? Color.white));
+        if (ClientOption.AllOptions[ClientOption.ClientOptionType.GameEndAutoSave].Value == 1)
+        {
+            var dir = Path.Combine(Paths.GameRootPath,"AutoSaves");
+            if (!Directory.Exists(dir))
+                Directory.CreateDirectory(dir);    
+            LastGameHistory.SaveResult(Path.Combine(dir, $"AutoSave_{NebulaManager.GetCurrentTimeString()}.png"));
+        }
 
         GameStatisticsViewer? viewer;
 

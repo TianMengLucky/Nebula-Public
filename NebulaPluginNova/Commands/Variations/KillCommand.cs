@@ -20,9 +20,9 @@ public class KillCommand : ICommand
             return new CoImmediateErrorTask<ICommandToken>(env.Logger, label + " <player> [options...]");
 
         IEnumerable<GamePlayer> players = null!;
-        bool leftDeadBody = !MeetingHud.Instance;
-        bool evenIfDead = false;
-        bool blink = false;
+        var leftDeadBody = !MeetingHud.Instance;
+        var evenIfDead = false;
+        var blink = false;
         GamePlayer? killer = null;
 
         return arguments[0]
@@ -38,10 +38,10 @@ public class KillCommand : ICommand
                     new CommandClause("by", 1, args => args[0].AsEnumerable(env).As<GamePlayer>(env).Do(p => killer = p).Discard<bool, ICommandToken>())
                     ], env)
                     .Action(_ => {
-                        int count = 0;
+                        var count = 0;
                         using (RPCRouter.CreateSection("killCommand"))
                         {
-                            KillParameter param = KillParameter.WithOverlay | KillParameter.WithAssigningGhostRole;
+                            var param = KillParameter.WithOverlay | KillParameter.WithAssigningGhostRole;
                             if (leftDeadBody) param |= KillParameter.WithDeadBody;
                             if (blink) param |= KillParameter.WithBlink;
                             if (MeetingHud.Instance) param |= KillParameter.WithKillSEWidely;

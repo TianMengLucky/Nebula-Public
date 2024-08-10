@@ -44,14 +44,14 @@ public class Stirrer : DefinedRoleTemplate, DefinedRole
         {
             if (AmOwner)
             {
-                var sampleTracker = Bind(ObjectTrackers.ForPlayer(null, MyPlayer, (p) => ObjectTrackers.ImpostorKillPredicate(p)));
+                var sampleTracker = Bind(ObjectTrackers.ForPlayer(null, MyPlayer, p => ObjectTrackers.ImpostorKillPredicate(p)));
 
                 stirButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability,"stirrer.stir");
                 stirButton.SetSprite(StirButtonSprite.GetSprite());
-                stirButton.Availability = (button) => sampleTracker.CurrentTarget != null && MyPlayer.CanMove && (!sabotageChargeMap.TryGetValue(sampleTracker.CurrentTarget.PlayerId,out int charge) || charge < SabotageMaxChargeOption);
-                stirButton.Visibility = (button) => !MyPlayer.IsDead;
-                stirButton.OnClick = (button) => {
-                    int charge = 0;
+                stirButton.Availability = button => sampleTracker.CurrentTarget != null && MyPlayer.CanMove && (!sabotageChargeMap.TryGetValue(sampleTracker.CurrentTarget.PlayerId,out var charge) || charge < SabotageMaxChargeOption);
+                stirButton.Visibility = button => !MyPlayer.IsDead;
+                stirButton.OnClick = button => {
+                    var charge = 0;
                     if (sabotageChargeMap.TryGetValue(sampleTracker.CurrentTarget!.PlayerId, out var v)) charge = v;
                     sabotageChargeMap[sampleTracker.CurrentTarget!.PlayerId] = Mathf.Min(SabotageMaxChargeOption, charge + SabotageChargeOption);
 
@@ -62,10 +62,10 @@ public class Stirrer : DefinedRoleTemplate, DefinedRole
 
                 sabotageButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.SecondaryAbility,"stirrer.fakeSabo");
                 sabotageButton.SetSprite(SabotageButtonSprite.GetSprite());
-                sabotageButton.Availability = (button) => MyPlayer.CanMove && sabotageChargeMap.Any(entry => entry.Value > 0) && PlayerControl.LocalPlayer.myTasks.Find((Il2CppSystem.Predicate<PlayerTask>)(task => task.TryCast<SabotageTask>() != null)) == null;
-                sabotageButton.Visibility = (button) => !MyPlayer.IsDead;
-                sabotageButton.OnClick = (button) => {
-                    int count = 0;
+                sabotageButton.Availability = button => MyPlayer.CanMove && sabotageChargeMap.Any(entry => entry.Value > 0) && PlayerControl.LocalPlayer.myTasks.Find((Il2CppSystem.Predicate<PlayerTask>)(task => task.TryCast<SabotageTask>() != null)) == null;
+                sabotageButton.Visibility = button => !MyPlayer.IsDead;
+                sabotageButton.OnClick = button => {
+                    var count = 0;
                     foreach (var entry in sabotageChargeMap)
                     {
                         if (entry.Value > 0)
@@ -90,7 +90,7 @@ public class Stirrer : DefinedRoleTemplate, DefinedRole
                 sabotageButton.CoolDownTimer = Bind(new Timer(Mathf.Max(SabotageIntervalOption, SabotageCoolDownOption)).SetAsAbilityCoolDown().Start(SabotageCoolDownOption));
                 sabotageButton.SetLabel("fakeSabotage");
                 sabotageButton.UseCoolDownSupport = false;
-                sabotageButton.OnStartTaskPhase = (button) => button.CoolDownTimer?.Start(SabotageCoolDownOption);
+                sabotageButton.OnStartTaskPhase = button => button.CoolDownTimer?.Start(SabotageCoolDownOption);
             }
 
             GameOperatorManager.Instance?.Register<PlayerDieEvent>(ev =>
@@ -102,7 +102,7 @@ public class Stirrer : DefinedRoleTemplate, DefinedRole
         [Local]
         void DecorateOtherPlayerName(PlayerDecorateNameEvent ev)
         {
-            if(sabotageChargeMap.TryGetValue(ev.Player.PlayerId,out int val))
+            if(sabotageChargeMap.TryGetValue(ev.Player.PlayerId,out var val))
             {
                 if (ev.Player.IsImpostor) return;
                 if (val <= 0) return;

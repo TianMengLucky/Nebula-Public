@@ -25,7 +25,7 @@ class SurveillanceMinigameUpdatePatch
     {
         if (ConsoleTimer.IsOpenedByAvailableWay()) return true;
 
-        for (int j = 0; j < __instance.ViewPorts.Length; j++)
+        for (var j = 0; j < __instance.ViewPorts.Length; j++)
         {
             __instance.ViewPorts[j].sharedMaterial = __instance.StaticMaterial;
             __instance.SabText[j].gameObject.SetActive(true);
@@ -76,7 +76,7 @@ class PlanetSurveillanceMinigameNextCameraPatch
         __instance.Dots[__instance.currentCamera].sprite = __instance.DotDisabled;
         __instance.currentCamera = (__instance.currentCamera + direction).Wrap(__instance.survCameras.Length);
         __instance.Dots[__instance.currentCamera].sprite = __instance.DotEnabled;
-        SurvCamera survCamera = __instance.survCameras[__instance.currentCamera];
+        var survCamera = __instance.survCameras[__instance.currentCamera];
         __instance.Camera.transform.position = survCamera.transform.position + __instance.survCameras[__instance.currentCamera].Offset;
         __instance.LocationName.text = ((survCamera.NewName > StringNames.None) ? DestroyableSingleton<TranslationController>.Instance.GetString(survCamera.NewName) : survCamera.CamName);
         

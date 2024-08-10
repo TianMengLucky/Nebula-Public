@@ -56,7 +56,7 @@ public class Agent : DefinedRoleTemplate, DefinedRole
                 //生存している、ノルマ未達成かつ非LoversのAgentが対象
                 if (!MyPlayer.IsDead && !MyPlayer.TryGetModifier<Lover.Instance>(out _) && !MyPlayer.Tasks.IsAchievedQuota)
                 {
-                    int tasks = AmongUsUtil.NumOfAllTasks;
+                    var tasks = AmongUsUtil.NumOfAllTasks;
                     if (ev.Player.AmOwner) return;
                     //自分以外の通常以上のノルマを持つ生存者
                     if (!ev.Player.IsDead && ev.Player.Tasks.IsCrewmateTask && ev.Player.Tasks.Quota >= tasks && ev.Player.Tasks.IsAchievedQuota)
@@ -95,7 +95,7 @@ public class Agent : DefinedRoleTemplate, DefinedRole
         void OnSetTaskLocal(PlayerTasksTrySetLocalEvent ev)
         {
             int extempts = NumOfExemptedTasksOption;
-            for (int i = 0; i < extempts; i++) ev.Tasks.RemoveAt(System.Random.Shared.Next(ev.Tasks.Count));
+            for (var i = 0; i < extempts; i++) ev.Tasks.RemoveAt(System.Random.Shared.Next(ev.Tasks.Count));
         }
 
         void RuntimeAssignable.OnActivated()
@@ -108,9 +108,9 @@ public class Agent : DefinedRoleTemplate, DefinedRole
                 {
                     var taskButton = Bind(new Modules.ScriptComponents.ModAbilityButton()).KeyBind(NebulaInput.GetInput(Virial.Compat.VirtualKeyInput.Ability));
                     taskButton.SetSprite(buttonSprite.GetSprite());
-                    taskButton.Availability = (button) => MyPlayer.CanMove && MyPlayer.Tasks.IsCompletedCurrentTasks;
-                    taskButton.Visibility = (button) => !MyPlayer.IsDead;
-                    taskButton.OnClick = (button) =>
+                    taskButton.Availability = button => MyPlayer.CanMove && MyPlayer.Tasks.IsCompletedCurrentTasks;
+                    taskButton.Visibility = button => !MyPlayer.IsDead;
+                    taskButton.OnClick = button =>
                     {
                         MyPlayer.Tasks.Unbox().GainExtraTasksAndRecompute(NumOfExtraTasksOption, 0, 0, false);
                     };

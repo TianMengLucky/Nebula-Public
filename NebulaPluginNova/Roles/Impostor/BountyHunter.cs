@@ -111,12 +111,12 @@ public class BountyHunter : DefinedRoleTemplate, HasCitation, DefinedRole
                 bountyTimer = Bind(new Timer(ChangeBountyIntervalOption)).Start();
                 arrowTimer = Bind(new Timer(ArrowUpdateIntervalOption)).Start();
 
-                var killTracker = Bind(ObjectTrackers.ForPlayer(null, MyPlayer, (p) => ObjectTrackers.ImpostorKillPredicate(p), null, Impostor.CanKillHidingPlayerOption));
+                var killTracker = Bind(ObjectTrackers.ForPlayer(null, MyPlayer, p => ObjectTrackers.ImpostorKillPredicate(p), null, Impostor.CanKillHidingPlayerOption));
 
                 killButton = Bind(new ModAbilityButton(false,true)).KeyBind(Virial.Compat.VirtualKeyInput.Kill);
-                killButton.Availability = (button) => killTracker.CurrentTarget != null && MyPlayer.CanMove;
-                killButton.Visibility = (button) => !MyPlayer.IsDead;
-                killButton.OnClick = (button) => {
+                killButton.Availability = button => killTracker.CurrentTarget != null && MyPlayer.CanMove;
+                killButton.Visibility = button => !MyPlayer.IsDead;
+                killButton.OnClick = button => {
                     MyPlayer.MurderPlayer(killTracker.CurrentTarget!,PlayerState.Dead, EventDetail.Kill, KillParameter.NormalKill);
 
                     if(killTracker.CurrentTarget!.PlayerId == currentBounty)
@@ -134,8 +134,8 @@ public class BountyHunter : DefinedRoleTemplate, HasCitation, DefinedRole
                     acTokenChallenge.Value.history.Enqueue(Time.time);
                     if(acTokenChallenge.Value.history.Count >= 3)
                     {
-                        float first = acTokenChallenge.Value.history.DequeAt(3);
-                        float last = Time.time;
+                        var first = acTokenChallenge.Value.history.DequeAt(3);
+                        var last = Time.time;
                         if (last - first < 30f) acTokenChallenge.Value.cleared = true;
                     }
 

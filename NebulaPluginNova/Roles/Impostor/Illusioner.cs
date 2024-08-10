@@ -3,6 +3,7 @@ using Virial.Assignable;
 using Virial.Configuration;
 using Virial.Game;
 using Virial.Helpers;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Roles.Impostor;
 
@@ -57,13 +58,13 @@ public class Illusioner : DefinedRoleTemplate, DefinedRole
 
                 sampleButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability, "illusioner.sample");
                 sampleButton.SetSprite(Morphing.Instance.SampleButtonSprite.GetSprite());
-                sampleButton.Availability = (button) => MyPlayer.CanMove;
-                sampleButton.Visibility = (button) => !MyPlayer.IsDead;
-                sampleButton.OnClick = (button) => {
+                sampleButton.Availability = button => MyPlayer.CanMove;
+                sampleButton.Visibility = button => !MyPlayer.IsDead;
+                sampleButton.OnClick = button => {
                     sample = sampleTracker.CurrentTarget?.GetOutfit(SampleOriginalLookOption ? 35 : 75) ?? null;
                     if (sample != null) acTokenChallenge.Value |= 1 << sample.outfit.ColorId;
 
-                    if (sampleIcon != null) GameObject.Destroy(sampleIcon.gameObject);
+                    if (sampleIcon != null) Object.Destroy(sampleIcon.gameObject);
                     if (sample == null) return;
                     sampleIcon = AmongUsUtil.GetPlayerIcon(sample.outfit, sampleButton.VanillaButton.transform, new Vector3(-0.4f, 0.35f, -0.5f), new(0.3f, 0.3f)).SetAlpha(0.5f);
                 };
@@ -72,12 +73,12 @@ public class Illusioner : DefinedRoleTemplate, DefinedRole
 
                 morphButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.SecondaryAbility, "illusioner.morph").SubKeyBind(Virial.Compat.VirtualKeyInput.AidAction,"illusioner.switch");
                 morphButton.SetSprite(Morphing.Instance.MorphButtonSprite.GetSprite());
-                morphButton.Availability = (button) => MyPlayer.CanMove && sample != null;
-                morphButton.Visibility = (button) => !MyPlayer.IsDead;
-                morphButton.OnClick = (button) => {
+                morphButton.Availability = button => MyPlayer.CanMove && sample != null;
+                morphButton.Visibility = button => !MyPlayer.IsDead;
+                morphButton.OnClick = button => {
                     button.ToggleEffect();
                 };
-                morphButton.OnSubAction = (button) =>
+                morphButton.OnSubAction = button =>
                 {
                     NebulaManager.Instance.ScheduleDelayAction(() =>
                     {
@@ -86,25 +87,25 @@ public class Illusioner : DefinedRoleTemplate, DefinedRole
                         paintButton!.SubKeyBind(Virial.Compat.VirtualKeyInput.AidAction, "illusioner.switch");
                     });
                 };
-                morphButton.OnEffectStart = (button) =>
+                morphButton.OnEffectStart = button =>
                 {
                     PlayerModInfo.RpcAddOutfit.Invoke(new(PlayerControl.LocalPlayer.PlayerId, new("Morphing", 50, true, sample!)));
 
                     acTokenMorphingCommon ??= new("morphing.common1");
                     if (acTokenPainterCommon != null) acTokenCommon ??= new("illusioner.common1");
                 };
-                morphButton.OnEffectEnd = (button) =>
+                morphButton.OnEffectEnd = button =>
                 {
                     PlayerModInfo.RpcRemoveOutfit.Invoke(new(PlayerControl.LocalPlayer.PlayerId, "Morphing"));
                     morphButton.CoolDownTimer?.Start();
                 };
-                morphButton.OnMeeting = (button) =>
+                morphButton.OnMeeting = button =>
                 {
                     morphButton.InactivateEffect();
 
                     if (LoseSampleOnMeetingOption)
                     {
-                        if (sampleIcon != null) GameObject.Destroy(sampleIcon.gameObject);
+                        if (sampleIcon != null) Object.Destroy(sampleIcon.gameObject);
                         sampleIcon = null;
                         sample = null;
                     }
@@ -115,9 +116,9 @@ public class Illusioner : DefinedRoleTemplate, DefinedRole
 
                 paintButton = Bind(new ModAbilityButton());
                 paintButton.SetSprite(Painter.Instance.PaintButtonSprite.GetSprite());
-                paintButton.Availability = (button) => sampleTracker.CurrentTarget != null && MyPlayer.CanMove;
-                paintButton.Visibility = (button) => !MyPlayer.IsDead;
-                paintButton.OnClick = (button) => {
+                paintButton.Availability = button => sampleTracker.CurrentTarget != null && MyPlayer.CanMove;
+                paintButton.Visibility = button => !MyPlayer.IsDead;
+                paintButton.OnClick = button => {
                     var invoker = PlayerModInfo.RpcAddOutfit.GetInvoker(new(sampleTracker.CurrentTarget!.PlayerId, new("Paint", 40, false, sample ?? MyPlayer.GetOutfit(75))));
                     if (TransformAfterMeetingOption)
                         NebulaGameManager.Instance?.Scheduler.Schedule(RPCScheduler.RPCTrigger.AfterMeeting, invoker);
@@ -128,7 +129,7 @@ public class Illusioner : DefinedRoleTemplate, DefinedRole
                     acTokenPainterCommon ??= new("painter.common1");
                     if (acTokenMorphingCommon != null) acTokenCommon ??= new("illusioner.common1");
                 };
-                paintButton.OnSubAction = (button) =>
+                paintButton.OnSubAction = button =>
                 {
                     NebulaManager.Instance.ScheduleDelayAction(() =>
                     {
@@ -137,11 +138,11 @@ public class Illusioner : DefinedRoleTemplate, DefinedRole
                         morphButton!.SubKeyBind(Virial.Compat.VirtualKeyInput.AidAction, "illusioner.switch");
                     });
                 };
-                paintButton.OnMeeting = (button) =>
+                paintButton.OnMeeting = button =>
                 {
                     if (LoseSampleOnMeetingOption)
                     {
-                        if (sampleIcon != null) GameObject.Destroy(sampleIcon.gameObject);
+                        if (sampleIcon != null) Object.Destroy(sampleIcon.gameObject);
                         sampleIcon = null;
                         sample = null;
                     }

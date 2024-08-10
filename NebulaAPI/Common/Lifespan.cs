@@ -80,7 +80,7 @@ internal interface IBinderLifespan : ILifespan, IBinder { }
 public class ComponentHolder : IBinder, IReleasable, ILifespan
 {
     public bool IsDeadObject { get; private set; } = false;
-    private List<IReleasable> myComponent { get; init; } = new();
+    private List<IReleasable> myComponent { get; init; } = [];
 
 
     [return: NotNullIfNotNull("component")]

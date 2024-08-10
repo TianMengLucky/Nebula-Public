@@ -28,7 +28,7 @@ public class NebulaResourceManager
         string[] splitted = name.Split("::");
         if (splitted.Length == 1) return false;
 
-        IResourceAllocator? allocator = GetAllocator(splitted.Take(splitted.Length - 1), true);
+        var allocator = GetAllocator(splitted.Take(splitted.Length - 1), true);
         if (allocator == null) return false;
 
         if(allocator is IVariableResourceAllocator vra)
@@ -144,7 +144,7 @@ public class StreamResource : INebulaResource {
 
     Image? INebulaResource.AsImage(float defaultPixsPerUnit)
     {
-        Stream? stream = streamGetter.Invoke();
+        var stream = streamGetter.Invoke();
         if (stream == null) return null;
         return new SpriteLoader(new UnloadTextureLoader(stream.ReadBytes()), defaultPixsPerUnit);
     }

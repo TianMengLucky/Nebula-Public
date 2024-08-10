@@ -57,7 +57,7 @@ static file class GuesserSystem
         NebulaAPI.CurrentGame?.GetModule<MeetingPlayerButtonManager>()?.RegisterMeetingAction(new(targetSprite,
             state => {
                 var p = state.MyPlayer;
-                LastGuesserWindow = OpenGuessWindow(leftGuessPerMeeting, leftGuess, (r) =>
+                LastGuesserWindow = OpenGuessWindow(leftGuessPerMeeting, leftGuess, r =>
                 {
                     if (PlayerControl.LocalPlayer.Data.IsDead) return;
                     if (!(MeetingHud.Instance.state == MeetingHud.VoteStates.Voted || MeetingHud.Instance.state == MeetingHud.VoteStates.NotVoted)) return;

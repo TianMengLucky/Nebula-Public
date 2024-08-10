@@ -18,11 +18,11 @@ namespace Nebula.Modules;
 abstract public class AchievementTokenBase : IReleasable, ILifespan
 {
     public ProgressRecord Achievement { get; private init; }
-    abstract public AbstractAchievement.ClearState UniteTo(bool update = true);
+    abstract public ClearState UniteTo(bool update = true);
 
     public AchievementTokenBase(ProgressRecord achievement)
     {
-        this.Achievement = achievement;
+        Achievement = achievement;
 
         NebulaGameManager.Instance?.AllAchievementTokens.Add(this);
     }
@@ -43,9 +43,9 @@ public class StaticAchievementToken : AchievementTokenBase
         : base(NebulaAchievementManager.GetAchievement(achievement, out var a) ? a : null!) { }
 
 
-    public override AbstractAchievement.ClearState UniteTo(bool update)
+    public override ClearState UniteTo(bool update)
     {
-        if (IsDeadObject) return AbstractAchievement.ClearState.NotCleared;
+        if (IsDeadObject) return ClearState.NotCleared;
 
         return Achievement.Unite(1, update);
     }
@@ -69,9 +69,9 @@ public class AchievementToken<T> : AchievementTokenBase
         : this(achievement, value, (t,ac)=> supplier.Invoke(t,ac) ? 1 : 0) { }
 
 
-    public override AbstractAchievement.ClearState UniteTo(bool update)
+    public override ClearState UniteTo(bool update)
     {
-        if (IsDeadObject) return AbstractAchievement.ClearState.NotCleared;
+        if (IsDeadObject) return ClearState.NotCleared;
 
         return Achievement.Unite(Supplier.Invoke(Value, (Achievement as AbstractAchievement)!),update);
     }
@@ -105,7 +105,7 @@ public class ProgressRecord
     public bool IsCleared => goal <= entry.Value;
 
     public string OldEntryTag => "a." + key.ComputeConstantHashAsString();
-    public string EntryTag => "a." + this.hashedKey;
+    public string EntryTag => "a." + hashedKey;
     public void AdoptBigger(int value)
     {
         if(entry.Value < value) entry.Value = value;
@@ -113,11 +113,11 @@ public class ProgressRecord
     public ProgressRecord(string key, int goal, bool canClearOnce)
     {
         this.key = key;
-        this.hashedKey = key.ComputeConstantHashAsStringLong();
+        hashedKey = key.ComputeConstantHashAsStringLong();
         this.canClearOnce = canClearOnce;
-        this.entry = new IntegerDataEntry("a." + hashedKey, NebulaAchievementManager.AchievementDataSaver, 0);
+        entry = new IntegerDataEntry("a." + hashedKey, NebulaAchievementManager.AchievementDataSaver, 0);
         this.goal = goal;
-        if (NebulaAchievementManager.AllRecords.Any(r => r.entry.Name == this.entry.Name)) NebulaPlugin.Log.Print(NebulaLog.LogLevel.Error, "Duplicate achievement hash: " + key);
+        if (NebulaAchievementManager.AllRecords.Any(r => r.entry.Name == entry.Name)) NebulaPlugin.Log.Print(NebulaLog.LogLevel.Error, "Duplicate achievement hash: " + key);
         NebulaAchievementManager.RegisterAchievement(this, key);
     }
 
@@ -134,8 +134,8 @@ public class ProgressRecord
     {
         if (localValue < 0) return ClearState.NotCleared;
 
-        int lastValue = entry.Value;
-        int newValue = Math.Min(goal, lastValue + localValue);
+        var lastValue = entry.Value;
+        var newValue = Math.Min(goal, lastValue + localValue);
         if (update) entry.Value = newValue;
 
         if (newValue >= goal && lastValue < goal)
@@ -189,11 +189,12 @@ public class AbstractAchievement : ProgressRecord {
     {
         var gui = NebulaAPI.GUI;
 
-        List<Virial.Media.GUIWidget> list = new();
+        List<Virial.Media.GUIWidget> list =
+        [
+            new NoSGUIText(GUIAlignment.Left, DetailContentAttribute, GetHeaderComponent())
+        ];
 
-        list.Add(new NoSGUIText(GUIAlignment.Left, DetailContentAttribute, GetHeaderComponent()));
-
-        List<Virial.Media.GUIWidget> titleList = new();
+        List<Virial.Media.GUIWidget> titleList = [];
         if (showTorophy)
         {
             titleList.Add(new NoSGUIMargin(GUIAlignment.Left, new(-0.04f, 0.2f)));
@@ -201,7 +202,7 @@ public class AbstractAchievement : ProgressRecord {
             titleList.Add(new NoSGUIMargin(GUIAlignment.Left, new(0.05f, 0.2f)));
         }
 
-        titleList.Add(new NoSGUIText(GUIAlignment.Left, DetailTitleAttribute, GetTitleComponent(hiddenNotClearedAchievement ? AbstractAchievement.HiddenDescriptiveComponent : null)));
+        titleList.Add(new NoSGUIText(GUIAlignment.Left, DetailTitleAttribute, GetTitleComponent(hiddenNotClearedAchievement ? HiddenDescriptiveComponent : null)));
         if (showCleared && IsCleared)
         {
             titleList.Add(new NoSGUIMargin(GUIAlignment.Left, new(0.2f, 0.2f)));
@@ -234,7 +235,7 @@ public class AbstractAchievement : ProgressRecord {
 
     public TextComponent? GetHeaderComponent()
     {
-        List<TextComponent> list = new();
+        List<TextComponent> list = [];
         if(Category.role != null)
         {
             list.Add(NebulaGUIWidgetEngine.Instance.TextComponent(Category.role.UnityColor, "role." + Category.role.LocalizedName + ".name"));
@@ -261,7 +262,7 @@ public class AbstractAchievement : ProgressRecord {
 
     virtual public TextComponent GetDetailComponent()
     {
-        List<TextComponent> list = new();
+        List<TextComponent> list = [];
         if (!noHint || IsCleared)
             list.Add(new TranslateTextComponent(GoalTranslationKey));
         else
@@ -300,8 +301,8 @@ public class AbstractAchievement : ProgressRecord {
     {
         this.isSecret = isSecret;
         this.noHint = noHint;
-        this.Category = category;
-        this.Trophy = trophy;
+        Category = category;
+        Trophy = trophy;
     }
 
     public enum ClearState
@@ -369,11 +370,11 @@ public class CompleteAchievement : SumUpAchievement
     ProgressRecord[] records;
     public CompleteAchievement(ProgressRecord[] allRecords, bool isSecret, bool noHint, string key, (DefinedAssignable? role, AchievementType? type) category, int trophy)
         : base(isSecret, noHint, key, allRecords.Length, category, trophy) {
-        this.records = allRecords;
+        records = allRecords;
     }
 
     override public ClearState CheckClear() {
-        bool wasCleared = IsCleared;
+        var wasCleared = IsCleared;
         UpdateProgress(records.Count(r => r.IsCleared));
 
         if(!wasCleared) return IsCleared ? ClearState.FirstClear : ClearState.NotCleared;
@@ -389,7 +390,7 @@ public class CompleteAchievement : SumUpAchievement
         var button = collider.gameObject.SetUpButton();
         button.OnMouseOver.AddListener(() =>
         {
-            string text = string.Join("\n", records.Select(r => "- " + Language.Translate(r.TranslationKey).Color(r.IsCleared ? Color.green : Color.white)));
+            var text = string.Join("\n", records.Select(r => "- " + Language.Translate(r.TranslationKey).Color(r.IsCleared ? Color.green : Color.white)));
             NebulaManager.Instance.SetHelpWidget(button, new NoSGUIText(GUIAlignment.Left, TextAttr, new RawTextComponent(text)));
         });
         button.OnMouseOut.AddListener(() => NebulaManager.Instance.HideHelpWidgetIf(button));
@@ -431,8 +432,8 @@ static public class NebulaAchievementManager
 
     static public (int num,int max, int hidden)[] Aggregate(Predicate<AbstractAchievement>? predicate)
     {
-        (int num, int max, int hidden)[] result = new (int num, int max, int hidden)[3];
-        for (int i = 0; i < result.Length; i++) result[i] = (0, 0, 0);
+        var result = new (int num, int max, int hidden)[3];
+        for (var i = 0; i < result.Length; i++) result[i] = (0, 0, 0);
         return AllAchievements.Where(a => predicate?.Invoke(a) ?? true).Aggregate(result,
             (ac,achievement) => {
                 if (!achievement.IsHidden)
@@ -452,7 +453,7 @@ static public class NebulaAchievementManager
         yield return preprocessor.SetLoadingText("Loading Achievements");
 
         //組み込みレコード
-        ProgressRecord[] killRecord = new TranslatableTag[] { 
+        ProgressRecord[] killRecord = new[] { 
             PlayerState.Dead,
             PlayerState.Sniped,
             PlayerState.Beaten,
@@ -463,7 +464,7 @@ static public class NebulaAchievementManager
             PlayerState.Crushed,
             PlayerState.Frenzied
         }.Select(tag => new DisplayProgressRecord("kill." + tag.TranslateKey, 1, tag.TranslateKey)).ToArray();
-        ProgressRecord[] deathRecord = new TranslatableTag[] { 
+        ProgressRecord[] deathRecord = new[] { 
             PlayerState.Dead,
             PlayerState.Exiled,
             PlayerState.Misfired,
@@ -484,7 +485,7 @@ static public class NebulaAchievementManager
         //読み込み
         using var reader = new StreamReader(NebulaResourceManager.NebulaNamespace.GetResource("Achievements.dat")!.AsStream()!);
 
-        List<ProgressRecord> recordsList = new();
+        List<ProgressRecord> recordsList = [];
 
         while (true) {
             var line = reader.ReadLine();
@@ -496,17 +497,17 @@ static public class NebulaAchievementManager
 
             if (args.Length < 2) continue;
 
-            bool clearOnce = false;
-            bool noHint = false;
-            bool secret = false;
-            bool seasonal = false;
-            bool isNotChallenge = false;
-            bool isRecord = false;
+            var clearOnce = false;
+            var noHint = false;
+            var secret = false;
+            var seasonal = false;
+            var isNotChallenge = false;
+            var isRecord = false;
             IEnumerable<ProgressRecord>? records = recordsList;
 
-            int rarity = int.Parse(args[1]);
-            int goal = 1;
-            for (int i = 2;i<args.Length - 1; i++)
+            var rarity = int.Parse(args[1]);
+            var goal = 1;
+            for (var i = 2;i<args.Length - 1; i++)
             {
                 var arg =args[i];
 
@@ -615,15 +616,15 @@ static public class NebulaAchievementManager
         return achievement != null;
     }
 
-    static public (AbstractAchievement achievement, AbstractAchievement.ClearState clearState)[] UniteAll()
+    static public (AbstractAchievement achievement, ClearState clearState)[] UniteAll()
     {
-        List<(AbstractAchievement achievement, AbstractAchievement.ClearState clearState)> result  =new();
+        List<(AbstractAchievement achievement, ClearState clearState)> result  = [];
 
         //トークンによるクリア
         foreach (var token in NebulaGameManager.Instance!.AllAchievementTokens)
         {
             var state = token.UniteTo();
-            if (state == AbstractAchievement.ClearState.NotCleared) continue;
+            if (state == ClearState.NotCleared) continue;
 
             //実績のみ結果に表示(他実績用のレコードは対象外)
             if(token.Achievement is AbstractAchievement ach) result.Add(new(ach, state));
@@ -633,7 +634,7 @@ static public class NebulaAchievementManager
         foreach(var achievement in AllAchievements)
         {
             var state = achievement.CheckClear();
-            if (state == AbstractAchievement.ClearState.NotCleared) continue;
+            if (state == ClearState.NotCleared) continue;
             result.Add(new(achievement, state));
         }
 
@@ -644,10 +645,10 @@ static public class NebulaAchievementManager
 
     static XOnlyDividedSpriteLoader trophySprite = XOnlyDividedSpriteLoader.FromResource("Nebula.Resources.Trophy.png", 220f, 3);
 
-    static public IEnumerator CoShowAchievements(MonoBehaviour coroutineHolder, params (AbstractAchievement achievement, AbstractAchievement.ClearState clearState)[] achievements)
+    static public IEnumerator CoShowAchievements(MonoBehaviour coroutineHolder, params (AbstractAchievement achievement, ClearState clearState)[] achievements)
     {
-        int num = 0;
-        (GameObject holder, GameObject animator, GameObject body, SpriteRenderer white) CreateBillboard(AbstractAchievement achievement, AbstractAchievement.ClearState clearState)
+        var num = 0;
+        (GameObject holder, GameObject animator, GameObject body, SpriteRenderer white) CreateBillboard(AbstractAchievement achievement, ClearState clearState)
         {
             var billboard = UnityHelper.CreateObject("Billboard", null, new Vector3(3.85f, 1.75f - (float)num * 0.6f, -100f));
             var animator = UnityHelper.CreateObject("Animator", billboard.transform, new Vector3(0f, 0f, 0f));
@@ -656,14 +657,14 @@ static public class NebulaAchievementManager
             var white = UnityHelper.CreateObject<SpriteRenderer>("White", animator.transform, new Vector3(0f, 0f, -2f));
             var icon = UnityHelper.CreateObject<SpriteRenderer>("Icon", body.transform, new Vector3(-0.95f, 0f, 0f));
 
-            background.color = clearState == AbstractAchievement.ClearState.FirstClear ? Color.yellow : new UnityEngine.Color(0.7f, 0.7f, 0.7f);
+            background.color = clearState == ClearState.FirstClear ? Color.yellow : new Color(0.7f, 0.7f, 0.7f);
 
             billboard.AddComponent<SortingGroup>();
 
-            new MetaWidgetOld.Text(new(Nebula.Utilities.TextAttributeOld.BoldAttr) { Font = VanillaAsset.BrookFont, Size = new(2f, 0.4f), FontSize = 1.16f, FontMaxSize = 1.16f, FontMinSize  = 1.16f }) { MyText = achievement.GetHeaderComponent() }.Generate(body, new Vector2(0.25f, 0.13f), out _);
-            new MetaWidgetOld.Text(new(Nebula.Utilities.TextAttributeOld.NormalAttr) { Font = VanillaAsset.BrookFont, Size = new(2f, 0.4f) }) { MyText = achievement.GetTitleComponent(null) }.Generate(body, new Vector2(0.25f, -0.06f), out _);
+            new MetaWidgetOld.Text(new(TextAttributeOld.BoldAttr) { Font = VanillaAsset.BrookFont, Size = new(2f, 0.4f), FontSize = 1.16f, FontMaxSize = 1.16f, FontMinSize  = 1.16f }) { MyText = achievement.GetHeaderComponent() }.Generate(body, new Vector2(0.25f, 0.13f), out _);
+            new MetaWidgetOld.Text(new(TextAttributeOld.NormalAttr) { Font = VanillaAsset.BrookFont, Size = new(2f, 0.4f) }) { MyText = achievement.GetTitleComponent(null) }.Generate(body, new Vector2(0.25f, -0.06f), out _);
 
-            foreach (var renderer in new SpriteRenderer[] { background, white }) {
+            foreach (var renderer in new[] { background, white }) {
                 renderer.sprite = VanillaAsset.TextButtonSprite;
                 renderer.drawMode = SpriteDrawMode.Sliced;
                 renderer.tileMode = SpriteTileMode.Continuous;
@@ -678,7 +679,7 @@ static public class NebulaAchievementManager
             button.OnMouseOver.AddListener(() => NebulaManager.Instance.SetHelpWidget(button, achievement.GetOverlayWidget(true, false, true, false, true)));
             button.OnMouseOut.AddListener(() => NebulaManager.Instance.HideHelpWidgetIf(button));
             button.OnClick.AddListener(() => {
-                NebulaAchievementManager.SetOrToggleTitle(achievement);
+                SetOrToggleTitle(achievement);
                 button.OnMouseOut.Invoke();
                 button.OnMouseOver.Invoke();
             });
@@ -693,10 +694,10 @@ static public class NebulaAchievementManager
         {
             IEnumerator Shake(Transform target, float duration, float halfWidth)
             {
-                Vector3 origin = target.localPosition;
-                for (float timer = 0f; timer < duration; timer += Time.deltaTime)
+                var origin = target.localPosition;
+                for (var timer = 0f; timer < duration; timer += Time.deltaTime)
                 {
-                    float num = timer / duration;
+                    var num = timer / duration;
                     Vector3 vector = UnityEngine.Random.insideUnitCircle * halfWidth;
                     target.localPosition = origin + vector;
                     yield return null;
@@ -729,7 +730,7 @@ static public class NebulaAchievementManager
 
             billboard.body.SetActive(true);
 
-            float p = 1f;
+            var p = 1f;
             while (p > 0.0001f)
             {
                 billboard.holder.transform.localScale = Vector3.one * (1f + (p * 0.2f));
@@ -745,7 +746,7 @@ static public class NebulaAchievementManager
         IEnumerator CoShowClear((GameObject holder, GameObject animator, GameObject body, SpriteRenderer white) billboard)
         {
             billboard.white.gameObject.SetActive(false);
-            float p = 3f;
+            var p = 3f;
             while (p > 0.0001f)
             {
                 billboard.animator.transform.localPosition = new Vector3(p, 0f, 0f);
@@ -762,7 +763,7 @@ static public class NebulaAchievementManager
         {
             var billboard = CreateBillboard(ach.achievement,ach.clearState);
 
-            if (ach.clearState == AbstractAchievement.ClearState.FirstClear)
+            if (ach.clearState == ClearState.FirstClear)
             {
                 coroutineHolder.StartCoroutine(CoShowFirstClear(billboard).WrapToIl2Cpp());
                 yield return new WaitForSeconds(1.05f);

@@ -1,4 +1,6 @@
-﻿namespace Nebula.Player;
+﻿using Object = UnityEngine.Object;
+
+namespace Nebula.Player;
 
 public class AttributeShower
 {
@@ -44,10 +46,10 @@ public class AttributeShower
             Attribute = attribute;
         }
 
-        public void Destroy() => GameObject.Destroy(MyTransform.gameObject);
+        public void Destroy() => Object.Destroy(MyTransform.gameObject);
     }
 
-    private List<AttributeIcon> allIcons = new();
+    private List<AttributeIcon> allIcons = [];
     private Transform myTransform;
 
     public void Update(GamePlayer player)
@@ -74,8 +76,8 @@ public class AttributeShower
             icon.Update(attr.percentage);
         }
 
-        float y = 0.35f + (float)(allIcons.Count - 1) * 0.2f;
-        for(int i = 0; i < allIcons.Count; i++)
+        var y = 0.35f + (float)(allIcons.Count - 1) * 0.2f;
+        for(var i = 0; i < allIcons.Count; i++)
         {
             allIcons[i].MyTransform.localPosition = new Vector3(0f, y - (float)i * 0.4f, 0f);
         }

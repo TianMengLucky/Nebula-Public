@@ -18,12 +18,12 @@ public class Draggable : ComponentHolder
 
             var dragButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability);
             dragButton.SetSprite(buttonSprite.GetSprite());
-            dragButton.Availability = (button) =>
+            dragButton.Availability = button =>
             {
                 return (deadBodyTracker.CurrentTarget != null || role.MyPlayer.HoldingAnyDeadBody) && role.MyPlayer.CanMove;
             };
-            dragButton.Visibility = (button) => !role.MyPlayer.IsDead;
-            dragButton.OnClick = (button) =>
+            dragButton.Visibility = button => !role.MyPlayer.IsDead;
+            dragButton.OnClick = button =>
             {
                 if (!role.MyPlayer.HoldingAnyDeadBody)
                 {
@@ -33,7 +33,7 @@ public class Draggable : ComponentHolder
                 else
                     role.MyPlayer.ReleaseDeadBody();
             };
-            dragButton.OnUpdate = (button) => dragButton.SetLabel(role.MyPlayer.HoldingAnyDeadBody ? "release" : "drag");
+            dragButton.OnUpdate = button => dragButton.SetLabel(role.MyPlayer.HoldingAnyDeadBody ? "release" : "drag");
             dragButton.SetLabel("drag");
         }
     }

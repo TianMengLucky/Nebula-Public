@@ -6,9 +6,9 @@ public interface INebulaProperty
     public float GetFloat() => -1f;
     public byte GetByte() => byte.MaxValue;
     public int GetInteger() => -1;
-    public byte[] GetByteArray() => new byte[0];
-    public int[] GetIntegerArray() => new int[0];
-    public int[] GetFloatArray() => new int[0];
+    public byte[] GetByteArray() => [];
+    public int[] GetIntegerArray() => [];
+    public int[] GetFloatArray() => [];
     public INebulaProperty Bind(string argument) { return this; }
 }
 
@@ -66,9 +66,9 @@ public class NebulaInstantProperty : INebulaProperty
     public byte GetByte() => ByteProperty ?? byte.MaxValue;
     public int GetInteger() => IntegerProperty ?? -1;
     public float GetFloat() => FloatProperty ?? 0f;
-    public byte[] GetByteArray() => ByteArrayProperty ?? new byte[0];
-    public int[] GetIntegerArray() => IntegerArrayProperty ?? new int[0];
-    public float[] GetFloatArray() => FloatArrayProperty ?? new float[0];
+    public byte[] GetByteArray() => ByteArrayProperty ?? [];
+    public int[] GetIntegerArray() => IntegerArrayProperty ?? [];
+    public float[] GetFloatArray() => FloatArrayProperty ?? [];
 }
 
 public interface IRuntimePropertyHolder

@@ -35,7 +35,7 @@ public interface Game : IModuleContainer, ILifespan
     /// <param name="gameEnd"></param>
     /// <param name="reason"></param>
     /// <param name="additionalWinners"></param>
-    void TriggerGameEnd(GameEnd gameEnd, Virial.Game.GameEndReason reason, BitMask<Virial.Game.Player>? additionalWinners = null);
+    void TriggerGameEnd(GameEnd gameEnd, GameEndReason reason, BitMask<Player>? additionalWinners = null);
 
     /// <summary>
     /// ゲーム終了のトリガーをホストに依頼します。
@@ -43,7 +43,7 @@ public interface Game : IModuleContainer, ILifespan
     /// </summary>
     /// <param name="gameEnd"></param>
     /// <param name="additionalWinners"></param>
-    void RequestGameEnd(GameEnd gameEnd, BitMask<Virial.Game.Player> additionalWinners);
+    void RequestGameEnd(GameEnd gameEnd, BitMask<Player> additionalWinners);
 
     /// <summary>
     /// 現在のHUD。

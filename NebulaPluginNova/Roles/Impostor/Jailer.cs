@@ -101,7 +101,7 @@ public class Jailer : DefinedRoleTemplate, DefinedRole
         [OnlyMyPlayer]
         void InheritAbilityOnDead(PlayerDieEvent ev)
         {
-            var localPlayer = Virial.NebulaAPI.CurrentGame?.LocalPlayer;
+            var localPlayer = NebulaAPI.CurrentGame?.LocalPlayer;
 
             if (localPlayer == null) return;
 

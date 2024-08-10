@@ -66,10 +66,10 @@ public class MouseOverPopup : MonoBehaviour
         relatedButton = related;
         transform.SetParent(UnityHelper.FindCamera(LayerExpansion.GetUILayer())!.transform);
 
-        bool isLeft = Input.mousePosition.x < Screen.width / 2f;
-        bool isLower = Input.mousePosition.y < Screen.height / 2f;
+        var isLeft = Input.mousePosition.x < Screen.width / 2f;
+        var isLower = Input.mousePosition.y < Screen.height / 2f;
 
-        float height = myScreen.SetWidget(widget, out var width);
+        var height = myScreen.SetWidget(widget, out var width);
 
         if (width.min > width.max)
         {
@@ -124,7 +124,7 @@ public class MouseOverPopup : MonoBehaviour
         mask.transform.localScale = localScale;
     }
 
-    public void SetWidget(PassiveUiElement? related, Virial.Media.GUIWidget? widget, bool followMouseCursor = false)
+    public void SetWidget(PassiveUiElement? related, GUIWidget? widget, bool followMouseCursor = false)
     {
         myScreen.SetWidget(null);
 
@@ -143,7 +143,7 @@ public class MouseOverPopup : MonoBehaviour
         myScreen.SetWidget(widget, new Vector2(0.5f, 0.5f), out var size);
 
         this.followMouseCursor = followMouseCursor;
-        this.lastSize = size;
+        lastSize = size;
 
         UpdateArea(new(0f, 0f), new(lastSize.Width + 0.22f, lastSize.Height + 0.1f));
         UpdatePosition();
@@ -152,8 +152,8 @@ public class MouseOverPopup : MonoBehaviour
     }
 
     private void UpdatePosition() { 
-        bool isLeft = Input.mousePosition.x < Screen.width / 2f;
-        bool isLower = Input.mousePosition.y < Screen.height / 2f;
+        var isLeft = Input.mousePosition.x < Screen.width / 2f;
+        var isLower = Input.mousePosition.y < Screen.height / 2f;
 
         float[] xRange = new float[2], yRange = new float[2];
         xRange[0] = -lastSize.Width * 0.5f - 0.15f;
@@ -219,8 +219,8 @@ public class NebulaManager : MonoBehaviour
         }
     }
 
-    private List<Tuple<GameObject, PassiveButton?>> allModUi = new();
-    static private List<MetaCommand> commands = new();
+    private List<Tuple<GameObject, PassiveButton?>> allModUi = [];
+    static private List<MetaCommand> commands = [];
     static public NebulaManager Instance { get; private set; } = null!;
 
     //テキスト情報表示
@@ -236,7 +236,7 @@ public class NebulaManager : MonoBehaviour
 
     static private RemoteProcess RpcResetGameStart = new(
         "ResetStarting",
-        (_) =>
+        _ =>
         {
             if(GameStartManager.Instance) GameStartManager.Instance.ResetStartState();
         }
@@ -266,13 +266,13 @@ public class NebulaManager : MonoBehaviour
 
         commands.Add(new("help.command.console",
             () => true,
-            ()=>NebulaManager.Instance.ToggleConsole()
+            ()=>Instance.ToggleConsole()
         )
         { DefaultKeyInput = new(KeyCode.Return) });
 
         commands.Add(new("help.command.saveResult",
             () => LastGameHistory.LastWidget != null,
-            () => LastGameHistory.SaveResult(GetPicturePath(out string displayPath))
+            () => LastGameHistory.SaveResult(GetPicturePath(out var displayPath))
         )
         { DefaultKeyInput = new(KeyCode.F3) });
 
@@ -289,7 +289,7 @@ public class NebulaManager : MonoBehaviour
 
     public void CloseAllUI()
     {
-        foreach (var ui in allModUi) GameObject.Destroy(ui.Item1);
+        foreach (var ui in allModUi) Destroy(ui.Item1);
         allModUi.Clear();
     }
 
@@ -300,18 +300,18 @@ public class NebulaManager : MonoBehaviour
 
     public bool HasSomeUI => allModUi.Count > 0;
 
-    static private string GetCurrentTimeString()
+    public static string GetCurrentTimeString()
     {
         return DateTime.Now.ToString("yyyyMMddHHmmss");
     }
 
     static public string GetPicturePath(out string displayPath)
     {
-        string dir = "Screenshots";
+        var dir = "Screenshots";
         displayPath = "ScreenShots";
-        string currentTime = GetCurrentTimeString();
+        var currentTime = GetCurrentTimeString();
         displayPath += "\\" + currentTime + ".png";
-        if (!System.IO.Directory.Exists(dir)) System.IO.Directory.CreateDirectory(dir);
+        if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
         return dir + "\\" + currentTime + ".png";
     }
 
@@ -323,7 +323,7 @@ public class NebulaManager : MonoBehaviour
         tex.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0);
         tex.Apply();
 
-        File.WriteAllBytesAsync(GetPicturePath(out string displayPath), tex.EncodeToPNG());
+        File.WriteAllBytesAsync(GetPicturePath(out var displayPath), tex.EncodeToPNG());
     }
 
     
@@ -349,7 +349,7 @@ public class NebulaManager : MonoBehaviour
                 {
                     MetaWidgetOld widget = new();
                     widget.Append(new MetaWidgetOld.Text(new(TextAttributeOld.BoldAttr) { Alignment = TMPro.TextAlignmentOptions.Left }) { TranslationKey = "help.command", Alignment = IMetaWidgetOld.AlignmentOption.Left });
-                    string commandsStr = "";
+                    var commandsStr = "";
                     foreach (var command in commands)
                     {
                         if (!command.Predicate.Invoke()) continue;
@@ -390,7 +390,7 @@ public class NebulaManager : MonoBehaviour
 
         //ダイアログ管理
         allModUi.RemoveAll(tuple => !tuple.Item1);
-        for (int i = 0; i < allModUi.Count; i++)
+        for (var i = 0; i < allModUi.Count; i++)
         {
             var lPos = allModUi[i].Item1.transform.localPosition;
             allModUi[i].Item1.transform.localPosition = new Vector3(lPos.x, lPos.y, -500f - i * 50f);
@@ -420,7 +420,7 @@ public class NebulaManager : MonoBehaviour
         StartCoroutine(Effects.Sequence(Effects.Wait(delay), Effects.Action(action)));
     }
     public void SetHelpWidget(PassiveUiElement? related, IMetaWidgetOld? widget) => mouseOverPopup.SetWidgetOld(related, widget);
-    public void SetHelpWidget(PassiveUiElement? related, Virial.Media.GUIWidget? widget, bool followMouseCursor = false) => mouseOverPopup.SetWidget(related, widget, followMouseCursor);
+    public void SetHelpWidget(PassiveUiElement? related, GUIWidget? widget, bool followMouseCursor = false) => mouseOverPopup.SetWidget(related, widget, followMouseCursor);
     public void SetHelpWidget(PassiveUiElement? related, string? rawText)
     {
         if (rawText != null)

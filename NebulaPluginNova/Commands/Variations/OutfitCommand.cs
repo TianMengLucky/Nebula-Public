@@ -19,9 +19,9 @@ public class OutfitCommand : ICommand
             return new CoImmediateErrorTask<ICommandToken>(env.Logger, label + " get|set <target> ...");
 
         IEnumerable<GamePlayer> targets = [];
-        int priority = 50;
-        bool selfAware = true;
-        bool isSet = false;
+        var priority = 50;
+        var selfAware = true;
+        var isSet = false;
         return arguments[0].AsValue<string>(env).Action(val => isSet = val == "set")
             .Chain(_ => arguments[1].AsEnumerable(env).As<GamePlayer>(env).Action(p => targets = p))
             .Chain(_ =>

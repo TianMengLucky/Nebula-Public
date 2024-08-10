@@ -29,7 +29,7 @@ public static class GeneralConfigurations
 
     static GeneralConfigurations()
     {
-        for(int i = 0; i < NebulaPreSpawnLocation.Locations.Length; i++)
+        for(var i = 0; i < NebulaPreSpawnLocation.Locations.Length; i++)
         {
             var mapName = NebulaPreSpawnLocation.MapName[i].HeadLower();
             var locs = NebulaPreSpawnLocation.Locations[i];
@@ -49,6 +49,13 @@ public static class GeneralConfigurations
     static internal IConfigurationHolder AssignmentOptions = NebulaAPI.Configurations.Holder("options.assignment", [ConfigurationTab.Settings], [GameModes.FreePlay, GameModes.Standard]).AppendConfigurations([
         AssignmentCrewmateOption, AssignmentImpostorOption, AssignmentNeutralOption, AssignOpToHostOption
         ]);
+    
+    internal static BoolConfiguration ImpostorChatChannelOption = NebulaAPI.Configurations.Configuration("options.chatchannel.impostor", false);
+    internal static BoolConfiguration JackalChatChannelOption = NebulaAPI.Configurations.Configuration("options.chatchannel.jackal", false);
+    internal static BoolConfiguration LoverChatChannelOption = NebulaAPI.Configurations.Configuration("options.chatchannel.lover", false);
+    internal static IConfigurationHolder ChatChannelOptions = NebulaAPI.Configurations.Holder("options.chatchannel", [ConfigurationTab.Settings], [GameModes.FreePlay, GameModes.Standard]).AppendConfigurations([
+        ImpostorChatChannelOption, JackalChatChannelOption, LoverChatChannelOption
+    ]);
 
     static internal IntegerConfiguration NumOfDummiesOption = NebulaAPI.Configurations.Configuration("options.soloFreePlay.numOfDummies",(0, 14), 0);
     static internal IConfigurationHolder SoloFreePlayOptions = NebulaAPI.Configurations.Holder("options.soloFreePlay", [ConfigurationTab.Settings], [GameModes.FreePlay]).AppendConfigurations([
@@ -57,14 +64,14 @@ public static class GeneralConfigurations
 
     static internal ValueConfiguration<int> SpawnMethodOption = NebulaAPI.Configurations.Configuration("options.map.spawnMethod", ["options.map.spawnMethod.default", "options.map.spawnMethod.selective", "options.map.spawnMethod.random"], 0);
     static internal IntegerConfiguration SpawnCandidatesOption = NebulaAPI.Configurations.Configuration("options.map.spawnCandidates", (1, 8), 1, () => (SpawnMethodOption.GetValue() == 1));
-    static internal IConfiguration SpawnCandidateFilterOption = NebulaAPI.Configurations.Configuration(() => null, () => NebulaAPI.GUI.LocalizedButton(Virial.Media.GUIAlignment.Center, NebulaAPI.GUI.GetAttribute(Virial.Text.AttributeAsset.OptionsTitleHalf), "options.map.spawnCandidatesFilter", _ => OpenCandidatesFilter(MetaScreen.GenerateWindow(new(7.5f, 4.5f), HudManager.Instance.transform, Vector3.zero, true, false))),() => SpawnMethodOption.GetValue() > 0);
+    static internal IConfiguration SpawnCandidateFilterOption = NebulaAPI.Configurations.Configuration(() => null, () => NebulaAPI.GUI.LocalizedButton(GUIAlignment.Center, NebulaAPI.GUI.GetAttribute(AttributeAsset.OptionsTitleHalf), "options.map.spawnCandidatesFilter", _ => OpenCandidatesFilter(MetaScreen.GenerateWindow(new(7.5f, 4.5f), HudManager.Instance.transform, Vector3.zero, true, false))),() => SpawnMethodOption.GetValue() > 0);
     static internal BoolConfiguration SilentVentOption = NebulaAPI.Configurations.Configuration("options.map.silentVents", false);
     static internal BoolConfiguration CanOpenMapWhileUsingUtilityOption = NebulaAPI.Configurations.Configuration("options.map.canOpenMapWhileUsingUtility", false);
     static internal BoolConfiguration RandomizedWiringOption = NebulaAPI.Configurations.Configuration("options.map.randomizedWiring", false);
     static internal IntegerConfiguration StepsOfWiringGameOption = NebulaAPI.Configurations.Configuration("options.map.stepsOfWiringGame", (1, 12), 3);
     static internal FloatConfiguration LadderCoolDownOption = NebulaAPI.Configurations.Configuration("options.map.ladderCoolDown", (0f, 20f, 1f), 3f, FloatConfigurationDecorator.Second);
     static internal FloatConfiguration ZiplineCoolDownOption = NebulaAPI.Configurations.Configuration("options.map.ziplineCoolDown", (0f, 20f, 1f), 3f, FloatConfigurationDecorator.Second);
-    static internal IConfiguration MapEditorOption = NebulaAPI.Configurations.Configuration(() => null, () => NebulaAPI.GUI.LocalizedButton(Virial.Media.GUIAlignment.Center, NebulaAPI.GUI.GetAttribute(Virial.Text.AttributeAsset.OptionsTitleHalf), "options.map.customization", _ => OpenMapEditor(MetaScreen.GenerateWindow(new(7.5f, 4.5f), HudManager.Instance.transform, Vector3.zero, true, false))));
+    static internal IConfiguration MapEditorOption = NebulaAPI.Configurations.Configuration(() => null, () => NebulaAPI.GUI.LocalizedButton(GUIAlignment.Center, NebulaAPI.GUI.GetAttribute(AttributeAsset.OptionsTitleHalf), "options.map.customization", _ => OpenMapEditor(MetaScreen.GenerateWindow(new(7.5f, 4.5f), HudManager.Instance.transform, Vector3.zero, true, false))));
     static internal IConfigurationHolder MapOptions = NebulaAPI.Configurations.Holder("options.map", [ConfigurationTab.Settings], [GameModes.FreePlay, GameModes.Standard]).AppendConfigurations([
         SpawnMethodOption, SpawnCandidatesOption, SpawnCandidateFilterOption, SilentVentOption, CanOpenMapWhileUsingUtilityOption, RandomizedWiringOption, StepsOfWiringGameOption, LadderCoolDownOption, ZiplineCoolDownOption, MapEditorOption
         ]);
@@ -84,9 +91,9 @@ public static class GeneralConfigurations
 
         public MapConfiguration(ISharableEntry entry, Vector2 position, MapOptionType optionType)
         {
-            this.Entry = entry;
-            this.Position = position;
-            this.OptionType = optionType;
+            Entry = entry;
+            Position = position;
+            OptionType = optionType;
         }
     }
 
@@ -121,7 +128,7 @@ public static class GeneralConfigurations
     static IEnumerable<float> SabotageSelections()
     {
         yield return 10f;
-        float time = 10f;
+        var time = 10f;
         while (time < 30f)
         {
             time += 1f;
@@ -179,7 +186,7 @@ public static class GeneralConfigurations
     {
         yield return -1f;
         yield return 0f;
-        float time = 0f;
+        var time = 0f;
         while (time < 10f)
         {
             time += 1f;
@@ -217,7 +224,7 @@ public static class GeneralConfigurations
 
         byte Lessen()
         {
-            byte id = mapId.Value;
+            var id = mapId.Value;
             while (true)
             {
                 if (id == 0)
@@ -230,7 +237,7 @@ public static class GeneralConfigurations
 
         byte Increase()
         {
-            byte id = mapId.Value;
+            var id = mapId.Value;
             while (true)
             {
                 if (id == (byte)(MapCustomizations.Length - 1))
@@ -262,7 +269,7 @@ public static class GeneralConfigurations
                 if (c.OptionType is MapOptionType.Float)
                 {
                     TMPro.TextMeshPro valueText = null!;
-                    IOrderedSharableVariable<float> variable = (c.Entry as IOrderedSharableVariable<float>)!;
+                    var variable = (c.Entry as IOrderedSharableVariable<float>)!;
                     return ((IMetaParallelPlacableOld)new CombinedWidgetOld(new MetaWidgetOld(
                         new MetaWidgetOld.Text(new(TextAttributeOld.BoldAttrLeft) { Size = new(0.55f, 0.15f) }) { MyText = new TranslateTextComponent(c.Entry.Name) },
                         new MetaWidgetOld.Text(new(TextAttributeOld.BoldAttr) { Size = new(0.55f, 0.28f) }) { RawText = variable.Value.ToString() + Language.Translate("options.sec"), PostBuilder = text => valueText = text }
@@ -271,11 +278,11 @@ public static class GeneralConfigurations
                 }
                 else
                 {
-                    IOrderedSharableVariable<bool> variable = (c.Entry as IOrderedSharableVariable<bool>)!;
+                    var variable = (c.Entry as IOrderedSharableVariable<bool>)!;
                     return ((IMetaParallelPlacableOld)new MetaWidgetOld.Image(mapCustomizationSprite.GetSprite((int)c.OptionType))
                     {
                         Width = 0.5f,
-                        PostBuilder = (renderer) =>
+                        PostBuilder = renderer =>
                         {
                             renderer.color = variable.CurrentValue ? Color.white : Color.red.RGBMultiplied(0.45f);
                             var button = renderer.gameObject.SetUpButton(true);
@@ -301,7 +308,7 @@ public static class GeneralConfigurations
                 l => ((IMetaParallelPlacableOld)new MetaWidgetOld.Image(mapCustomizationSprite.GetSprite(5))
                 {
                     Width = 0.5f,
-                    PostBuilder = (renderer) =>
+                    PostBuilder = renderer =>
                     {
                         renderer.color = l.Configuration.Value ? Color.white : Color.red.RGBMultiplied(0.65f);
                         var button = renderer.gameObject.SetUpButton(true);
@@ -333,10 +340,10 @@ public static class GeneralConfigurations
 
             public FilterSharableVariable(ExclusiveAssignmentConfiguration config, int index)
             {
-                this.name = config.dataEntry.Name + index;
-                this.id = -1;
+                name = config.dataEntry.Name + index;
+                id = -1;
                 this.index = index;
-                this.myConfig = config;
+                myConfig = config;
 
                 currentValue = config.ToSharableValueFromLocal(this.index);
 
@@ -366,7 +373,7 @@ public static class GeneralConfigurations
 
             void ISharableVariable<int>.SetValueWithoutSaveUnsafe(int value) => currentValue = value;
 
-            void ISharableEntry.RestoreSavedValue() => currentValue = myConfig.ToSharableValueFromLocal(this.index);
+            void ISharableEntry.RestoreSavedValue() => currentValue = myConfig.ToSharableValueFromLocal(index);
 
         }
 
@@ -380,7 +387,11 @@ public static class GeneralConfigurations
 
             void RefreshCache()
             {
-                localExclusibeRolesCache = new(dataEntry.Value.Select(name => Roles.Roles.AllRoles.FirstOrDefault(a => a.InternalName == name)).Where(a => a != null)!);
+                localExclusibeRolesCache =
+                [
+                    ..dataEntry.Value.Select(name => Roles.Roles.AllRoles.FirstOrDefault(a => a.InternalName == name))
+                        .Where(a => a != null)!
+                ];
             }
 
             void GenerateSharable()
@@ -389,16 +400,16 @@ public static class GeneralConfigurations
 
                 RefreshCache();
 
-                int length = Roles.Roles.AllRoles.Count / UnitSize + 1;
+                var length = Roles.Roles.AllRoles.Count / UnitSize + 1;
 
                 sharableVariables = new ISharableVariable<int>[length];
-                for (int i = 0; i < length; i++)
+                for (var i = 0; i < length; i++)
                 {
                     sharableVariables[i] = new FilterSharableVariable(this, i);
                 }
             }
 
-            NebulaAPI.Preprocessor?.SchedulePreprocess(Virial.Attributes.PreprocessPhase.FixStructureRoleFilter, GenerateSharable);
+            NebulaAPI.Preprocessor?.SchedulePreprocess(PreprocessPhase.FixStructureRoleFilter, GenerateSharable);
         }
 
         bool IConfiguration.IsShown => true;
@@ -413,12 +424,12 @@ public static class GeneralConfigurations
             var cache = Roles.Roles.AllRoles.Where(r => Contains(r)).ToArray();
             var array = cache.Select(r => r.InternalName).ToArray();
             dataEntry.Value = array;
-            localExclusibeRolesCache = new(cache);
+            localExclusibeRolesCache = [..cache];
         }
         GUIWidgetSupplier IConfiguration.GetEditor()
         {
             return () => new HorizontalWidgetsHolder(GUIAlignment.Left,
-            new NoSGUIText(GUIAlignment.Center, GUI.API.GetAttribute(AttributeAsset.OptionsTitleHalf), new TranslateTextComponent(this.dataEntry.Name)) { OverlayWidget = ConfigurationAssets.GetOptionOverlay(this.dataEntry.Name) },
+            new NoSGUIText(GUIAlignment.Center, GUI.API.GetAttribute(AttributeAsset.OptionsTitleHalf), new TranslateTextComponent(dataEntry.Name)) { OverlayWidget = ConfigurationAssets.GetOptionOverlay(dataEntry.Name) },
             new NoSGUIText(GUIAlignment.Center, GUI.API.GetAttribute(AttributeAsset.OptionsTitle), new LazyTextComponent(() => ValueAsDisplayString ?? "None")),
             new GUIButton(GUIAlignment.Center, GUI.API.GetAttribute(AttributeAsset.OptionsButton), new TranslateTextComponent("options.exclusiveAssignment.edit")) { OnClick = _ => RoleOptionHelper.OpenFilterScreen("exclusiveRole", Roles.Roles.AllRoles, Contains, null, r => { ToggleAndShare(r); NebulaAPI.Configurations.RequireUpdateSettingScreen(); }) }
             );
@@ -438,7 +449,7 @@ public static class GeneralConfigurations
         {
             var str = ValueAsDisplayString;
             if (str == null) return null;
-            return Language.Translate(this.dataEntry.Name) + ": " + str;
+            return Language.Translate(dataEntry.Name) + ": " + str;
         }
 
         internal bool Contains(DefinedRole role) => (sharableVariables[role.Id / UnitSize].CurrentValue & (1 << (role.Id % UnitSize))) != 0;

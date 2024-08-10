@@ -42,8 +42,8 @@ public class ShowCommand : ICommand
                 { "title", () =>
                 {
                     if(!(arguments.Count is 3 or 4 or 6 or 7)) return new CoImmediateErrorTask<ICommandToken>(env.Logger, label + " title <duration> <text>");
-                    float duration = 10f;
-                    Color color = Color.white;
+                    var duration = 10f;
+                    var color = Color.white;
                     
                     CoTask<ICommandToken> task =
                         arguments[1].AsValue<float>(env).Action(val => duration = val);
@@ -55,8 +55,8 @@ public class ShowCommand : ICommand
                         .Chain(_ => arguments[4].AsValue<int>(env)).Action(val => b = Mathf.Clamp(val,0,255))
                         .Action(_ => color = new Color(r/255f,g/255f,b/255f,1f));
                     }
-                    string subString = "";
-                    int diff = 0;
+                    var subString = "";
+                    var diff = 0;
                     if(arguments.Count % 3 == 1){
                         diff = 1;
                         task = task.Chain(_ => arguments[arguments.Count - 1].AsValue<string>(env)).Action(val => subString = val);

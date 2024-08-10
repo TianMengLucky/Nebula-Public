@@ -7,6 +7,7 @@ using Virial.Events.Game;
 using Virial.Events.Game.Meeting;
 using Virial.Events.Player;
 using Virial.Game;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Roles.Neutral;
 
@@ -61,15 +62,15 @@ public class ChainShifter : DefinedRoleTemplate, HasCitation, DefinedRole
 
                 chainShiftButton = Bind(new Modules.ScriptComponents.ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability);
                 chainShiftButton.SetSprite(buttonSprite.GetSprite());
-                chainShiftButton.Availability = (button) => playerTracker.CurrentTarget != null && MyPlayer.CanMove && shiftTarget == null;
-                chainShiftButton.Visibility = (button) => !MyPlayer.IsDead;
-                chainShiftButton.OnClick = (button) => {
+                chainShiftButton.Availability = button => playerTracker.CurrentTarget != null && MyPlayer.CanMove && shiftTarget == null;
+                chainShiftButton.Visibility = button => !MyPlayer.IsDead;
+                chainShiftButton.OnClick = button => {
                     shiftTarget = playerTracker.CurrentTarget;
                     shiftIcon = chainShiftButton.GeneratePlayerIcon(shiftTarget);
                 };
-                chainShiftButton.OnMeeting = (button) =>
+                chainShiftButton.OnMeeting = button =>
                 {
-                    if (shiftIcon) GameObject.Destroy(shiftIcon!.gameObject);
+                    if (shiftIcon) Object.Destroy(shiftIcon!.gameObject);
                     shiftIcon = null;
                 };
                 chainShiftButton.CoolDownTimer = Bind(new Timer(ShiftCoolDown).SetAsAbilityCoolDown().Start());
@@ -98,20 +99,20 @@ public class ChainShifter : DefinedRoleTemplate, HasCitation, DefinedRole
                 //会議終了時に死亡している相手とはシフトできない
                 if (player == null || player.IsDead) yield break;
 
-                int[] targetArgument = new int[0];
+                int[] targetArgument = [];
                 var targetRole = player.Role.Role;
-                int targetGuess = -1;
-                yield return player.CoGetRoleArgument((args) => targetArgument = args);
-                yield return player.CoGetLeftGuess((guess) => targetGuess = guess);
+                var targetGuess = -1;
+                yield return player.CoGetRoleArgument(args => targetArgument = args);
+                yield return player.CoGetLeftGuess(guess => targetGuess = guess);
 
-                int myGuess = MyPlayer.Unbox().TryGetModifier<GuesserModifier.Instance>(out var guesser) ? guesser.LeftGuess : -1;
+                var myGuess = MyPlayer.Unbox().TryGetModifier<GuesserModifier.Instance>(out var guesser) ? guesser.LeftGuess : -1;
 
                 using (RPCRouter.CreateSection("ChainShift"))
                 {
                     Debug.Log("Test1");
                     //タスクに関する書き換え
-                    int leftCrewmateTask = 0;
-                    int leftQuota = 0;
+                    var leftCrewmateTask = 0;
+                    var leftQuota = 0;
                     if (shiftTarget.Tasks.IsCrewmateTask && shiftTarget.Tasks.HasExecutableTasks)
                     {
                         leftCrewmateTask = Mathf.Max(0, shiftTarget.Tasks.CurrentTasks - shiftTarget.Tasks.CurrentCompleted);
@@ -120,14 +121,14 @@ public class ChainShifter : DefinedRoleTemplate, HasCitation, DefinedRole
 
                     if (leftCrewmateTask > 0)
                     {
-                        int commonTasks = GameOptionsManager.Instance.CurrentGameOptions.GetInt(AmongUs.GameOptions.Int32OptionNames.NumCommonTasks);
-                        int shortTasks = GameOptionsManager.Instance.CurrentGameOptions.GetInt(AmongUs.GameOptions.Int32OptionNames.NumShortTasks);
-                        int longTasks = GameOptionsManager.Instance.CurrentGameOptions.GetInt(AmongUs.GameOptions.Int32OptionNames.NumLongTasks);
-                        float longWeight = (float)longTasks / (float)(commonTasks + shortTasks + longTasks);
-                        float commonWeight = (float)commonTasks / (float)(commonTasks + shortTasks + longTasks);
+                        var commonTasks = GameOptionsManager.Instance.CurrentGameOptions.GetInt(AmongUs.GameOptions.Int32OptionNames.NumCommonTasks);
+                        var shortTasks = GameOptionsManager.Instance.CurrentGameOptions.GetInt(AmongUs.GameOptions.Int32OptionNames.NumShortTasks);
+                        var longTasks = GameOptionsManager.Instance.CurrentGameOptions.GetInt(AmongUs.GameOptions.Int32OptionNames.NumLongTasks);
+                        var longWeight = (float)longTasks / (float)(commonTasks + shortTasks + longTasks);
+                        var commonWeight = (float)commonTasks / (float)(commonTasks + shortTasks + longTasks);
 
-                        int actualLongTasks = (int)((float)System.Random.Shared.NextDouble() * longWeight * leftCrewmateTask);
-                        int actualcommonTasks = (int)((float)System.Random.Shared.NextDouble() * commonWeight * leftCrewmateTask);
+                        var actualLongTasks = (int)((float)System.Random.Shared.NextDouble() * longWeight * leftCrewmateTask);
+                        var actualcommonTasks = (int)((float)System.Random.Shared.NextDouble() * commonWeight * leftCrewmateTask);
 
                         MyPlayer.Tasks.Unbox().ReplaceTasksAndRecompute(leftCrewmateTask - actualLongTasks - actualcommonTasks, actualLongTasks, actualcommonTasks);
                         MyPlayer.Tasks.Unbox().BecomeToCrewmate();
@@ -145,8 +146,8 @@ public class ChainShifter : DefinedRoleTemplate, HasCitation, DefinedRole
                     if (targetGuess != -1) player.RpcInvokerUnsetModifier(GuesserModifier.MyRole).InvokeSingle();
                     if (myGuess != -1) MyPlayer.Unbox().RpcInvokerUnsetModifier(GuesserModifier.MyRole).InvokeSingle();
 
-                    if (myGuess != -1) player.RpcInvokerSetModifier(GuesserModifier.MyRole, new int[] { myGuess }).InvokeSingle();
-                    if (targetGuess != -1) MyPlayer.Unbox().RpcInvokerSetModifier(GuesserModifier.MyRole, new int[] { targetGuess }).InvokeSingle();
+                    if (myGuess != -1) player.RpcInvokerSetModifier(GuesserModifier.MyRole, [myGuess]).InvokeSingle();
+                    if (targetGuess != -1) MyPlayer.Unbox().RpcInvokerSetModifier(GuesserModifier.MyRole, [targetGuess]).InvokeSingle();
 
 
                 }

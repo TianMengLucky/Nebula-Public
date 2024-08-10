@@ -30,7 +30,7 @@ public class SpectatorsAbility : IGameOperator
             return;
         }
 
-        int index = Array.IndexOf(targets, currentTarget);
+        var index = Array.IndexOf(targets, currentTarget);
         if(index == -1)
         {
             currentTarget = targets[0];
@@ -48,7 +48,7 @@ public class SpectatorsAbility : IGameOperator
             return;
         }
 
-        int index = Array.IndexOf(targets, currentTarget);
+        var index = Array.IndexOf(targets, currentTarget);
         if(index == -1)
         {
             currentTarget = targets[0];
@@ -82,9 +82,9 @@ public class SpectatorsAbility : IGameOperator
 
     void HudUpdate(GameHudUpdateEvent ev)
     {
-        float axis = Input.GetAxis("Mouse ScrollWheel");
+        var axis = Input.GetAxis("Mouse ScrollWheel");
 
-        float rate = NebulaGameManager.Instance!.WideCamera.TargetRate;
+        var rate = NebulaGameManager.Instance!.WideCamera.TargetRate;
         if (axis < 0f) rate -= 0.25f;
         if (axis > 0f) rate += 0.25f;
         rate = Mathf.Clamp(rate, 1f, 6f);
@@ -100,11 +100,11 @@ public class SpectatorsAbility : IGameOperator
         spectatorChangeButton.SetSprite(spectatorChangeSprite.GetSprite());
         spectatorChangeButton.Availability = button => true;
         spectatorChangeButton.Visibility = button => !(NebulaGameManager.Instance?.LocalPlayerInfo.Tasks.IsCrewmateTask ?? false) || (NebulaGameManager.Instance?.LocalPlayerInfo.Tasks.IsCompletedCurrentTasks ?? true);
-        spectatorChangeButton.OnClick = (button) =>
+        spectatorChangeButton.OnClick = button =>
         {
             ChangeTarget(true);
         };
-        spectatorChangeButton.OnSubAction = (button) =>
+        spectatorChangeButton.OnSubAction = button =>
         {
             ChangeTarget(false);
         };
@@ -116,7 +116,7 @@ public class SpectatorsAbility : IGameOperator
         spectatorButton.SetSprite(spectatorExitSprite.GetSprite());
         spectatorButton.Availability = button => true;
         spectatorButton.Visibility = button => !(currentTarget?.AmOwner ?? true);
-        spectatorButton.OnClick = (button) =>
+        spectatorButton.OnClick = button =>
         {
             currentTarget = null;
             OnChangeTarget();

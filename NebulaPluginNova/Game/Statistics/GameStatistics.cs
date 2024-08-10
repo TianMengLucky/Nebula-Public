@@ -87,9 +87,9 @@ internal class GameTracker : AbstractModule<Virial.Game.Game>, IGameOperator
         this.Register(NebulaGameManager.Instance!);
     }
 
-    public List<ArchivedTaskPhase> TaskPhases { get; private init; } = new();
-    public List<ArchivedEvent> Events { get; private init; } = new();
-    private List<ArchivedAssignmentHistory> assignmentHistories = new();
+    public List<ArchivedTaskPhase> TaskPhases { get; private init; } = [];
+    public List<ArchivedEvent> Events { get; private init; } = [];
+    private List<ArchivedAssignmentHistory> assignmentHistories = [];
 
     void AddTaskPhase()
     {
@@ -208,7 +208,7 @@ public class GameStatistics
 
             if (variation.ShowPlayerPosition)
             {
-                List<Tuple<byte, Vector2>> list = new();
+                List<Tuple<byte, Vector2>> list = [];
                 foreach (var p in PlayerControl.AllPlayerControls.GetFastEnumerator())
                 {
                     if (p.Data.IsDead && p.PlayerId != sourceId && (TargetIdMask & 1 << p.PlayerId) == 0) continue;
@@ -222,7 +222,7 @@ public class GameStatistics
             }
             else
             {
-                Position = new Tuple<byte, Vector2>[0];
+                Position = [];
             }
         }
 
@@ -238,7 +238,7 @@ public class GameStatistics
         }
     }
 
-    private List<Event> allEvents { get; set; } = new();
+    private List<Event> allEvents { get; set; } = [];
     public IEnumerable<Event> AllEvents => allEvents;
     public Event[] Sealed { get => allEvents.ToArray(); }
 
@@ -246,12 +246,12 @@ public class GameStatistics
 
     public void RecordEvent(Event statisticsEvent)
     {
-        int index = allEvents.Count;
+        var index = allEvents.Count;
 
         if (statisticsEvent.Variation.CanCombine)
         {
             //末尾から検索
-            for (int i = allEvents.Count - 1; i >= 0; i--)
+            for (var i = allEvents.Count - 1; i >= 0; i--)
             {
                 if (allEvents[i].Time > statisticsEvent.Time) index = i;
 
@@ -270,7 +270,7 @@ public class GameStatistics
 
     public void RpcRecordEvent(EventVariation variation, TranslatableTag relatedTag, PlayerControl? source, params PlayerControl[] targets)
     {
-        int mask = 0;
+        var mask = 0;
         foreach (var p in targets) mask |= 1 << p.PlayerId;
         RpcRecordEvent(variation, relatedTag, source, mask);
     }
@@ -412,7 +412,7 @@ public class GameStatisticsViewer : MonoBehaviour
 
     public void Update()
     {
-        GameStatistics.Event? willShown = eventPiled ?? eventSelected;
+        var willShown = eventPiled ?? eventSelected;
         if (willShown != currentShown)
         {
             if (willShown == null)
@@ -438,18 +438,18 @@ public class GameStatisticsViewer : MonoBehaviour
     public void OnSelect(int index)
     {
         eventSelected = index >= 0 ? allStatistics[index] : null;
-        CriticalPoints.ForEachChild((Il2CppSystem.Action<GameObject>)((obj) => obj.GetComponent<CriticalPoint>().OnSomeIndexSelected(index)));
+        CriticalPoints.ForEachChild((Il2CppSystem.Action<GameObject>)(obj => obj.GetComponent<CriticalPoint>().OnSomeIndexSelected(index)));
     }
 
     private void ShowCriticalMoment(float p, ref int index)
     {
         var sum = allStatistics[allStatistics.Length - 1].Time - allStatistics[0].Time;
-        int indexMin = index;
+        var indexMin = index;
         while (index + 1 < allStatistics.Length && allStatistics[index + 1].Time - allStatistics[indexMin].Time < sum * 0.01f)
         {
             index++;
         }
-        int indexMax = index;
+        var indexMax = index;
 
         //ゲーム終了と結合する際は後ろに揃える
         if (indexMax == allStatistics.Length - 1) p = 1f;
@@ -467,11 +467,11 @@ public class GameStatisticsViewer : MonoBehaviour
         timelineFront.SetPosition(1, new Vector3(-LineHalfWidth, 0));
         timelineFront.SetColors(MainColor, MainColor);
 
-        float p = 0f;
+        var p = 0f;
 
-        float minTime = allStatistics[0].Time;
-        float maxTime = allStatistics[allStatistics.Length - 1].Time;
-        int index = 0;
+        var minTime = allStatistics[0].Time;
+        var maxTime = allStatistics[allStatistics.Length - 1].Time;
+        var index = 0;
 
         ShowCriticalMoment(0, ref index);
 
@@ -490,19 +490,19 @@ public class GameStatisticsViewer : MonoBehaviour
     }
     private IEnumerator CoShowTimeBackLine()
     {
-        float t = 0f;
+        var t = 0f;
 
         timelineBack.SetPosition(0, new Vector3(-LineHalfWidth, 0));
         timelineBack.SetColors(MainColor * BackColorRate, MainColor.AlphaMultiplied(0));
 
         while (true)
         {
-            float log = Mathf.Log(t + 1f, 1.92f);
-            float exp = t > 1.3f ? Mathf.Pow((t - 1.3f) * 0.86f, 3f) : 0f;
+            var log = Mathf.Log(t + 1f, 1.92f);
+            var exp = t > 1.3f ? Mathf.Pow((t - 1.3f) * 0.86f, 3f) : 0f;
             t += Time.deltaTime;
 
             timelineBack.SetPosition(1, new Vector3(log < 1 ? log * LineHalfWidth : LineHalfWidth, 0));
-            float a = exp;
+            var a = exp;
             if (log > 1) a += (log - 1) / log * 0.3f * LineHalfWidth;
             timelineBack.endColor = MainColor.AlphaMultiplied(a > 1f ? 1f : a) * BackColorRate;
 
@@ -517,8 +517,8 @@ public class GameStatisticsViewer : MonoBehaviour
 
     public void ClearDetail(bool onlyMinimap)
     {
-        baseOnMinimap.ForEachChild((Il2CppSystem.Action<GameObject>)((c) => Destroy(c)));
-        if (!onlyMinimap) detailHolder.ForEachChild((Il2CppSystem.Action<GameObject>)((c) => Destroy(c)));
+        baseOnMinimap.ForEachChild((Il2CppSystem.Action<GameObject>)(c => Destroy(c)));
+        if (!onlyMinimap) detailHolder.ForEachChild((Il2CppSystem.Action<GameObject>)(c => Destroy(c)));
     }
 
     public void Hide()
@@ -531,7 +531,7 @@ public class GameStatisticsViewer : MonoBehaviour
         //対象となるCriticalPointを探す
         int index = 0, indexMin = 0, indexMax = 0;
         while (allStatistics[index] != statisticsEvent) index++;
-        CriticalPoints.ForEachChild((Il2CppSystem.Action<GameObject>)((obj) =>
+        CriticalPoints.ForEachChild((Il2CppSystem.Action<GameObject>)(obj =>
         {
             var criticalPoint = obj.GetComponent<CriticalPoint>();
             if (criticalPoint.Contains(index))
@@ -549,7 +549,7 @@ public class GameStatisticsViewer : MonoBehaviour
         minimap.SetActive(true);
         detailHolder.SetActive(true);
 
-        float p = 0f;
+        var p = 0f;
         foreach (var pos in statisticsEvent.Position)
         {
             var renderer = Instantiate(NebulaGameManager.Instance!.RuntimeAsset.MinimapPrefab.HerePoint, baseOnMinimap.transform);
@@ -582,12 +582,12 @@ public class GameStatisticsViewer : MonoBehaviour
         }
 
 
-        int num = 0;
+        var num = 0;
         void EventToDetailShower(int eventIndex)
         {
-            GameStatistics.Event target = allStatistics[eventIndex];
+            var target = allStatistics[eventIndex];
 
-            GameObject detail = UnityHelper.CreateObject("EventDetail", detailHolder.transform, new Vector3(0, -0.76f * num, -10f));
+            var detail = UnityHelper.CreateObject("EventDetail", detailHolder.transform, new Vector3(0, -0.76f * num, -10f));
 
             var backGround = NebulaAsset.CreateSharpBackground(new Vector2(3.4f, 0.7f), MainColor, detail.transform);
 
@@ -606,11 +606,11 @@ public class GameStatisticsViewer : MonoBehaviour
                 backGround.color = MainColor;
             });
 
-            List<GameObject> objects = new();
+            List<GameObject> objects = [];
 
             Il2CppArgument<PoolablePlayer> GeneratePlayerView(byte id)
             {
-                PoolablePlayer player = Instantiate(PlayerPrefab, detail.transform);
+                var player = Instantiate(PlayerPrefab, detail.transform);
                 var info = NebulaGameManager.Instance?.GetPlayer(id);
                 player.UpdateFromPlayerOutfit(info?.Unbox().DefaultOutfit!, PlayerMaterial.MaskType.None, false, true, null);
                 player.ToggleName(true);
@@ -622,7 +622,7 @@ public class GameStatisticsViewer : MonoBehaviour
 
             if (target.SourceId.HasValue) objects.Add(GeneratePlayerView(target.SourceId.Value).Value.gameObject);
 
-            SpriteRenderer icon = UnityHelper.CreateObject<SpriteRenderer>("Icon", detail.transform, new Vector3(0, 0, -1f));
+            var icon = UnityHelper.CreateObject<SpriteRenderer>("Icon", detail.transform, new Vector3(0, 0, -1f));
             icon.sprite = target.Variation.InteractionIcon?.GetSprite()!;
             icon.transform.localScale = new Vector3(0.7f, 0.7f, 1f);
             if (target.RelatedTag != null)
@@ -641,10 +641,10 @@ public class GameStatisticsViewer : MonoBehaviour
                 if ((target.TargetIdMask & 1 << p.PlayerId) != 0)
                     objects.Add(GeneratePlayerView(p.PlayerId).Value.gameObject);
 
-            float width = Mathf.Min(1.2f, (objects.Count - 1) * 0.5f);
-            for (int i = 0; i < objects.Count; i++)
+            var width = Mathf.Min(1.2f, (objects.Count - 1) * 0.5f);
+            for (var i = 0; i < objects.Count; i++)
             {
-                float pos = objects.Count == 1 ? 0 : width * ((float)i / (objects.Count - 1) * 2f - 1f);
+                var pos = objects.Count == 1 ? 0 : width * ((float)i / (objects.Count - 1) * 2f - 1f);
                 objects[i].transform.localPosition += new Vector3(pos, 0, 0f);
             }
 
@@ -654,7 +654,7 @@ public class GameStatisticsViewer : MonoBehaviour
 
         if (requireGenerateDetail)
         {
-            for (int i = indexMin; i <= indexMax; i++)
+            for (var i = indexMin; i <= indexMax; i++)
             {
                 EventToDetailShower(i);
             }

@@ -15,12 +15,12 @@ public class IfCommand : ICommand
         if (arguments.Count == 1) return new CoImmediateErrorTask<ICommandToken>(env.Logger, label + " <condition1> <then1> <condition2> <then2> ... [<else>]");
 
         //さいごの偽の場合のトークンは切り捨てられる
-        int num = arguments.Count / 2;
-        bool hasFalse = (arguments.Count % 2) == 1;
+        var num = arguments.Count / 2;
+        var hasFalse = (arguments.Count % 2) == 1;
 
         IEnumerator CoEvaluate(CoBuiltInTask<ICommandToken> myTask)
         {
-            for(int i =  0; i < num; i++)
+            for(var i =  0; i < num; i++)
             {
                 var ifTask = arguments[i * 2].AsValue<bool>(env);
                 yield return ifTask.CoWait();

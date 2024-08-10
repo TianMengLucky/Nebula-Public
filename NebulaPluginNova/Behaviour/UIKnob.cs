@@ -5,7 +5,7 @@ namespace Nebula.Behaviour;
 public class UIKnob : Scrollbar
 {
     static UIKnob() => ClassInjector.RegisterTypeInIl2Cpp<UIKnob>();
-    public UIKnob(System.IntPtr ptr) : base(ptr) { }
+    public UIKnob(IntPtr ptr) : base(ptr) { }
     public UIKnob() : base(ClassInjector.DerivedConstructorPointer<UIKnob>())
     { ClassInjector.DerivedConstructorBody(this); }
 
@@ -51,7 +51,7 @@ public class UIKnob : Scrollbar
     {
         try
         {
-            float delta = IsVert ? dragDelta.y : dragDelta.x;
+            var delta = IsVert ? dragDelta.y : dragDelta.x;
 
             var localPos = transform.localPosition;
             localPos += new Vector3(IsVert ? 0f : delta, IsVert ? delta : 0f, 0f);

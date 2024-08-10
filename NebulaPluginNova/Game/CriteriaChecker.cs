@@ -47,10 +47,10 @@ public class NebulaEndCriteria
                 var status = ShipStatus.Instance;
                 if (status.Systems != null)
                 {
-                    ISystemType? systemType = status.Systems.ContainsKey(SystemTypes.LifeSupp) ? status.Systems[SystemTypes.LifeSupp] : null;
+                    var systemType = status.Systems.ContainsKey(SystemTypes.LifeSupp) ? status.Systems[SystemTypes.LifeSupp] : null;
                     if (systemType != null)
                     {
-                        LifeSuppSystemType lifeSuppSystemType = systemType.TryCast<LifeSuppSystemType>()!;
+                        var lifeSuppSystemType = systemType.TryCast<LifeSuppSystemType>()!;
                         if (lifeSuppSystemType != null && lifeSuppSystemType.Countdown < 0f)
                         {
                             lifeSuppSystemType.Countdown = 10000f;
@@ -58,9 +58,9 @@ public class NebulaEndCriteria
                         }
                     }
 
-                    foreach (ISystemType systemType2 in ShipStatus.Instance.Systems.Values)
+                    foreach (var systemType2 in ShipStatus.Instance.Systems.values)
                     {
-                        ICriticalSabotage? criticalSabotage = systemType2.TryCast<ICriticalSabotage>();
+                        var criticalSabotage = systemType2.TryCast<ICriticalSabotage>();
                         if (criticalSabotage != null && criticalSabotage.Countdown < 0f)
                         {
                             criticalSabotage.ClearSabotage();
@@ -91,8 +91,8 @@ public class NebulaEndCriteria
         [OnlyHost]
         void OnTaskUpdate(PlayerTaskUpdateEvent ev)
         {
-            int quota = 0;
-            int completed = 0;
+            var quota = 0;
+            var completed = 0;
             foreach (var p in NebulaGameManager.Instance!.AllPlayerInfo())
             {
                 if (p.IsDisconnected) continue;
@@ -110,8 +110,8 @@ public class NebulaEndCriteria
         [OnlyHost]
         void OnUpdate(GameUpdateEvent ev)
         {
-            int impostors = 0;
-            int totalAlive = 0;
+            var impostors = 0;
+            var totalAlive = 0;
             
             foreach (var p in NebulaGameManager.Instance!.AllPlayerInfo())
             {
@@ -134,11 +134,11 @@ public class NebulaEndCriteria
         [OnlyHost]
         void OnUpdate(GameUpdateEvent ev)
         {
-            int totalAlive = NebulaGameManager.Instance!.AllPlayerInfo().Count(p => !p.IsDead);
+            var totalAlive = NebulaGameManager.Instance!.AllPlayerInfo().Count(p => !p.IsDead);
 
             bool isJackalTeam(GamePlayer p) => p.Role.Role.Team == Jackal.MyTeam || p.Unbox().AllModifiers.Any(m => m.Modifier == SidekickModifier.MyRole);
 
-            int totalAliveAllJackals = 0;
+            var totalAliveAllJackals = 0;
 
             //全体の生存しているジャッカルの人数を数えると同時に、ジャッカル陣営が勝利できない状況なら調べるのをやめる
             foreach (var p in NebulaGameManager.Instance!.AllPlayerInfo())
@@ -154,12 +154,12 @@ public class NebulaEndCriteria
             }
 
             //全ジャッカルに対して、各チームごとに勝敗を調べる
-            foreach (var jackal in NebulaGameManager.Instance!.AllPlayerInfo().Where(p => !p.IsDead && p.Role.Role == Roles.Neutral.Jackal.MyRole))
+            foreach (var jackal in NebulaGameManager.Instance!.AllPlayerInfo().Where(p => !p.IsDead && p.Role.Role == Jackal.MyRole))
             {
-                var jRole = (jackal.Role as Roles.Neutral.Jackal.Instance);
+                var jRole = (jackal.Role as Jackal.Instance);
                 if (!(jRole?.CanWinDueToKilling ?? false)) continue;
 
-                int aliveJackals = NebulaGameManager.Instance!.AllPlayerInfo().Count(p => !p.IsDead && (jRole!.IsSameTeam(p)));
+                var aliveJackals = NebulaGameManager.Instance!.AllPlayerInfo().Count(p => !p.IsDead && (jRole!.IsSameTeam(p)));
                 
                 //他のJackal陣営が生きていたら勝利できない
                 if (aliveJackals < totalAliveAllJackals) continue;
@@ -174,7 +174,7 @@ public class NebulaEndCriteria
         [OnlyHost]
         void OnUpdate(GameUpdateEvent ev)
         {
-            int totalAlive = NebulaGameManager.Instance!.AllPlayerInfo().Count((p) => !p.IsDead);
+            var totalAlive = NebulaGameManager.Instance!.AllPlayerInfo().Count(p => !p.IsDead);
             if (totalAlive != 3) return;
 
             foreach (var p in NebulaGameManager.Instance!.AllPlayerInfo())
@@ -198,17 +198,17 @@ public class NebulaEndCriteria
         [OnlyHost]
         void OnExiled(PlayerExiledEvent ev) 
         {
-            if (ev.Player?.Role.Role == Roles.Neutral.Jester.MyRole) NebulaAPI.CurrentGame?.TriggerGameEnd(NebulaGameEnd.JesterWin, GameEndReason.Special, BitMasks.AsPlayer(1u << ev.Player.PlayerId));
+            if (ev.Player?.Role.Role == Jester.MyRole) NebulaAPI.CurrentGame?.TriggerGameEnd(NebulaGameEnd.JesterWin, GameEndReason.Special, BitMasks.AsPlayer(1u << ev.Player.PlayerId));
         }
     };
 }
 
 public class CriteriaManager
 {
-    private record TriggeredGameEnd(Virial.Game.GameEnd gameEnd, Virial.Game.GameEndReason reason, BitMask<Virial.Game.Player>? additionalWinners);
-    private List<TriggeredGameEnd> triggeredGameEnds = new();
+    private record TriggeredGameEnd(GameEnd gameEnd, GameEndReason reason, BitMask<Virial.Game.Player>? additionalWinners);
+    private List<TriggeredGameEnd> triggeredGameEnds = [];
     
-    public void Trigger(Virial.Game.GameEnd gameEnd, Virial.Game.GameEndReason reason, BitMask<Virial.Game.Player>? additionalWinners)
+    public void Trigger(GameEnd gameEnd, GameEndReason reason, BitMask<Virial.Game.Player>? additionalWinners)
     {
         triggeredGameEnds.Add(new(gameEnd, reason, additionalWinners));
     }

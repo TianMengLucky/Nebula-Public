@@ -11,7 +11,7 @@ namespace CPUAffinityEditor
         public FloatWithIndex(int index)
         {
             this.index = index;
-            this.value = 0.0f;
+            value = 0.0f;
         }
 
         public FloatWithIndex(int index,float value)
@@ -24,19 +24,19 @@ namespace CPUAffinityEditor
     {
         static FloatWithIndex[] GetProcessorBusyness(float duration)
         {
-            int processors = Environment.ProcessorCount;
-            PerformanceCounter[] counters = new PerformanceCounter[processors];
-            FloatWithIndex[] result = new FloatWithIndex[processors];
-            for (int i = 0; i < result.Length; i++)
+            var processors = Environment.ProcessorCount;
+            var counters = new PerformanceCounter[processors];
+            var result = new FloatWithIndex[processors];
+            for (var i = 0; i < result.Length; i++)
             {
                 result[i] = new FloatWithIndex(i);
                 counters[i] = new PerformanceCounter("Processor", "% Processor Time", i.ToString());
             }
             
-            int max = (int)(duration * 100);
-            for(int t = 0; t < max; t++)
+            var max = (int)(duration * 100);
+            for(var t = 0; t < max; t++)
             {
-                for (int i = 0; i < result.Length; i++)
+                for (var i = 0; i < result.Length; i++)
                 {
                     result[i].value += counters[i].NextValue();
                 }
@@ -44,7 +44,7 @@ namespace CPUAffinityEditor
             }
 
             //計測時間に依らず平均使用率を返すようにする
-            for (int i = 0; i < result.Length; i++)
+            for (var i = 0; i < result.Length; i++)
             {
                 result[i].value /= duration;
             }
@@ -54,8 +54,8 @@ namespace CPUAffinityEditor
 
         static FloatWithIndex[] GetPhysicalProcessorBusyness(FloatWithIndex[] logicalBusyness)
         {
-            FloatWithIndex[] result = new FloatWithIndex[logicalBusyness.Length / 2];
-            for(int i = 0; i < result.Length; i++)
+            var result = new FloatWithIndex[logicalBusyness.Length / 2];
+            for(var i = 0; i < result.Length; i++)
             {
                 result[i] = new FloatWithIndex(i, (logicalBusyness[i * 2].value + logicalBusyness[i * 2 + 1].value) * 0.5f);
             }
@@ -69,7 +69,7 @@ namespace CPUAffinityEditor
                 if (args.Length != 2) return;
 
                 //プロセスを取得
-                var p = System.Diagnostics.Process.GetProcessById(int.Parse(args[0]));
+                var p = Process.GetProcessById(int.Parse(args[0]));
 
 
                 //優先度の設定
@@ -91,9 +91,9 @@ namespace CPUAffinityEditor
                 if (args[1] == "0")
                 {
                     //全てのコアを使用可能にする(Dont Care)
-                    int processors=Environment.ProcessorCount;
-                    int affinity = 0;
-                    for(int i = 0; i < processors; i++)
+                    var processors=Environment.ProcessorCount;
+                    var affinity = 0;
+                    for(var i = 0; i < processors; i++)
                     {
                         affinity <<= 1;
                         affinity |= 1;
@@ -114,8 +114,8 @@ namespace CPUAffinityEditor
                 {
                     //2つのコアを選択
                     Array.Sort(busyness, (a, b) => a.value - b.value > 0 ? 1 : -1);
-                    int mask = 0;
-                    for(int i = 0; i < 2; i++)
+                    var mask = 0;
+                    for(var i = 0; i < 2; i++)
                     {
                         mask |= 1 << busyness[i].index;
                     }

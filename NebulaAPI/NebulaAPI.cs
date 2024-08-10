@@ -44,16 +44,16 @@ internal interface INebula
 
     // Shortcuts
 
-    Configuration.Configurations Configurations => Get<Configuration.Configurations>()!;
-    Media.GUI GUILibrary => Get<Media.GUI>()!;
-    Media.Translator Language => Get<Media.Translator>()!;
+    Configurations Configurations => Get<Configurations>()!;
+    GUI GUILibrary => Get<GUI>()!;
+    Translator Language => Get<Translator>()!;
     Utilities.IHasher Hasher => Get<Utilities.IHasher>()!;
 
     //AssignableAPI
 
-    Assignable.DefinedRole? GetRole(string internalName);
-    Assignable.DefinedModifier? GetModifier(string internalName);
-    Assignable.DefinedGhostRole? GetGhostRole(string internalName);
+    DefinedRole? GetRole(string internalName);
+    DefinedModifier? GetModifier(string internalName);
+    DefinedGhostRole? GetGhostRole(string internalName);
 }
 
 public static class NebulaAPI
@@ -75,17 +75,17 @@ public static class NebulaAPI
     /// <summary>
     /// GUIモジュールです。
     /// </summary>
-    static public Media.GUI GUI => instance.GUILibrary;
+    static public GUI GUI => instance.GUILibrary;
 
     /// <summary>
     /// 翻訳モジュールです。
     /// </summary>
-    static public Media.Translator Language => instance.Language;
+    static public Translator Language => instance.Language;
 
     /// <summary>
     /// オプションやゲーム内共有変数に関するモジュールです。
     /// </summary>
-    static public Configuration.Configurations Configurations => instance.Configurations;
+    static public Configurations Configurations => instance.Configurations;
 
     /// <summary>
     /// 不変なハッシュ値を生成するモジュールです。
@@ -111,17 +111,17 @@ public static class NebulaAPI
     /// </summary>
     /// <param name="internalName"></param>
     /// <returns></returns>
-    static public Assignable.DefinedRole? GetRole(string internalName) => instance.GetRole(internalName);
+    static public DefinedRole? GetRole(string internalName) => instance.GetRole(internalName);
     /// <summary>
     /// 定義済みモディファイアを取得します。
     /// </summary>
     /// <param name="internalName"></param>
     /// <returns></returns>
-    static public Assignable.DefinedModifier? GetModifier(string internalName) => instance.GetModifier(internalName);
+    static public DefinedModifier? GetModifier(string internalName) => instance.GetModifier(internalName);
     /// <summary>
     /// 定義済み幽霊役職を取得します。
     /// </summary>
     /// <param name="internalName"></param>
     /// <returns></returns>
-    static public Assignable.DefinedGhostRole? GetGhostRole(string internalName) => instance.GetGhostRole(internalName);
+    static public DefinedGhostRole? GetGhostRole(string internalName) => instance.GetGhostRole(internalName);
 }

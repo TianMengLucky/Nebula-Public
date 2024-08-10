@@ -9,7 +9,7 @@ namespace Virial.Assignable;
 public interface IRoleAllocator
 {
     public abstract void Assign(List<byte> impostors, List<byte> others);
-    public virtual DefinedGhostRole? AssignToGhost(Virial.Game.Player player) => null;
+    public virtual DefinedGhostRole? AssignToGhost(Game.Player player) => null;
 }
 
 public interface IRoleTable

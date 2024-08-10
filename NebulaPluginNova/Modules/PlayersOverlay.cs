@@ -5,6 +5,7 @@ using Virial;
 using Virial.Events.Game;
 using Virial.Events.Player;
 using Virial.Game;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Modules;
 
@@ -14,7 +15,7 @@ public class PlayersOverlay : IGameOperator
 {
     static private IDividedSpriteLoader iconSprite = DividedSpriteLoader.FromResource("Nebula.Resources.OverlayIcon.png", 100f, 2, 1);
 
-    private List<PlayerIcon> allIcons = new();
+    private List<PlayerIcon> allIcons = [];
     GameObject IconHolder = null!;
     BitMask<PlayerControl>? mask = null;
 
@@ -42,7 +43,7 @@ public class PlayersOverlay : IGameOperator
         {
             if (!p.relatedControl)
             {
-                GameObject.Destroy(p.iconObj);
+                Object.Destroy(p.iconObj);
                 return true;
             }
             return false;
@@ -99,7 +100,7 @@ public class PlayersOverlay : IGameOperator
 
         if(mask != null)
         {
-            int num = 0;
+            var num = 0;
             foreach (var i in allIcons)
             {
                 i.iconObj.SetActive(mask.Test(i.relatedControl));

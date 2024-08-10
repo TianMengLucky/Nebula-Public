@@ -30,7 +30,7 @@ public static class AdminButtonPatch
         {
             if (!(GameManager.Instance == null))
             {
-                LogicGameFlowHnS logicGameFlowHnS = GameManager.Instance.LogicFlow.TryCast<LogicGameFlowHnS>()!;
+                var logicGameFlowHnS = GameManager.Instance.LogicFlow.TryCast<LogicGameFlowHnS>()!;
                 if (logicGameFlowHnS != null)
                 {
                     __instance.useable = logicGameFlowHnS.SeekerAdminMapEnabled(PlayerControl.LocalPlayer);

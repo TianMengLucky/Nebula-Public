@@ -1,6 +1,7 @@
 ﻿using AmongUs.GameOptions;
 using Virial.DI;
 using Virial.Game;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Player;
 
@@ -20,8 +21,8 @@ public class PlayerTaskState : AbstractModule<GamePlayer>, IInjectable, PlayerTa
 
     public PlayerTaskState()
     {
-        GetTasks(out int shortTasks, out int longTasks, out int commonTasks);
-        int sum = shortTasks + longTasks + commonTasks;
+        GetTasks(out var shortTasks, out var longTasks, out var commonTasks);
+        var sum = shortTasks + longTasks + commonTasks;
         Quota = TotalTasks = CurrentTasks = sum;
 
         acTokenGhostTask = new("doTaskEvenDead", true, (val, _) => MyContainer.AmOwner && val && Quota >= 8 && TotalCompleted >= Quota);
@@ -116,9 +117,9 @@ public class PlayerTaskState : AbstractModule<GamePlayer>, IInjectable, PlayerTa
 
     private void RemoveAllTasks()
     {
-        MyContainer.VanillaPlayer.myTasks.RemoveAll((Il2CppSystem.Predicate<PlayerTask>)((task) => {
+        MyContainer.VanillaPlayer.myTasks.RemoveAll((Il2CppSystem.Predicate<PlayerTask>)(task => {
             if (ShipStatus.Instance.SpecialTasks.Any(t => t.TaskType == task.TaskType)) return false;
-            GameObject.Destroy(task.gameObject);
+            Object.Destroy(task.gameObject);
             return true;
         }));
     }
@@ -130,7 +131,7 @@ public class PlayerTaskState : AbstractModule<GamePlayer>, IInjectable, PlayerTa
         foreach(var t in tasks.Select(task =>
         {
             var orig = ShipStatus.Instance.GetTaskById(task.TypeId);
-            var t = GameObject.Instantiate<NormalPlayerTask>(orig, PlayerControl.LocalPlayer.transform);
+            var t = Object.Instantiate<NormalPlayerTask>(orig, PlayerControl.LocalPlayer.transform);
             t.Id = task.Id;
             t.Index = t.Index;
             t.Owner = PlayerControl.LocalPlayer;
@@ -146,7 +147,7 @@ public class PlayerTaskState : AbstractModule<GamePlayer>, IInjectable, PlayerTa
         Il2CppSystem.Collections.Generic.List<byte> newTaskIdList = new();
         Il2CppSystem.Collections.Generic.List<NormalPlayerTask> taskCandidates = new();
         Il2CppSystem.Collections.Generic.HashSet<TaskTypes> hashSet = new();
-        int num = 0;
+        var num = 0;
 
         num = 0; foreach (var t in ShipStatus.Instance.CommonTasks.ToList().OrderBy(t => Guid.NewGuid())) taskCandidates.Add(t);
         ShipStatus.Instance.AddTasksFromList(ref num, commonTasks, newTaskIdList, hashSet, taskCandidates);
@@ -162,16 +163,16 @@ public class PlayerTaskState : AbstractModule<GamePlayer>, IInjectable, PlayerTa
         ShipStatus.Instance.AddTasksFromList(ref num, shortTasks, newTaskIdList, hashSet, taskCandidates);
 
         MyContainer.VanillaPlayer.Data.Tasks = new(newTaskIdList.Count);
-        for (int i = 0; i < newTaskIdList.Count; i++)
+        for (var i = 0; i < newTaskIdList.Count; i++)
         {
             MyContainer.VanillaPlayer.Data.Tasks.Add(new NetworkedPlayerInfo.TaskInfo(newTaskIdList[i], (uint)i));
             MyContainer.VanillaPlayer.Data.Tasks[i].Id = (uint)i;
         }
 
-        for (int i = 0; i < MyContainer.VanillaPlayer.Data.Tasks.Count; i++)
+        for (var i = 0; i < MyContainer.VanillaPlayer.Data.Tasks.Count; i++)
         {
             NetworkedPlayerInfo.TaskInfo taskInfo = MyContainer.VanillaPlayer.Data.Tasks[i];
-            NormalPlayerTask normalPlayerTask = GameObject.Instantiate<NormalPlayerTask>(ShipStatus.Instance.GetTaskById(taskInfo.TypeId), MyContainer.VanillaPlayer.transform);
+            var normalPlayerTask = Object.Instantiate<NormalPlayerTask>(ShipStatus.Instance.GetTaskById(taskInfo.TypeId), MyContainer.VanillaPlayer.transform);
             normalPlayerTask.Id = taskInfo.Id;
             normalPlayerTask.Owner = MyContainer.VanillaPlayer;
             normalPlayerTask.Initialize();
@@ -204,7 +205,7 @@ public class PlayerTaskState : AbstractModule<GamePlayer>, IInjectable, PlayerTa
             writer.Write(message.Quota);
             writer.Write(message.IsCrewmateTask);
         },
-        (reader) =>
+        reader =>
         {
             var task = NebulaGameManager.Instance?.GetPlayer(reader.ReadByte())?.Tasks.Unbox();
             if (task != null)

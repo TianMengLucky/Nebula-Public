@@ -74,7 +74,7 @@ public class GameSettingMenuStartPatch
         presetSetting.SetActive(false);
 
         GameObject?[] screens = [innerHolder, nebulaSetting, presetSetting];
-        List<(GameObject, SpriteRenderer, int)> allTabs = new();
+        List<(GameObject, SpriteRenderer, int)> allTabs = [];
         allTabs.Add(CreateTab(__instance, phoneLeft, "VanillaTab", screens, 0, allTabs));
         allTabs.Add(CreateTab(__instance, phoneLeft, "NebulaTab", screens, 1, allTabs));
         allTabs.Add(CreateTab(__instance, phoneLeft, "PresetTab", screens, 2, allTabs));

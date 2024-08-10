@@ -37,9 +37,9 @@ public static class VentCanUsePatch
     {
         couldUse = true;
         
-        float num = float.MaxValue;
-        PlayerControl @object = pc.Object;
-        GamePlayer? modInfo = NebulaGameManager.Instance?.GetPlayer(pc.PlayerId);
+        var num = float.MaxValue;
+        var @object = pc.Object;
+        var modInfo = NebulaGameManager.Instance?.GetPlayer(pc.PlayerId);
 
         //ダイブ中はベント使用不可
         if (modInfo?.IsDived ?? false)
@@ -63,7 +63,7 @@ public static class VentCanUsePatch
         ISystemType systemType;
         if (ShipStatus.Instance.Systems.TryGetValue(SystemTypes.Ventilation, out systemType))
         {
-            VentilationSystem ventilationSystem = systemType.Cast<VentilationSystem>();
+            var ventilationSystem = systemType.Cast<VentilationSystem>();
             if (ventilationSystem != null && ventilationSystem.IsVentCurrentlyBeingCleaned(__instance.Id)) couldUse = false;
         }
 
@@ -71,8 +71,8 @@ public static class VentCanUsePatch
 
         if (canUse)
         {
-            Vector3 center = @object.Collider.bounds.center;
-            Vector3 position = __instance.transform.position;
+            var center = @object.Collider.bounds.center;
+            var position = __instance.transform.position;
             num = Vector2.Distance(center, position);
             canUse &= (num <= __instance.UsableDistance && !PhysicsHelpers.AnythingBetween(@object.Collider, center, position, Constants.ShipOnlyMask, false));
         }
@@ -85,7 +85,7 @@ public static class VentCanUsePatch
 public static class VentSetOutlinePatch
 {
     public static bool Prefix(Vent __instance, [HarmonyArgument(0)]bool on, [HarmonyArgument(1)]bool mainTarget) {
-        Color color = PlayerControl.LocalPlayer.GetModInfo()!.Unbox().Role.Role.Color.ToUnityColor();
+        var color = PlayerControl.LocalPlayer.GetModInfo()!.Unbox().Role.Role.Color.ToUnityColor();
         __instance.myRend.material.SetFloat("_Outline", (float)(on ? 1 : 0));
         __instance.myRend.material.SetColor("_OutlineColor", color);
         __instance.myRend.material.SetColor("_AddColor", mainTarget ? color : Color.clear);
@@ -144,8 +144,8 @@ public static class VentUsePatch
         __instance.CanUse(PlayerControl.LocalPlayer.Data, out var flag, out _);
         if (!flag) return false;
 
-        PlayerControl localPlayer = PlayerControl.LocalPlayer;
-        bool isNotEnter = localPlayer.inVent && !localPlayer.walkingToVent;
+        var localPlayer = PlayerControl.LocalPlayer;
+        var isNotEnter = localPlayer.inVent && !localPlayer.walkingToVent;
 
         var info = localPlayer.GetModInfo();
 
@@ -247,7 +247,7 @@ public static class ConsoleCanUsePatch
             return false;
         }
 
-        if (ShipStatus.Instance.SpecialTasks.Any((task) => __instance.TaskTypes.Contains(task.TaskType)))
+        if (ShipStatus.Instance.SpecialTasks.Any(task => __instance.TaskTypes.Contains(task.TaskType)))
         {
             if (
                 (__instance.TaskTypes.Contains(TaskTypes.FixLights) && info.AllAssigned().Any(assignable => !assignable.CanFixLight)) ||
@@ -348,13 +348,13 @@ public static class ArrowUpdatePatch
         __instance.image.sortingOrder = 10;
 
         //表示するのはUIカメラ
-        Camera main = NebulaGameManager.Instance?.WideCamera.Camera ?? UnityHelper.FindCamera(LayerExpansion.GetUILayer())!;
+        var main = NebulaGameManager.Instance?.WideCamera.Camera ?? UnityHelper.FindCamera(LayerExpansion.GetUILayer())!;
         //距離を測るのは表示用のカメラ
-        Camera worldCam = (NebulaGameManager.Instance?.WideCamera.IsShown ?? false) ? NebulaGameManager.Instance.WideCamera.Camera : Camera.main;
+        var worldCam = (NebulaGameManager.Instance?.WideCamera.IsShown ?? false) ? NebulaGameManager.Instance.WideCamera.Camera : Camera.main;
 
         Vector2 del = __instance.target - main.transform.position;
 
-        float num = del.magnitude / (worldCam.orthographicSize * __instance.perc);
+        var num = del.magnitude / (worldCam.orthographicSize * __instance.perc);
         if (__instance.image != null) __instance.image.enabled = (num > __instance.minDistanceToShowArrow);
 
         Vector2 vector = worldCam.WorldToViewportPoint(__instance.target);

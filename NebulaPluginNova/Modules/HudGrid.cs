@@ -9,7 +9,7 @@ public class HudGrid : MonoBehaviour
         ClassInjector.RegisterTypeInIl2Cpp<HudGrid>();
     }
 
-    public List<Il2CppArgument<HudContent>>[] Contents = { new(), new() };
+    public List<Il2CppArgument<HudContent>>[] Contents = [[], []];
     private Transform ButtonsHolder = null!;
     private Transform StaticButtonsHolder = null!;
 
@@ -18,8 +18,8 @@ public class HudGrid : MonoBehaviour
         var buttonParent = HudManager.Instance.UseButton.transform.parent;
         buttonParent.localPosition= Vector3.zero;
         buttonParent.name = "Buttons";
-        GameObject.Destroy(buttonParent.gameObject.GetComponent<GridArrange>());
-        GameObject.Destroy(buttonParent.gameObject.GetComponent<AspectPosition>());
+        Destroy(buttonParent.gameObject.GetComponent<GridArrange>());
+        Destroy(buttonParent.gameObject.GetComponent<AspectPosition>());
         ButtonsHolder = buttonParent;
         StaticButtonsHolder = UnityHelper.CreateObject("StaticButtons", buttonParent.parent, new Vector3(0, 0, -40f)).transform;
 
@@ -42,17 +42,17 @@ public class HudGrid : MonoBehaviour
         
 
         //ベントボタンにクールダウンテキストを設定
-        HudManager.Instance.ImpostorVentButton.cooldownTimerText = GameObject.Instantiate(HudManager.Instance.KillButton.cooldownTimerText, HudManager.Instance.ImpostorVentButton.transform);
+        HudManager.Instance.ImpostorVentButton.cooldownTimerText = Instantiate(HudManager.Instance.KillButton.cooldownTimerText, HudManager.Instance.ImpostorVentButton.transform);
     }
 
     public void LateUpdate()
     {
-        for (int i = 0; i < 2; i++)
+        for (var i = 0; i < 2; i++)
         {
             Contents[i].RemoveAll(c => !c.Value);
 
             Contents[i].Sort((c1, c2) => { 
-                int num = c2.Value.Priority - c1.Value.Priority;
+                var num = c2.Value.Priority - c1.Value.Priority;
                 if (num == 0) num = c1.Value.SubPriority - c2.Value.SubPriority;
                 return num;
             });
@@ -60,7 +60,7 @@ public class HudGrid : MonoBehaviour
 
             if (Contents[i].Count == 0) continue;
 
-            bool killButtonPosArranged = false;
+            var killButtonPosArranged = false;
 
             int row = 0, column = 0;
             foreach(var c in Contents[i])
@@ -150,7 +150,7 @@ public class HudContent : MonoBehaviour
     }
     public HudContent UpdateSubPriority()
     {
-        this.subPriority = NebulaGameManager.Instance?.HudGrid.AvailableSubPriority ?? 0;
+        subPriority = NebulaGameManager.Instance?.HudGrid.AvailableSubPriority ?? 0;
         return this;
     }
 

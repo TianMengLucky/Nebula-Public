@@ -24,7 +24,7 @@ internal class ConfigurationHolder : IConfigurationHolder
     Func<bool>? isShown;
     Func<ConfigurationHolderState>? state;
 
-    static private List<ConfigurationHolder> allHolders = new();
+    static private List<ConfigurationHolder> allHolders = [];
     static public IEnumerable<IConfigurationHolder> AllHolders = allHolders;
 
     static void Preprocess(NebulaPreprocessor preprocessor)
@@ -37,10 +37,10 @@ internal class ConfigurationHolder : IConfigurationHolder
         this.title = title;
         this.detail = detail;
         this.tabs = tabs;
-        this.tags = new();
+        tags = [];
         this.gamemodes = gamemodes;
-        this.myConfigurations = new(configurations);
-        this.relatedButtons = new();
+        myConfigurations = [..configurations];
+        relatedButtons = [];
         this.isShown = isShown;
         this.state = state;
 
@@ -61,8 +61,8 @@ internal class ConfigurationHolder : IConfigurationHolder
     IEnumerable<ConfigurationUpperButton> IConfigurationHolder.RelatedInformations => relatedButtons;
     IEnumerable<ConfigurationTag> IConfigurationHolder.Tags => tags;
 
-    IConfigurationHolder IConfigurationHolder.AppendConfiguration(Virial.Configuration.IConfiguration configuration) { myConfigurations.Add(configuration); return this; }
-    IConfigurationHolder IConfigurationHolder.AppendConfigurations(IEnumerable<Virial.Configuration.IConfiguration> configuration) { myConfigurations.AddRange(configuration); return this; }
+    IConfigurationHolder IConfigurationHolder.AppendConfiguration(IConfiguration configuration) { myConfigurations.Add(configuration); return this; }
+    IConfigurationHolder IConfigurationHolder.AppendConfigurations(IEnumerable<IConfiguration> configuration) { myConfigurations.AddRange(configuration); return this; }
 
     IConfigurationHolder IConfigurationHolder.AddTags(params ConfigurationTag[] tags)
     {
@@ -90,7 +90,7 @@ internal class ConfigurationHolder : IConfigurationHolder
 public class ConfigurationTags
 {
     static private IDividedSpriteLoader TagSprite = DividedSpriteLoader.FromResource("Nebula.Resources.ConfigurationTag.png", 100f, 42, 42, true);
-    static private GUIWidget GetTagTextWidget(string translationKey) => new NoSGUIText(Virial.Media.GUIAlignment.Left, GUI.API.GetAttribute(Virial.Text.AttributeAsset.OverlayContent), new TranslateTextComponent("configuration.tag." + translationKey));
+    static private GUIWidget GetTagTextWidget(string translationKey) => new NoSGUIText(Virial.Media.GUIAlignment.Left, GUI.API.GetAttribute(AttributeAsset.OverlayContent), new TranslateTextComponent("configuration.tag." + translationKey));
     static public ConfigurationTag TagChaotic { get; private set; } = new(TagSprite.AsLoader(0), GetTagTextWidget("chaotic"));
     static public ConfigurationTag TagBeginner { get; private set; } = new(TagSprite.AsLoader(1), GetTagTextWidget("beginner"));
     static public ConfigurationTag TagFunny { get; private set; } = new(TagSprite.AsLoader(4), GetTagTextWidget("funny"));

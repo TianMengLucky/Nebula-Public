@@ -7,6 +7,7 @@ using Virial.Events.Game;
 using Virial.Events.Game.Meeting;
 using Virial.Events.Player;
 using Virial.Game;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Roles.Neutral;
 
@@ -43,12 +44,12 @@ public class Arsonist : DefinedRoleTemplate, HasCitation, DefinedRole
         {
             get
             {
-                int mask = 0;
+                var mask = 0;
                 foreach (var icon in playerIcons.Where(icon => icon.icon.GetAlpha() > 0.8f))
                 {
                     mask |= 1 << icon.playerId;
                 }
-                return new int[] { mask };
+                return [mask];
             }
         }
 
@@ -57,7 +58,7 @@ public class Arsonist : DefinedRoleTemplate, HasCitation, DefinedRole
         private Modules.ScriptComponents.ModAbilityButton? igniteButton = null;
         static private Image douseButtonSprite = SpriteLoader.FromResource("Nebula.Resources.Buttons.DouseButton.png", 115f);
         static private Image IgniteButtonSprite = SpriteLoader.FromResource("Nebula.Resources.Buttons.IgniteButton.png", 115f);
-        private List<(byte playerId,PoolablePlayer icon)> playerIcons = new();
+        private List<(byte playerId,PoolablePlayer icon)> playerIcons = [];
         private bool canIgnite;
 
         private bool CheckDoused((byte playerId, PoolablePlayer icon) p) => p.icon.GetAlpha() > 0.8f;
@@ -69,7 +70,7 @@ public class Arsonist : DefinedRoleTemplate, HasCitation, DefinedRole
 
         private void UpdateIcons()
         {
-            for(int i=0;i<playerIcons.Count;i++)
+            for(var i=0;i<playerIcons.Count;i++)
             {
                 playerIcons[i].icon.transform.localPosition = new(i * 0.29f - 0.3f, -0.1f, -i * 0.01f);
             }
@@ -114,16 +115,16 @@ public class Arsonist : DefinedRoleTemplate, HasCitation, DefinedRole
                     CheckIgnitable();
                 }
 
-                var douseTracker = Bind(ObjectTrackers.ForPlayer(null, MyPlayer, (p) => ObjectTrackers.StandardPredicate(p) && playerIcons.Any(tuple => tuple.playerId == p.PlayerId && tuple.icon.GetAlpha() < 0.8f)));
+                var douseTracker = Bind(ObjectTrackers.ForPlayer(null, MyPlayer, p => ObjectTrackers.StandardPredicate(p) && playerIcons.Any(tuple => tuple.playerId == p.PlayerId && tuple.icon.GetAlpha() < 0.8f)));
 
                 douseButton = Bind(new Modules.ScriptComponents.ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability);
                 douseButton.SetSprite(douseButtonSprite.GetSprite());
-                douseButton.Availability = (button) => MyPlayer.CanMove && douseTracker.CurrentTarget != null;
-                douseButton.Visibility = (button) => !MyPlayer.IsDead && !canIgnite;
-                douseButton.OnClick = (button) => {
+                douseButton.Availability = button => MyPlayer.CanMove && douseTracker.CurrentTarget != null;
+                douseButton.Visibility = button => !MyPlayer.IsDead && !canIgnite;
+                douseButton.OnClick = button => {
                     button.ActivateEffect();
                 };
-                douseButton.OnEffectEnd = (button) =>
+                douseButton.OnEffectEnd = button =>
                 {
                     if (douseTracker.CurrentTarget == null) return;
 
@@ -133,7 +134,7 @@ public class Arsonist : DefinedRoleTemplate, HasCitation, DefinedRole
                     CheckIgnitable();
                     douseButton.StartCoolDown();
                 };
-                douseButton.OnUpdate = (button) => {
+                douseButton.OnUpdate = button => {
                     if (!button.EffectActive) return;
                     if (douseTracker.CurrentTarget == null) button.InactivateEffect();
                 };
@@ -141,12 +142,12 @@ public class Arsonist : DefinedRoleTemplate, HasCitation, DefinedRole
                 douseButton.EffectTimer = Bind(new Timer(0f, DouseDurationOption));
                 douseButton.SetLabel("douse");
 
-                bool won = false;
+                var won = false;
                 igniteButton = Bind(new Modules.ScriptComponents.ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability);
                 igniteButton.SetSprite(IgniteButtonSprite.GetSprite());
-                igniteButton.Availability = (button) => MyPlayer.CanMove;
-                igniteButton.Visibility = (button) => !MyPlayer.IsDead && canIgnite && !won;
-                igniteButton.OnClick = (button) => {
+                igniteButton.Availability = button => MyPlayer.CanMove;
+                igniteButton.Visibility = button => !MyPlayer.IsDead && canIgnite && !won;
+                igniteButton.OnClick = button => {
                     NebulaGameManager.Instance.RpcInvokeSpecialWin(NebulaGameEnd.ArsonistWin, 1 << MyPlayer.PlayerId);
                     won = true;
                 };
@@ -165,7 +166,7 @@ public class Arsonist : DefinedRoleTemplate, HasCitation, DefinedRole
             {
                 if (NebulaGameManager.Instance?.GetPlayer(tuple.playerId)?.IsDead ?? true)
                 {
-                    GameObject.Destroy(tuple.icon.gameObject);
+                    Object.Destroy(tuple.icon.gameObject);
                     return true;
                 }
                 return false;

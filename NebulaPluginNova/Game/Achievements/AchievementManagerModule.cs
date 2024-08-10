@@ -38,8 +38,8 @@ internal class AchievementManagerModule : AbstractModule<Virial.Game.Game>, IGam
             if (NebulaGameManager.Instance!.LocalPlayerInfo.Unbox().TryGetModifier<Lover.Instance>(out var lover))
             {
                 var myLover = lover.MyLover;
-                float time = 0f;
-                bool isCleared = false;
+                var time = 0f;
+                var isCleared = false;
                 new NebulaGameScript()
                 {
                     OnUpdateEvent = () =>
@@ -76,10 +76,10 @@ internal class AchievementManagerModule : AbstractModule<Virial.Game.Game>, IGam
         {
             if(AmongUsUtil.CurrentMapId is 0 or 2 or 5)
             {
-                bool isSkeld = AmongUsUtil.CurrentMapId is 0;
-                IPlayerAttribute attr = isSkeld ? PlayerAttributes.Accel : PlayerAttributes.Decel;
-                float time = 0f;
-                bool isCleared = false;
+                var isSkeld = AmongUsUtil.CurrentMapId is 0;
+                var attr = isSkeld ? PlayerAttributes.Accel : PlayerAttributes.Decel;
+                var time = 0f;
+                var isCleared = false;
                 new NebulaGameScript()
                 {
                     OnUpdateEvent = () =>

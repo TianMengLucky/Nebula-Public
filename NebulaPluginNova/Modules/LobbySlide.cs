@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using Virial.Runtime;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Modules;
 
@@ -49,7 +50,7 @@ public abstract class LobbyImageSlide : LobbySlide
     }
     public override void Abandon()
     {
-        if (mySlide && mySlide!.texture) GameObject.Destroy(mySlide!.texture);
+        if (mySlide && mySlide!.texture) Object.Destroy(mySlide!.texture);
     }
 
     public override IMetaWidgetOld Show(out float height)
@@ -63,7 +64,7 @@ public abstract class LobbyImageSlide : LobbySlide
         if (mySlide != null)
         {
             //縦に大きすぎる画像はそれに合わせて調整する
-            float width = Mathf.Min(5.4f, mySlide.bounds.size.x / mySlide.bounds.size.y * 2.9f);
+            var width = Mathf.Min(5.4f, mySlide.bounds.size.x / mySlide.bounds.size.y * 2.9f);
             height += width / mySlide.bounds.size.x * mySlide.bounds.size.y;
 
             widget.Append(new MetaWidgetOld.Image(mySlide) { Alignment = IMetaWidgetOld.AlignmentOption.Center, Width = width });
@@ -97,7 +98,7 @@ public class LobbyOnlineImageSlide : LobbyImageSlide
     private async Task<byte[]> DownloadAsync()
     {
         var response = await NebulaPlugin.HttpClient.GetAsync(url);
-        if (response.StatusCode != HttpStatusCode.OK) return Array.Empty<byte>();
+        if (response.StatusCode != HttpStatusCode.OK) return [];
         return await response.Content.ReadAsByteArrayAsync();
     }
 
@@ -150,7 +151,7 @@ public class LobbySlideTemplate
 public class LobbySlideManager
 {
     public Dictionary<string,LobbySlide> allSlides = new();
-    static public List<LobbySlideTemplate> AllTemplates = new();
+    static public List<LobbySlideTemplate> AllTemplates = [];
     private MetaScreen? myScreen = null;
     private (string tag, bool detatched)? lastShowRequest;
     public bool IsValid { get; private set; } = true;
@@ -232,7 +233,7 @@ public class LobbySlideManager
                 myScreen = null;
             }
 
-            var widget = slide.Show(out float height);
+            var widget = slide.Show(out var height);
             var screen = MetaScreen.GenerateWindow(new(6.2f, Mathf.Min(height, 4.3f)), HudManager.Instance.transform, new Vector3(0, 0, -100f), true, false);
             screen.SetWidget(widget);
 

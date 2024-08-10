@@ -12,6 +12,6 @@ public class PlayerVentEnterEvent : AbstractPlayerEvent
 
     internal PlayerVentEnterEvent(Virial.Game.Player player, Vent vent) : base(player)
     {
-        this.Vent = vent;
+        Vent = vent;
     }
 }

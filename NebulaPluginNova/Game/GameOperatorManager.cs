@@ -13,7 +13,7 @@ internal class GameOperatorBuilder
 
     private GameOperatorBuilder(List<(Type type, Func<object, Action<object>> action)> actions)
     {
-        this.allActions = actions;
+        allActions = actions;
     }
 
 
@@ -27,13 +27,13 @@ internal class GameOperatorBuilder
 
     static public GameOperatorBuilder GetBuilderFromType(Type entityType)
     {
-        List<(Type type, Func<object, Action<object>> action)> builderActions = new();
+        List<(Type type, Func<object, Action<object>> action)> builderActions = [];
 
         //公開メソッドをすべて拾い上げる
         IEnumerable<MethodInfo> methods = entityType.GetMethods(BindingFlags.Instance | BindingFlags.Public);
 
         //親に遡及して非公開メソッドを拾い上げる
-        Type? baseType = entityType;
+        var baseType = entityType;
         while (baseType != null)
         {
             methods = methods.Concat(baseType.GetMethods(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly));
@@ -81,7 +81,7 @@ internal class GameOperatorBuilder
                 };
             }
 
-            builderActions.Add((eventType, (instance) => (e) => procedure.Invoke(instance,e)));
+            builderActions.Add((eventType, instance => e => procedure.Invoke(instance,e)));
         }
 
         return new(builderActions);
@@ -99,7 +99,7 @@ public class GameOperatorManager
     private Dictionary<Type, List<GameOperatorInstance>> allOperatorInstance = new();
 
     //特殊な作用素 (OnReleasedに限り、属性による指定なしでバインドされた寿命オブジェクトの寿命が尽きたときに個別に呼び出される。)
-    private List<(ILifespan lifespan, IGameOperator operation)> allOperators = new();
+    private List<(ILifespan lifespan, IGameOperator operation)> allOperators = [];
 
     // 同じ型の作用素を登録する処理を高速化するためのキャッシュ
     static private Dictionary<Type, GameOperatorBuilder> allBuildersCache = new();
@@ -190,8 +190,8 @@ public class GameOperatorManager
     }
 
     // 反復中に作用素が追加されないよう、一時的に退避する
-    private List<(IGameOperator entity, ILifespan lifespan)> newOperations = new();
-    private List<(Type eventType, Action<object> operation, ILifespan lifespan)> newFuncOperations = new();
+    private List<(IGameOperator entity, ILifespan lifespan)> newOperations = [];
+    private List<(Type eventType, Action<object> operation, ILifespan lifespan)> newFuncOperations = [];
 
     private void RegisterEntity(IGameOperator operation, ILifespan lifespan)
     {
@@ -211,7 +211,7 @@ public class GameOperatorManager
         List<GameOperatorInstance>? instanceList;
         if (!allOperatorInstance.TryGetValue(eventType, out instanceList))
         {
-            instanceList = new();
+            instanceList = [];
             allOperatorInstance.Add(eventType, instanceList);
         }
         instanceList.Add(instance);

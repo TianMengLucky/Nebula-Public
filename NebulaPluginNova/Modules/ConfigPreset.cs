@@ -30,10 +30,10 @@ public class ScriptPreset : IConfigPreset{
 
     public ScriptPreset(string id, string displayName, string? detail, string? relatedHolder, Action onLoad)
     {
-        this.Id = id;
-        this.DisplayName = displayName;
-        this.Detail = detail;
-        this.RelatedHolder = relatedHolder;
+        Id = id;
+        DisplayName = displayName;
+        Detail = detail;
+        RelatedHolder = relatedHolder;
         this.onLoad = onLoad;
 
         IConfigPreset.allPresets.Add(id,this);
@@ -79,7 +79,7 @@ public class ConfigPreset : IConfigPreset
     {
         this.addon = addon;
         this.path = path;
-        this.Name = name;
+        Name = name;
 
         try
         {
@@ -97,14 +97,14 @@ public class ConfigPreset : IConfigPreset
     {
         if(reload) foreach (var entry in IConfigPreset.allPresets) if (entry.Value is ConfigPreset cp && cp.addon == null) IConfigPreset.allPresets.Remove(entry.Key);
 
-        string presetsFolder = "Presets";
+        var presetsFolder = "Presets";
         Directory.CreateDirectory(presetsFolder);
         foreach (var fullName in Directory.GetFiles(presetsFolder))
         {
             if (fullName.EndsWith(".dat"))
             {
-                string path = fullName.Substring(presetsFolder.Length + 1);
-                new ConfigPreset(null, path, System.IO.Path.GetFileNameWithoutExtension(path));
+                var path = fullName.Substring(presetsFolder.Length + 1);
+                new ConfigPreset(null, path, Path.GetFileNameWithoutExtension(path));
             }
         }
 
@@ -116,13 +116,13 @@ public class ConfigPreset : IConfigPreset
 
         foreach (var addon in NebulaAddon.AllAddons)
         {
-            string Prefix = addon.InZipPath + "Presets/";
+            var Prefix = addon.InZipPath + "Presets/";
             foreach (var entry in addon.Archive.Entries)
             {
                 if (entry.FullName.StartsWith(Prefix) && entry.FullName.EndsWith(".dat"))
                 {
-                    string path = entry.FullName.Substring(Prefix.Length);
-                    new ConfigPreset(addon, path, System.IO.Path.GetFileNameWithoutExtension(path));
+                    var path = entry.FullName.Substring(Prefix.Length);
+                    new ConfigPreset(addon, path, Path.GetFileNameWithoutExtension(path));
                 }
             }
         }
@@ -134,7 +134,7 @@ public class ConfigPreset : IConfigPreset
     {
         try
         {
-            Stream? stream = addon != null ? addon.OpenStream("Presets/" + path) : File.OpenRead("Presets/" + path);
+            var stream = addon != null ? addon.OpenStream("Presets/" + path) : File.OpenRead("Presets/" + path);
 
             if (stream != null) return new StreamReader(stream, Encoding.UTF8).ReadToEnd();
             return null;
@@ -202,7 +202,7 @@ public class ConfigPreset : IConfigPreset
 
 
                 var args = code.Split(':');
-                for (int i = 0; i < args.Length; i++) args[i] = args[i].Trim();
+                for (var i = 0; i < args.Length; i++) args[i] = args[i].Trim();
 
                 switch (args[0].ToUpper())
                 {
@@ -247,12 +247,12 @@ public class ConfigPreset : IConfigPreset
 
     static private string OutputCurrentSettings(string name)
     {
-        string result = "#DISPLAY:" + name + "\n#VERSION:2";
+        var result = "#DISPLAY:" + name + "\n#VERSION:2";
 
         foreach (var option in AmongUsUtil.AllVanillaOptions)
             result += "\nSET:" + option + ":'" + AmongUsUtil.GetOptionAsString(option) + "'";
 
-        bool error = false;
+        var error = false;
         foreach (var option in ConfigurationValues.ConfigurationSaver.AllEntries())
         {
             result += "\nSET:" + option.Item1 + ":'" + option.Item2 + "'";

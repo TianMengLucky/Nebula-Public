@@ -6,7 +6,7 @@ namespace Nebula.Behaviour;
 
 public class TextField : MonoBehaviour
 {
-    static private List<TextField> allFields = new();
+    static private List<TextField> allFields = [];
 
     public static TextField? EditFirstField()
     {
@@ -28,7 +28,7 @@ public class TextField : MonoBehaviour
     {
         if (validField == null) return null;
 
-        int index = allFields.IndexOf(validField);
+        var index = allFields.IndexOf(validField);
         if (index == -1)
         {
             return null;
@@ -84,12 +84,12 @@ public class TextField : MonoBehaviour
 
     public bool IsSelecting => selectingBegin != -1;
 
-    static readonly public Predicate<char> TokenPredicate = (c) => ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9');
-    static readonly public Predicate<char> IdPredicate = (c) => TokenPredicate(c) || c is '.';
-    static readonly public Predicate<char> NameSpacePredicate = (c) => TokenPredicate(c) || c is '.' || c is ':';
-    static readonly public Predicate<char> IntegerPredicate = (c) => ('0' <= c && c <= '9');
-    static readonly public Predicate<char> NumberPredicate = (c) => ('0' <= c && c <= '9') || c is '.';
-    static readonly public Predicate<char> JsonStringPredicate = (c) => !(c is '\\' or '"');
+    static readonly public Predicate<char> TokenPredicate = c => ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9');
+    static readonly public Predicate<char> IdPredicate = c => TokenPredicate(c) || c is '.';
+    static readonly public Predicate<char> NameSpacePredicate = c => TokenPredicate(c) || c is '.' || c is ':';
+    static readonly public Predicate<char> IntegerPredicate = c => ('0' <= c && c <= '9');
+    static readonly public Predicate<char> NumberPredicate = c => ('0' <= c && c <= '9') || c is '.';
+    static readonly public Predicate<char> JsonStringPredicate = c => !(c is '\\' or '"');
 
     private bool InputText(string input)
     {
@@ -98,7 +98,7 @@ public class TextField : MonoBehaviour
         if (input.Length == 0) return false;
 
         {
-            int i = 0;
+            var i = 0;
             while (true)
             {
                 if (i == input.Length) return false;
@@ -122,7 +122,7 @@ public class TextField : MonoBehaviour
 
         if (IsSelecting)
         {
-            int minIndex = Math.Min(cursor, selectingBegin);
+            var minIndex = Math.Min(cursor, selectingBegin);
             myInput = myInput.Remove(minIndex, Math.Abs(cursor - selectingBegin)).Insert(minIndex, input);
             selectingBegin = -1;
             cursor = minIndex + input.Length;
@@ -136,7 +136,7 @@ public class TextField : MonoBehaviour
         //改行文字を制限
         var strings = myInput.Split('\r');
         myInput = "";
-        for(int i = 0; i < strings.Length; i++)
+        for(var i = 0; i < strings.Length; i++)
         {
             if (i > 0 && i < MaxLines) myInput += '\r';
             myInput += strings[i];
@@ -181,14 +181,14 @@ public class TextField : MonoBehaviour
     {
         try
         {
-            int myLineBegining = cursor;
+            var myLineBegining = cursor;
             while (myLineBegining > 0 && myInput[myLineBegining - 1] != '\r') myLineBegining--;
-            int targetLineBegining = moveForward ? cursor : myLineBegining - 1;
+            var targetLineBegining = moveForward ? cursor : myLineBegining - 1;
             while (targetLineBegining > 0 && targetLineBegining < myInput.Length && myInput[targetLineBegining - 1] != '\r') targetLineBegining += moveForward ? 1 : -1;
 
-            int dis = cursor - myLineBegining;
-            int result = targetLineBegining;
-            for (int i = 0; i < dis; i++)
+            var dis = cursor - myLineBegining;
+            var result = targetLineBegining;
+            for (var i = 0; i < dis; i++)
             {
                 if (myInput[result] != '\r' && result + 1 < myInput.Length) result++;
             }
@@ -242,11 +242,11 @@ public class TextField : MonoBehaviour
     private void UpdateTextMesh()
     {
         lastCompoStr = Input.compositionString;
-        string compStr = lastCompoStr;
+        var compStr = lastCompoStr;
         
         if (myInput.Length > 0 || compStr.Length > 0)
         {
-            string str = myInput.Insert(cursor, compStr);
+            var str = myInput.Insert(cursor, compStr);
             if (IsSelecting) str = str.Insert(ConsiderComposition(Math.Max(cursor, selectingBegin), compStr), "\\EMK").Insert(ConsiderComposition(Math.Min(cursor, selectingBegin), compStr), "\\BMK");
 
             str = Regex.Replace(str, "[<>]", "<noparse>$0</noparse>").Replace("\\EMK", "</mark>").Replace("\\BMK", "<mark=#5F74A5AA>").Replace("\r", "<br>");
@@ -260,8 +260,8 @@ public class TextField : MonoBehaviour
         }
         myText.ForceMeshUpdate();
 
-        int visualCursor = ConsiderComposition(cursor, compStr);
-        int lineNum = GetCursorLineNum(visualCursor);
+        var visualCursor = ConsiderComposition(cursor, compStr);
+        var lineNum = GetCursorLineNum(visualCursor);
         myCursor.transform.localPosition = new(GetCursorX(visualCursor), myInput.Length == 0 ? 
             0f : myText.textInfo.lineInfo[lineNum].baseline - myCursor.textInfo.lineInfo[0].baseline, -1f);
         
@@ -312,8 +312,8 @@ public class TextField : MonoBehaviour
     {
         allFields.Add(this);
 
-        myText = GameObject.Instantiate(VanillaAsset.StandardTextPrefab, transform);
-        myCursor = GameObject.Instantiate(VanillaAsset.StandardTextPrefab, transform);
+        myText = Instantiate(VanillaAsset.StandardTextPrefab, transform);
+        myCursor = Instantiate(VanillaAsset.StandardTextPrefab, transform);
         
         myText.sortingOrder = 15;
         myCursor.sortingOrder = 15;
@@ -371,7 +371,7 @@ public class TextField : MonoBehaviour
             return;
         }
 
-        bool requireUpdate = InputText(Input.inputString);
+        var requireUpdate = InputText(Input.inputString);
         if (dirtyFlag) { requireUpdate = true; dirtyFlag = false; }
 
         if (Input.GetKeyDown(KeyCode.UpArrow))

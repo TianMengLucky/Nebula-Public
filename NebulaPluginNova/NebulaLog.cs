@@ -11,12 +11,12 @@ public class NebulaLog
     public NebulaLog()
     {
 
-        int counter = 0;
+        var counter = 0;
         Stream? stream;
 
         while (true)
         {
-            string path = FileName;
+            var path = FileName;
             if (counter > 0) path += " " + counter;
             path += ".txt";
 
@@ -51,7 +51,7 @@ public class NebulaLog
     {
         public string Category;
         public LogCategory(string category) {
-            this.Category = category;
+            Category = category;
         }
 
         static public LogCategory MoreCosmic = new("MoreCosmic");
@@ -70,8 +70,8 @@ public class NebulaLog
         public int LevelMask;
         public LogLevel(string? level, int mask)
         {
-            this.Level = level;
-            this.LevelMask = mask;
+            Level = level;
+            LevelMask = mask;
         }
 
         static public LogLevel Log = new("Log", 0x0001);
@@ -83,7 +83,7 @@ public class NebulaLog
 
         static public int ToMask(params LogLevel[] level)
         {
-            int mask = 0;
+            var mask = 0;
             foreach (var l in level) mask |= l.LevelMask;
             return mask;
         }
@@ -95,7 +95,7 @@ public class NebulaLog
     public void PrintWithBepInEx(LogLevel level, LogCategory? category, string message)
     {
         Print(level, category, message);
-        string rawMessage = "[NoS]" + ToRawMessage(level, category, message);
+        var rawMessage = "[NoS]" + ToRawMessage(level, category, message);
         if (level == LogLevel.Log)
             Debug.Log(rawMessage);
         else if (level == LogLevel.Warning)
@@ -107,7 +107,7 @@ public class NebulaLog
     public void Print(LogLevel level, LogCategory? category, string message)
     {
         message = message.Replace("\n", "\n    ");
-        string header = (category?.Category ?? "Generic");
+        var header = (category?.Category ?? "Generic");
         if (level.Level != null) header = level.Level + " | " + header;
 
         lock (writer)
@@ -119,7 +119,7 @@ public class NebulaLog
     string ToRawMessage(LogLevel level, LogCategory? category, string message)
     {
         message = message.Replace("\n", "\n    ");
-        string header = (category?.Category ?? "Generic");
+        var header = (category?.Category ?? "Generic");
         if (level.Level != null) header = level.Level + " | " + header;
         return "[" + header + "]" + message;
     }

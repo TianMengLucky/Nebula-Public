@@ -8,6 +8,7 @@ using Virial.Events.Player;
 using Virial.Game;
 using Virial.Text;
 using static UnityEngine.GraphicsBuffer;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Extensions;
 
@@ -36,7 +37,7 @@ public static class PlayerExtension
         player.MyPhysics.Animations.PlayIdleAnimation();
         player.moveable = true;
 
-        player.currentRoleAnimations.ForEach((Action<RoleEffectAnimation>)((an) => an.ToggleRenderer(false)));
+        player.currentRoleAnimations.ForEach((Action<RoleEffectAnimation>)(an => an.ToggleRenderer(false)));
         if (player.AmOwner) player.MyPhysics.inputHandler.enabled = false;
         player.GetModInfo()!.Unbox().CurrentDiving = new();
     }
@@ -63,13 +64,13 @@ public static class PlayerExtension
         player.cosmetics.AnimateSkinIdle();
         player.MyPhysics.Animations.PlayIdleAnimation();
         player.moveable = true;
-        player.currentRoleAnimations.ForEach((Action<RoleEffectAnimation>)((an) => an.ToggleRenderer(true)));
+        player.currentRoleAnimations.ForEach((Action<RoleEffectAnimation>)(an => an.ToggleRenderer(true)));
         if (player.AmOwner) player.MyPhysics.inputHandler.enabled = false;
     }
 
     public static void HaltSmoothly(this CustomNetworkTransform netTransform)
     {
-        ushort minSid = (ushort)(netTransform.lastSequenceId + 1);
+        var minSid = (ushort)(netTransform.lastSequenceId + 1);
         netTransform.SnapToSmoothly(netTransform.transform.position);
     }
 
@@ -77,7 +78,7 @@ public static class PlayerExtension
     {
         //netTransform.ClearPositionQueues();
         
-        Transform transform = netTransform.transform;
+        var transform = netTransform.transform;
         netTransform.body.position = position;
         transform.position = position;
         netTransform.body.velocity = Vector2.zero;
@@ -237,7 +238,7 @@ public static class PlayerExtension
            {
                IEnumerator CoGainDiscussionTime()
                {
-                   for(int i = 0; i < 10; i++)
+                   for(var i = 0; i < 10; i++)
                    {
                        MeetingHudExtension.VotingTimer += 1f;
                        MeetingHud.Instance!.lastSecond = 11;
@@ -256,7 +257,7 @@ public static class PlayerExtension
 
     static public KillResult ModFlexibleKill(this PlayerControl killer, PlayerControl target, CommunicableTextTag playerState, CommunicableTextTag? recordState, KillParameter killParam)
     {
-        bool isMeetingKill = MeetingHud.Instance || !killParam.HasFlag(KillParameter.WithDeadBody);
+        var isMeetingKill = MeetingHud.Instance || !killParam.HasFlag(KillParameter.WithDeadBody);
         if (CheckKill(killer, target, playerState, recordState, isMeetingKill, out var result))
         {
             if (isMeetingKill)
@@ -317,7 +318,7 @@ public static class PlayerExtension
             player.NetTransform.SnapTo(message.revivePos);
             player.GetModInfo()!.Unbox().MyState = PlayerState.Revived;
 
-            if (message.cleanDeadBody) foreach (var d in Helpers.AllDeadBodies()) if (d.ParentId == player.PlayerId) GameObject.Destroy(d.gameObject);
+            if (message.cleanDeadBody) foreach (var d in Helpers.AllDeadBodies()) if (d.ParentId == player.PlayerId) Object.Destroy(d.gameObject);
 
             if(message.recordEvent)NebulaGameManager.Instance?.GameStatistics.RecordEvent(new(GameStatistics.EventVariation.Revive, message.sourceId != byte.MaxValue ? message.sourceId : null, 1 << message.targetId) { RelatedTag = EventDetail.Revive });
         }

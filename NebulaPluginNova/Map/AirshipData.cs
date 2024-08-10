@@ -2,8 +2,8 @@
 
 public class AirshipData : MapData
 {
-    static private Vector2[] MapPositions = new Vector2[]
-        { 
+    static private Vector2[] MapPositions =
+    [
         //金庫
         new(-9f, 12.8f), new(-8.7f, 4.9f), new(-12.8f, 8.7f), new(-4.8f, 8.7f), new(-7.1f, 6.8f), new(-10.4f, 6.9f), new(-7f, 10.2f),
         //宿舎前
@@ -53,13 +53,14 @@ public class AirshipData : MapData
         //ギャップ左
         new(3.8f, 8.8f),
         //ミーティング
-        new(6.5f, 15.3f), new(11.8f, 14.1f), new(11.8f, 16f), new(16.3f, 15.2f),
-        };
+        new(6.5f, 15.3f), new(11.8f, 14.1f), new(11.8f, 16f), new(16.3f, 15.2f)
+    ];
 
     protected override Vector2[] MapArea => MapPositions;
     protected override Vector2[] NonMapArea => [];
 
-    protected override SystemTypes[] SabotageTypes => new SystemTypes[] { SystemTypes.HeliSabotage, SystemTypes.Comms, SystemTypes.Electrical };
+    protected override SystemTypes[] SabotageTypes => [SystemTypes.HeliSabotage, SystemTypes.Comms, SystemTypes.Electrical
+    ];
     override public Vector2[][] RaiderIgnoreArea { get => [
         [new(9.87f,9.78f),new(9.87f,7.8f), new(5.81f,7.8f),new(5.81f,9.78f)],//昇降機上
         [new(10.64f,6.39f), new(10.64f, 5.49f), new(10.1f, 5.49f), new(10.1f, 6.39f)],//昇降機下

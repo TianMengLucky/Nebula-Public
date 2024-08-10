@@ -9,6 +9,7 @@ using Virial.Events.Game.Meeting;
 using Virial.Game;
 using Virial.Helpers;
 using static UnityEngine.ProBuilder.AutoUnwrapSettings;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Roles.Impostor;
 
@@ -129,7 +130,7 @@ public class Destroyer : DefinedRoleTemplate, DefinedRole
             SizeModulator sizeModulator = new(Vector2.one, 10000f, false, 100, destroyerAttrTag, false, false);
             PlayerModInfo.RpcAttrModulator.LocalInvoke((target.PlayerId, sizeModulator, true));
 
-            Coroutine monitorMeetingCoroutine = NebulaManager.Instance.StartCoroutine(CoMonitorMeeting().WrapToIl2Cpp());
+            var monitorMeetingCoroutine = NebulaManager.Instance.StartCoroutine(CoMonitorMeeting().WrapToIl2Cpp());
 
             if (myPlayer.AmOwner)
             {
@@ -146,8 +147,8 @@ public class Destroyer : DefinedRoleTemplate, DefinedRole
             yield return new WaitForSeconds(0.15f);
 
             //死体を生成
-            DeadBody deadBody = GameObject.Instantiate<DeadBody>(GameManager.Instance.DeadBodyPrefab);
-            GameObject deadBodyObj = deadBody.gameObject;
+            var deadBody = Object.Instantiate<DeadBody>(GameManager.Instance.DeadBodyPrefab);
+            var deadBodyObj = deadBody.gameObject;
             deadBody.enabled = CanReportKillSceneOption;
             deadBody.Reported = !CanReportKillSceneOption;
             deadBody.ParentId = target.PlayerId;
@@ -171,17 +172,17 @@ public class Destroyer : DefinedRoleTemplate, DefinedRole
                 handRenderer.sprite = DestroyerAssets.HandSprite[2].GetSprite();
                 yield return new WaitForSeconds(0.15f);
 
-                float scale = startScale;
-                float p = 0f;
+                var scale = startScale;
+                var p = 0f;
 
                 handRenderer.sprite = DestroyerAssets.HandSprite[3].GetSprite();
 
-                float randomX = 0f;
-                float randomTimer = 0f;
+                var randomX = 0f;
+                var randomTimer = 0f;
 
                 if (!MeetingHud.Instance) NebulaAsset.PlaySE(audioClip, target.transform.position, 0.8f, KillSEStrengthOption, 0.46f);
 
-                int sePhase = 0;
+                var sePhase = 0;
                 float[] seTime = [0.45f, 0.62f, 0.98f];
 
                 while (p < 1f)
@@ -229,9 +230,9 @@ public class Destroyer : DefinedRoleTemplate, DefinedRole
 
             }
 
-            int phases = PhasesOfDestroyingOption - 1;
+            var phases = PhasesOfDestroyingOption - 1;
 
-            for (int i = 0;i < phases; i++)
+            for (var i = 0;i < phases; i++)
             {
                 yield return CoScale(
                     1f - 0.4f / phases * i,
@@ -263,8 +264,8 @@ public class Destroyer : DefinedRoleTemplate, DefinedRole
                 bloodRenderer.transform.localScale = new(0.45f, 0.45f, 1f);
             }
 
-            GameObject.Destroy(handRenderer.gameObject);
-            if(deadBodyObj) GameObject.Destroy(deadBodyObj);
+            Object.Destroy(handRenderer.gameObject);
+            if(deadBodyObj) Object.Destroy(deadBodyObj);
 
             myPlayer.moveable = true;
             
@@ -282,7 +283,7 @@ public class Destroyer : DefinedRoleTemplate, DefinedRole
 
             //血しぶきを片付ける
             yield return new WaitForSeconds(0.5f);
-            GameObject.Destroy(modSplatter.gameObject);
+            Object.Destroy(modSplatter.gameObject);
         }
 
         private GamePlayer? lastKilling = null;
@@ -295,15 +296,15 @@ public class Destroyer : DefinedRoleTemplate, DefinedRole
 
                 var killTracker = Bind(ObjectTrackers.ForPlayer(null, MyPlayer,ObjectTrackers.ImpostorKillPredicate, p => CheckDestroyKill(MyPlayer.VanillaPlayer, p.VanillaPlayer.transform.position), null));
                 destroyButton = Bind(new ModAbilityButton(false,true)).KeyBind(Virial.Compat.VirtualKeyInput.Kill, "destroyer.kill");
-                destroyButton.Availability = (button) => MyPlayer.VanillaPlayer.CanMove && killTracker.CurrentTarget != null;
-                destroyButton.Visibility = (button) => !MyPlayer.VanillaPlayer.Data.IsDead;
-                destroyButton.OnClick = (button) => {
+                destroyButton.Availability = button => MyPlayer.VanillaPlayer.CanMove && killTracker.CurrentTarget != null;
+                destroyButton.Visibility = button => !MyPlayer.VanillaPlayer.Data.IsDead;
+                destroyButton.OnClick = button => {
                     //左右どちらでキルすればよいか考える
                     var targetTruePos = killTracker.CurrentTarget!.VanillaPlayer.GetTruePosition();
                     var targetPos = killTracker.CurrentTarget!.VanillaPlayer.transform.position;
                     var canMoveToLeft = CheckCanMove(MyPlayer.VanillaPlayer, GetDestroyKillPosition(targetPos, true), out var leftDis);
                     var canMoveToRight = CheckCanMove(MyPlayer.VanillaPlayer, GetDestroyKillPosition(targetPos, false), out var rightDis);
-                    bool moveToLeft = false;
+                    var moveToLeft = false;
                     if (canMoveToLeft && canMoveToRight && leftDis < rightDis) moveToLeft = true;
                     else if (!canMoveToRight) moveToLeft = true;
 

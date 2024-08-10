@@ -5,6 +5,7 @@ using Virial.Configuration;
 using Virial.Events.Game.Meeting;
 using Virial.Game;
 using Virial.Helpers;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Roles.Crewmate;
 
@@ -37,8 +38,8 @@ public class Phosphorus : DefinedRoleTemplate, DefinedRole
 
         static Lantern()
         {
-            NebulaSyncObject.RegisterInstantiater(MyGlobalTag, (args) => new Lantern(new(args[0], args[1]), false));
-            NebulaSyncObject.RegisterInstantiater(MyLocalTag, (args) => new Lantern(new(args[0], args[1]), true));
+            RegisterInstantiater(MyGlobalTag, args => new Lantern(new(args[0], args[1]), false));
+            RegisterInstantiater(MyLocalTag, args => new Lantern(new(args[0], args[1]), true));
         }
     }
 
@@ -67,18 +68,18 @@ public class Phosphorus : DefinedRoleTemplate, DefinedRole
             {
                 StaticAchievementToken? acTokenChallenge = null;
 
-                localLanterns = new();
+                localLanterns = [];
 
                 lanternButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability);
                 lanternButton.SetSprite(lanternButtonSprite.GetSprite());
-                lanternButton.Availability = (button) => MyPlayer.CanMove ;
-                lanternButton.Visibility = (button) => !MyPlayer.IsDead && globalLanterns != null;
-                lanternButton.OnClick = (button) => {
+                lanternButton.Availability = button => MyPlayer.CanMove ;
+                lanternButton.Visibility = button => !MyPlayer.IsDead && globalLanterns != null;
+                lanternButton.OnClick = button => {
                     button.ActivateEffect();
                 };
-                lanternButton.OnEffectStart = (button) =>
+                lanternButton.OnEffectStart = button =>
                 {
-                    CombinedRemoteProcess.CombinedRPC.Invoke(globalLanterns!.Select((id)=>RpcLantern.GetInvoker(id)).ToArray());
+                    CombinedRemoteProcess.CombinedRPC.Invoke(globalLanterns!.Select(id=>RpcLantern.GetInvoker(id)).ToArray());
 
                     if (acTokenChallenge == null)
                     {
@@ -87,7 +88,7 @@ public class Phosphorus : DefinedRoleTemplate, DefinedRole
                         if (lanterns.Any(l => deadBodies.Any(d => d.TruePosition.Distance(l.Position) < 0.8f))) acTokenChallenge = new("phosphorus.challenge");
                     }
                 };
-                lanternButton.OnEffectEnd = (button) => lanternButton.StartCoolDown();
+                lanternButton.OnEffectEnd = button => lanternButton.StartCoolDown();
                 lanternButton.CoolDownTimer = Bind(new Timer(0f, LampCoolDownOption).SetAsAbilityCoolDown().Start());
                 lanternButton.EffectTimer = Bind(new Timer(0f, LampDurationOption));
                 lanternButton.SetLabel("lantern");
@@ -97,11 +98,12 @@ public class Phosphorus : DefinedRoleTemplate, DefinedRole
                 placeButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability);
                 var usesText = placeButton.ShowUsesIcon(3);
                 placeButton.SetSprite(placeButtonSprite.GetSprite());
-                placeButton.Availability = (button) => MyPlayer.CanMove;
-                placeButton.Visibility = (button) => !MyPlayer.IsDead && globalLanterns == null && left > 0;
-                placeButton.OnClick = (button) => {
+                placeButton.Availability = button => MyPlayer.CanMove;
+                placeButton.Visibility = button => !MyPlayer.IsDead && globalLanterns == null && left > 0;
+                placeButton.OnClick = button => {
                     var pos = PlayerControl.LocalPlayer.GetTruePosition();
-                    localLanterns.Add(Bind<NebulaSyncStandardObject>((NebulaSyncObject.LocalInstantiate(Lantern.MyLocalTag, new float[] { pos.x, pos.y }) as NebulaSyncStandardObject)!));
+                    localLanterns.Add(Bind<NebulaSyncStandardObject>((NebulaSyncObject.LocalInstantiate(Lantern.MyLocalTag,
+                        [pos.x, pos.y]) as NebulaSyncStandardObject)!));
 
                     left--;
                     usesText.text = left.ToString();
@@ -126,8 +128,9 @@ public class Phosphorus : DefinedRoleTemplate, DefinedRole
             if(localLanterns != null && localLanterns.Count == NumOfLampsOption)
             {
                 globalLanterns = new int[localLanterns.Count];
-                for (int i = 0;i<localLanterns.Count;i++) {
-                    globalLanterns[i] = NebulaSyncObject.RpcInstantiate(Lantern.MyGlobalTag, new float[] { localLanterns[i].Position.x, localLanterns[i].Position.y })!.ObjectId;
+                for (var i = 0;i<localLanterns.Count;i++) {
+                    globalLanterns[i] = NebulaSyncObject.RpcInstantiate(Lantern.MyGlobalTag, [localLanterns[i].Position.x, localLanterns[i].Position.y
+                    ])!.ObjectId;
                     NebulaSyncObject.LocalDestroy(localLanterns[i].ObjectId);
                 }
                 localLanterns = null!;
@@ -145,14 +148,14 @@ public class Phosphorus : DefinedRoleTemplate, DefinedRole
           var lantern = NebulaSyncObject.GetObject<Lantern>(message);
           if (lantern != null)
           {
-              SpriteRenderer lightRenderer = AmongUsUtil.GenerateCustomLight(lantern.Position);
+              var lightRenderer = AmongUsUtil.GenerateCustomLight(lantern.Position);
               lightRenderer.transform.localScale *= LampStrengthOption;
 
               IEnumerator CoLight()
               {
                   float t = LampDurationOption;
-                  float indexT = 0f;
-                  int index = 0;
+                  var indexT = 0f;
+                  var index = 0;
                   while (t > 0f)
                   {
                       t -= Time.deltaTime;
@@ -177,7 +180,7 @@ public class Phosphorus : DefinedRoleTemplate, DefinedRole
                       yield return null;
                   }
 
-                  GameObject.Destroy(lightRenderer.gameObject);
+                  Object.Destroy(lightRenderer.gameObject);
               }
 
               IEnumerator CoLightBegin()

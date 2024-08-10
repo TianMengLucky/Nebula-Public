@@ -28,7 +28,7 @@ public static class MeetingHudExtension
 
     public static void InitMeetingTimer()
     {
-        LogicOptionsNormal logicOptionsNormal = GameManager.Instance.LogicOptions.Cast<LogicOptionsNormal>();
+        var logicOptionsNormal = GameManager.Instance.LogicOptions.Cast<LogicOptionsNormal>();
         DiscussionTimer = logicOptionsNormal.GetDiscussionTime();
         VotingTimer = logicOptionsNormal.GetVotingTime();
         ResultTimer = 5f;
@@ -70,9 +70,9 @@ public static class MeetingHudExtension
 
     public static void UpdatePlayerState(this MeetingHud meetingHud)
     {
-        foreach (PlayerVoteArea pva in meetingHud.playerStates)
+        foreach (var pva in meetingHud.playerStates)
         {
-            bool isDead = NebulaGameManager.Instance?.GetPlayer(pva.TargetPlayerId)?.IsDead ?? true;
+            var isDead = NebulaGameManager.Instance?.GetPlayer(pva.TargetPlayerId)?.IsDead ?? true;
 
             if (pva.AmDead == isDead) continue;
 
@@ -89,7 +89,7 @@ public static class MeetingHudExtension
 
         meetingHud.UpdatePlayerState();
 
-        foreach (PlayerVoteArea voter in meetingHud.playerStates)
+        foreach (var voter in meetingHud.playerStates)
         {
             if (!voter.DidVote) continue;
 
@@ -105,8 +105,9 @@ public static class MeetingHudExtension
 
     public static Dictionary<byte, int> WeightMap= new();
     public static Dictionary<byte, int> LastVotedForMap = new();
-    public static List<GameObject> LeftContents = new();
-    public static List<(byte exiledId, byte sourceId, CommunicableTextTag playerState, CommunicableTextTag eventTag)> ExtraVictims = new();
+    public static List<GameObject> LeftContents = [];
+    public static List<(byte exiledId, byte sourceId, CommunicableTextTag playerState, CommunicableTextTag eventTag)> ExtraVictims =
+        [];
 
     public static void Reset()
     {
@@ -165,7 +166,7 @@ public static class MeetingHudExtension
             if (AmongUsClient.Instance.AmHost)
             {
                 //MeetingHud.CastVote
-                NetworkedPlayerInfo playerById = GameData.Instance.GetPlayerById(message.source);
+                var playerById = GameData.Instance.GetPlayerById(message.source);
                 var playerVoteArea = MeetingHud.Instance.playerStates.FirstOrDefault(pv => pv.TargetPlayerId == message.source);
                 
                 if (playerVoteArea != null && !playerVoteArea.AmDead && !playerVoteArea.DidVote)

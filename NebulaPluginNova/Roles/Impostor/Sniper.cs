@@ -10,6 +10,7 @@ using Virial.Events.Game.Meeting;
 using Virial.Events.Player;
 using Virial.Game;
 using Virial.Helpers;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Roles.Impostor;
 
@@ -69,13 +70,13 @@ public class Sniper : DefinedRoleTemplate, HasCitation, DefinedRole
 
         void IGameOperator.OnReleased()
         {
-            if (Renderer) GameObject.Destroy(Renderer.gameObject);
+            if (Renderer) Object.Destroy(Renderer.gameObject);
             Renderer = null!;
         }
 
         public GamePlayer? GetTarget(float width,float maxLength)
         {
-            float minLength = maxLength;
+            var minLength = maxLength;
             GamePlayer? result = null;
 
             foreach(var p in NebulaGameManager.Instance!.AllPlayerInfo())
@@ -89,7 +90,7 @@ public class Sniper : DefinedRoleTemplate, HasCitation, DefinedRole
                 if (p.Unbox().IsInvisible) continue;
 
                 var pos = p.VanillaPlayer.GetTruePosition();
-                Vector2 diff = pos - (Vector2)Renderer.transform.position;
+                var diff = pos - (Vector2)Renderer.transform.position;
 
                 //移動と回転を施したベクトル
                 var vec = diff.Rotate(-Renderer.transform.eulerAngles.z);
@@ -145,9 +146,9 @@ public class Sniper : DefinedRoleTemplate, HasCitation, DefinedRole
 
                 equipButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability, "sniper.equip");
                 equipButton.SetSprite(buttonSprite.GetSprite());
-                equipButton.Availability = (button) => MyPlayer.CanMove;
-                equipButton.Visibility = (button) => !MyPlayer.IsDead;
-                equipButton.OnClick = (button) =>
+                equipButton.Availability = button => MyPlayer.CanMove;
+                equipButton.Visibility = button => !MyPlayer.IsDead;
+                equipButton.OnClick = button =>
                 {
                     if (MyRifle == null)
                     {
@@ -173,9 +174,9 @@ public class Sniper : DefinedRoleTemplate, HasCitation, DefinedRole
                 equipButton.SetLabel("equip");
 
                 killButton = Bind(new ModAbilityButton(isArrangedAsKillButton: true)).KeyBind(Virial.Compat.VirtualKeyInput.Kill, "sniper.kill");
-                killButton.Availability = (button) => MyRifle != null && MyPlayer.CanMove;
-                killButton.Visibility = (button) => !MyPlayer.IsDead;
-                killButton.OnClick = (button) =>
+                killButton.Availability = button => MyRifle != null && MyPlayer.CanMove;
+                killButton.Visibility = button => !MyPlayer.IsDead;
+                killButton.OnClick = button =>
                 {
                     NebulaAsset.PlaySE(NebulaAudioClip.SniperShot);
                     var target = MyRifle?.GetTarget(ShotSizeOption, ShotEffectiveRangeOption);
@@ -192,7 +193,7 @@ public class Sniper : DefinedRoleTemplate, HasCitation, DefinedRole
                     {
                         NebulaGameManager.Instance?.GameStatistics.RpcRecordEvent(GameStatistics.EventVariation.Kill, EventDetail.Missed, MyPlayer.VanillaPlayer, 0);
                     }
-                    Sniper.RpcShowNotice.Invoke(MyPlayer.VanillaPlayer.GetTruePosition());
+                    RpcShowNotice.Invoke(MyPlayer.VanillaPlayer.GetTruePosition());
 
                     button.StartCoolDown();
 
@@ -235,13 +236,13 @@ public class Sniper : DefinedRoleTemplate, HasCitation, DefinedRole
             IEnumerator CoUpdateAimAssistArrow(PlayerControl player)
             {
                 DeadBody? deadBody = null;
-                Vector2 pos = Vector2.zero;
-                Vector2 dir = Vector2.zero;
-                Vector2 tempDir = Vector2.zero;
-                bool isFirst = true;
+                var pos = Vector2.zero;
+                var dir = Vector2.zero;
+                var tempDir = Vector2.zero;
+                var isFirst = true;
 
-                Color targetColor = new Color(55f / 225f, 1f, 0f);
-                float t = 0f;
+                var targetColor = new Color(55f / 225f, 1f, 0f);
+                var t = 0f;
 
                 SpriteRenderer? renderer = null;
 
@@ -272,7 +273,7 @@ public class Sniper : DefinedRoleTemplate, HasCitation, DefinedRole
                         dir = (tempDir + dir).normalized;
                     }
                     
-                    float angle = Mathf.Atan2(dir.y, dir.x);
+                    var angle = Mathf.Atan2(dir.y, dir.x);
                     renderer.transform.eulerAngles = new Vector3(0, 0, angle * 180f / (float)Math.PI);
                     renderer.transform.localPosition = new Vector3(Mathf.Cos(angle) * 2f, Mathf.Sin(angle) * 2f, -30f);
 
@@ -285,7 +286,7 @@ public class Sniper : DefinedRoleTemplate, HasCitation, DefinedRole
 
                 if (renderer == null) yield break;
 
-                float a = 0.6f;
+                var a = 0.6f;
                 while(a > 0f)
                 {
                     a -= Time.deltaTime / 0.8f;
@@ -295,7 +296,7 @@ public class Sniper : DefinedRoleTemplate, HasCitation, DefinedRole
                     yield return null;
                 }
                 
-                GameObject.Destroy(renderer.gameObject);
+                Object.Destroy(renderer.gameObject);
             }
 
             yield return new WaitForSeconds(DelayInAimAssistOption);
@@ -324,7 +325,7 @@ public class Sniper : DefinedRoleTemplate, HasCitation, DefinedRole
         (message, _) =>
         {
             var role = NebulaGameManager.Instance?.GetPlayer(message.playerId)?.Role;
-            if (role is Sniper.Instance sniper)
+            if (role is Instance sniper)
             {
                 if (message.equip)
                     sniper.EquipRifle();
@@ -342,8 +343,9 @@ public class Sniper : DefinedRoleTemplate, HasCitation, DefinedRole
         {
             if ((message - (Vector2)PlayerControl.LocalPlayer.transform.position).magnitude < ShotNoticeRangeOption)
             {
-                var arrow = new Arrow(snipeNoticeSprite.GetSprite(), false) { IsSmallenNearPlayer = false, IsAffectedByComms = false, FixedAngle = true, OnJustPoint = true };
-                arrow.TargetPos = message;
+                var arrow = new Arrow(snipeNoticeSprite.GetSprite(), false) { IsSmallenNearPlayer = false, IsAffectedByComms = false, FixedAngle = true, OnJustPoint = true,
+                    TargetPos = message
+                };
                 NebulaManager.Instance.StartCoroutine(arrow.CoWaitAndDisappear(3f).WrapToIl2Cpp());
             }
         }

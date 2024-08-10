@@ -43,7 +43,7 @@ public interface IGameModeFreePlay : IGameModeModule
 
 public static class GameModes
 {
-    internal static List<GameModeDefinition> allGameModes = new();
+    internal static List<GameModeDefinition> allGameModes = [];
     public static IEnumerable<GameModeDefinition> AllGameModes => allGameModes;
     public static GameModeDefinition GetGameMode(int id) => allGameModes[id];
     public static GameModeDefinition Standard { get; internal set; } = null!;

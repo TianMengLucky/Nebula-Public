@@ -12,6 +12,6 @@ public class PlayerGuardEvent : AbstractPlayerEvent
 
     internal PlayerGuardEvent(Virial.Game.Player player, Virial.Game.Player killer) : base(player)
     {
-        this.Murderer = killer;
+        Murderer = killer;
     }
 }

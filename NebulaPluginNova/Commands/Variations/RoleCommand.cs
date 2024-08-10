@@ -32,7 +32,7 @@ public class RoleCommand : ICommand
         }
         else
         {
-            int[] roleArgs = new int[0];
+            int[] roleArgs = [];
             if (arguments.Count == 3)
                 task = task.Chain(_ => arguments[2].AsEnumerable(env).As<int>(env).Action(vals => roleArgs = vals.ToArray()));
                 

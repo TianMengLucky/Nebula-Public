@@ -5,6 +5,7 @@ using Virial.Events.Game.Meeting;
 using Virial.Events.Player;
 using Virial.Game;
 using Virial.Helpers;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Roles.Impostor;
 
@@ -55,12 +56,12 @@ public class Morphing : DefinedRoleTemplate, HasCitation, DefinedRole
 
                 sampleButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability, "illusioner.sample");
                 sampleButton.SetSprite(SampleButtonSprite.GetSprite());
-                sampleButton.Availability = (button) => sampleTracker.CurrentTarget != null && MyPlayer.CanMove;
-                sampleButton.Visibility = (button) => !MyPlayer.IsDead;
-                sampleButton.OnClick = (button) => {
+                sampleButton.Availability = button => sampleTracker.CurrentTarget != null && MyPlayer.CanMove;
+                sampleButton.Visibility = button => !MyPlayer.IsDead;
+                sampleButton.OnClick = button => {
                     sample = sampleTracker!.CurrentTarget!.GetOutfit(75);
 
-                    if (sampleIcon != null) GameObject.Destroy(sampleIcon.gameObject);
+                    if (sampleIcon != null) Object.Destroy(sampleIcon.gameObject);
                     if (sample == null) return;
                     sampleIcon = AmongUsUtil.GetPlayerIcon(sample.outfit, morphButton!.VanillaButton.transform, new Vector3(-0.4f, 0.35f, -0.5f), new(0.3f, 0.3f)).SetAlpha(0.5f);
                 };
@@ -69,27 +70,27 @@ public class Morphing : DefinedRoleTemplate, HasCitation, DefinedRole
 
                 morphButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.SecondaryAbility, "illusioner.morph");
                 morphButton.SetSprite(MorphButtonSprite.GetSprite());
-                morphButton.Availability = (button) => MyPlayer.CanMove && sample != null;
-                morphButton.Visibility = (button) => !MyPlayer.IsDead;
-                morphButton.OnClick = (button) => {
+                morphButton.Availability = button => MyPlayer.CanMove && sample != null;
+                morphButton.Visibility = button => !MyPlayer.IsDead;
+                morphButton.OnClick = button => {
                     button.ToggleEffect();
                 };
-                morphButton.OnEffectStart = (button) =>
+                morphButton.OnEffectStart = button =>
                 {
                     PlayerModInfo.RpcAddOutfit.Invoke(new(PlayerControl.LocalPlayer.PlayerId, new("Morphing", 50, true, sample!)));
                     acTokenCommon ??= new("morphing.common1");
                 };
-                morphButton.OnEffectEnd = (button) =>
+                morphButton.OnEffectEnd = button =>
                 {
                     PlayerModInfo.RpcRemoveOutfit.Invoke(new(PlayerControl.LocalPlayer.PlayerId, "Morphing"));
                     morphButton.CoolDownTimer?.Start();
                 };
-                morphButton.OnUpdate = (button) =>
+                morphButton.OnUpdate = button =>
                 {
                     //すれ違いチェック
                     if (button.EffectActive && acTokenAnother2 == null)
                     {
-                        int colorId = MyPlayer.GetOutfit(75).outfit.ColorId;
+                        var colorId = MyPlayer.GetOutfit(75).outfit.ColorId;
                         foreach (var p in NebulaGameManager.Instance!.AllPlayerInfo())
                         {
                             if (p.AmOwner) continue;
@@ -102,13 +103,13 @@ public class Morphing : DefinedRoleTemplate, HasCitation, DefinedRole
                         }
                     }
                 };
-                morphButton.OnMeeting = (button) =>
+                morphButton.OnMeeting = button =>
                 {
                     morphButton.InactivateEffect();
 
                     if (LoseSampleOnMeetingOption)
                     {
-                        if (sampleIcon != null) GameObject.Destroy(sampleIcon.gameObject);
+                        if (sampleIcon != null) Object.Destroy(sampleIcon.gameObject);
                         sampleIcon = null;
                     }
                 };

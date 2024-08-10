@@ -14,6 +14,7 @@ using static Nebula.Roles.Impostor.Hadar;
 using Il2CppInterop.Runtime.Injection;
 using Virial.Events.Game.Minimap;
 using Nebula.Behaviour;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Roles.Crewmate;
 
@@ -45,7 +46,7 @@ public class Cannon : DefinedRoleTemplate, DefinedRole
 
         static CannonMark()
         {
-            NebulaSyncObject.RegisterInstantiater(MyTag, (args) => new CannonMark(new Vector2(args[0], args[1])));
+            RegisterInstantiater(MyTag, args => new CannonMark(new Vector2(args[0], args[1])));
         }
     }
 
@@ -73,7 +74,7 @@ public class Cannon : DefinedRoleTemplate, DefinedRole
             button.OnClick.AddListener(() => {
                 FireCannon(obj.Position);
                 NebulaSyncObject.LocalDestroy(obj.ObjectId);
-                GameObject.Destroy(button.gameObject);
+                Destroy(button.gameObject);
                 onFired.Invoke();
             });
         }
@@ -86,7 +87,7 @@ public class Cannon : DefinedRoleTemplate, DefinedRole
 
         static private Image buttonSprite = SpriteLoader.FromResource("Nebula.Resources.Buttons.MarkButton.png", 115f);
 
-        private List<NebulaSyncStandardObject> Marks = new();
+        private List<NebulaSyncStandardObject> Marks = [];
         private CannonMapLayer mapLayer = null!;
         void RuntimeAssignable.OnActivated()
         {
@@ -94,9 +95,9 @@ public class Cannon : DefinedRoleTemplate, DefinedRole
             {
                 var markButtom = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability, "cannon.mark");
                 markButtom.SetSprite(buttonSprite.GetSprite());
-                markButtom.Availability = (button) => MyPlayer.CanMove && Marks.Count < NumOfMarksOption;
-                markButtom.Visibility = (button) => !MyPlayer.IsDead;
-                markButtom.OnClick = (button) => {
+                markButtom.Availability = button => MyPlayer.CanMove && Marks.Count < NumOfMarksOption;
+                markButtom.Visibility = button => !MyPlayer.IsDead;
+                markButtom.OnClick = button => {
                     var mark = Bind(NebulaSyncObject.LocalInstantiate(CannonMark.MyTag, [
                                 PlayerControl.LocalPlayer.transform.localPosition.x,
                                 PlayerControl.LocalPlayer.transform.localPosition.y - 0.25f
@@ -145,7 +146,7 @@ public class Cannon : DefinedRoleTemplate, DefinedRole
     private static Vector2 CalcPowerVector(Vector2 impactPos, Vector2 playerPos, float maxPower, float reductionFactor = 1f)
     {
         var dir = (playerPos - impactPos);
-        float mag = Mathf.Max(0f, maxPower - dir.magnitude * reductionFactor);
+        var mag = Mathf.Max(0f, maxPower - dir.magnitude * reductionFactor);
         return dir.normalized * mag;
     }
 
@@ -155,9 +156,9 @@ public class Cannon : DefinedRoleTemplate, DefinedRole
         var currentData = MapData.GetCurrentMapData();
         bool CanWarpTo(Vector2 pos) => currentData.CheckMapArea(pos, 0.25f);
 
-        int length = Mathf.Max((int)(maxVector.magnitude * 4), 100);
-        Vector2[] pos = new Vector2[length];
-        for (int i = 0; i < length; i++) pos[i] = playerPos + maxVector * (float)(i + 1) / (float)length;
+        var length = Mathf.Max((int)(maxVector.magnitude * 4), 100);
+        var pos = new Vector2[length];
+        for (var i = 0; i < length; i++) pos[i] = playerPos + maxVector * (float)(i + 1) / (float)length;
 
         var moveTo = pos.Select(pos => (pos, CanWarpTo(pos))).LastOrDefault(p => p.Item2);
         if (moveTo.Item2) return moveTo.pos;
@@ -168,7 +169,7 @@ public class Cannon : DefinedRoleTemplate, DefinedRole
     private static IEnumerator CoPlayJumpAnimation(PlayerControl player, Vector2 from, Vector2 to)
     {
         player.moveable = false;
-        bool isLeft = to.x < from.x;
+        var isLeft = to.x < from.x;
         player.MyPhysics.FlipX = isLeft;
         player.MyPhysics.Animations.Animator.Play(player.MyPhysics.Animations.group.SpawnAnim, 0f);
         player.MyPhysics.Animations.Animator.SetTime(1.82f);
@@ -208,7 +209,7 @@ public class Cannon : DefinedRoleTemplate, DefinedRole
         IEnumerator CoShowIcon()
         {
             var icon = new Arrow(cannonArrowSprite.GetSprite(0), false) { TargetPos = message, FixedAngle = true, IsSmallenNearPlayer = false, ShowOnlyOutside = true };
-            for (int i = 0; i < 9; i++)
+            for (var i = 0; i < 9; i++)
             {
                 icon.SetSprite(cannonArrowSprite.GetSprite(i));
                 yield return Effects.Wait(0.1f);
@@ -222,13 +223,13 @@ public class Cannon : DefinedRoleTemplate, DefinedRole
             var smoke = UnityHelper.CreateObject<SpriteRenderer>("SmokeRenderer", null, message.AsVector3(-1f), LayerExpansion.GetObjectsLayer());
             smoke.sprite = smokeSprite.GetSprite(0);
 
-            for (int i = 0; i < 4; i++)
+            for (var i = 0; i < 4; i++)
             {
                 smoke.sprite = smokeSprite.GetSprite(i);
                 smoke.color = new(1f, 1f, 1f, 1f - (float)i * 0.15f);
                 yield return Effects.Wait(0.12f);
             }
-            GameObject.Destroy(smoke.gameObject);
+            Object.Destroy(smoke.gameObject);
         }
         NebulaManager.Instance.StartCoroutine(CoShowSmoke().WrapToIl2Cpp());
 

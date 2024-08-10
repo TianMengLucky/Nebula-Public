@@ -1,6 +1,7 @@
 ﻿using Nebula.Behaviour;
 using Virial.Events.Game.Minimap;
 using Virial.Game;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Patches;
 
@@ -29,7 +30,7 @@ public static class CountOverlayUpdatePatch
         {
             __instance.BackgroundColor.SetColor(Palette.DisabledGrey);
             if (!notAvailableText) {
-                notAvailableText = GameObject.Instantiate(__instance.SabotageText, __instance.SabotageText.transform.parent);
+                notAvailableText = Object.Instantiate(__instance.SabotageText, __instance.SabotageText.transform.parent);
                 notAvailableText.text = Language.Translate("console.notAvailable");
                 notAvailableText.GetComponent<AlphaBlink>().enabled = true;
             }
@@ -66,17 +67,17 @@ public static class CountOverlayUpdatePatch
             return false;
         }
 
-        int mask = 0;
+        var mask = 0;
         bool AlreadyAdded(byte playerId) => (mask & (1 << playerId)) != 0;
         void AddToMask(byte playerId) => mask |= (1 << playerId);
 
-        FakeAdmin admin = MapBehaviourExtension.AffectedByFakeAdmin ? FakeInformation.Instance!.CurrentAdmin : FakeInformation.AdminFromActuals;
+        var admin = MapBehaviourExtension.AffectedByFakeAdmin ? FakeInformation.Instance!.CurrentAdmin : FakeInformation.AdminFromActuals;
 
         foreach (var counterArea in __instance.CountAreas)
         {
             if (ShipStatus.Instance.FastRooms.TryGetValue(counterArea.RoomType, out var plainShipRoom) && plainShipRoom.roomArea)
             {
-                int counter = 0;
+                var counter = 0;
                 int deadBodies = 0, impostors = 0;
 
                 if (MeetingHud.Instance)

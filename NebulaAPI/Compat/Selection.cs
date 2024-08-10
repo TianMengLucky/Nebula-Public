@@ -18,7 +18,7 @@ public class FloatSelection
 
     public FloatSelection(float[] selection)
     {
-        this.Selection = selection;
+        Selection = selection;
     }
 
     static public implicit operator FloatSelection(float[] selections) => new FloatSelection(selections);
@@ -34,7 +34,7 @@ public class IntegerSelection
 
     public IntegerSelection(int[] selection)
     {
-        this.Selection = selection;
+        Selection = selection;
     }
 
     static public implicit operator IntegerSelection(int[] selections) => new IntegerSelection(selections);

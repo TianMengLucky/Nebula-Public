@@ -19,7 +19,7 @@ public class PlayerVoteCastLocalEvent : AbstractPlayerEvent
 
     internal PlayerVoteCastLocalEvent(Virial.Game.Player voter, Virial.Game.Player? voteFor, int vote) : base(voter)
     {
-        this.VoteFor = voteFor;
-        this.Vote = vote;
+        VoteFor = voteFor;
+        Vote = vote;
     }
 }

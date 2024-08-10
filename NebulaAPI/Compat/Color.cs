@@ -32,8 +32,8 @@ public struct Color
         B = color.b;
         A = color.a;
     }
-    static public Color ImpostorColor { get; internal set; } = new(global::Palette.ImpostorRed);
-    static public Color CrewmateColor { get; internal set; } = new(global::Palette.CrewmateBlue);
+    static public Color ImpostorColor { get; internal set; } = new(Palette.ImpostorRed);
+    static public Color CrewmateColor { get; internal set; } = new(Palette.CrewmateBlue);
     static public Color Red { get; internal set; } = new(1f,0f,0f,1f);
     static public Color Yellow { get; internal set; } = new(1f, 1f, 0f, 1f);
     static public Color Green { get; internal set; } = new(0f, 1f, 0f, 1f);

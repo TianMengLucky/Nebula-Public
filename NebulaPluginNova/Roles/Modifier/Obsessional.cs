@@ -60,18 +60,18 @@ public class Obsessional : DefinedAllocatableModifierTemplate, DefinedAllocatabl
         {
             if (AmOwner)
             {
-                var cands = NebulaGameManager.Instance?.AllPlayerInfo().Where(p => !p.TryGetModifier<Obsessional.Instance>(out _))!;
+                var cands = NebulaGameManager.Instance?.AllPlayerInfo().Where(p => !p.TryGetModifier<Instance>(out _))!;
                 
                 var limitted = cands;
-                if (MyPlayer.Role.Role.Category == Virial.Assignable.RoleCategory.ImpostorRole)
+                if (MyPlayer.Role.Role.Category == RoleCategory.ImpostorRole)
                 {
                     switch (ImpostorObsessionalObsessesOverOption.GetValue())
                     {
                         case 1:
-                             limitted = cands.Where(p => p.Role.Role.Category == Virial.Assignable.RoleCategory.NeutralRole);
+                             limitted = cands.Where(p => p.Role.Role.Category == RoleCategory.NeutralRole);
                             break;
                         case 2:
-                            limitted = cands.Where(p => p.Role.Role.Category != Virial.Assignable.RoleCategory.CrewmateRole);
+                            limitted = cands.Where(p => p.Role.Role.Category != RoleCategory.CrewmateRole);
                             break;
                     }
                 }
@@ -137,7 +137,7 @@ public class Obsessional : DefinedAllocatableModifierTemplate, DefinedAllocatabl
         static RemoteProcess<(byte playerId, byte targetId)> RpcSetObsessionalTarget = new("SetObsessionalTarget",
         (message, _) =>
         {
-            if (NebulaGameManager.Instance?.GetPlayer(message.playerId)?.TryGetModifier<Obsessional.Instance>(out var instance) ?? false)
+            if (NebulaGameManager.Instance?.GetPlayer(message.playerId)?.TryGetModifier<Instance>(out var instance) ?? false)
                 instance.obsession = NebulaGameManager.Instance.GetPlayer(message.targetId);
         });
 
@@ -164,7 +164,7 @@ public class Obsessional : DefinedAllocatableModifierTemplate, DefinedAllocatabl
             {
                 //敗北
 
-                if (MyPlayer.Role.Role.Category == Virial.Assignable.RoleCategory.ImpostorRole && ev.EndState.EndCondition == NebulaGameEnd.ImpostorWin)
+                if (MyPlayer.Role.Role.Category == RoleCategory.ImpostorRole && ev.EndState.EndCondition == NebulaGameEnd.ImpostorWin)
                     new StaticAchievementToken("obsessional.another2");
 
                 if (ev.EndState.Winners.Test(obsession) && (obsession?.TryGetModifier<Lover.Instance>(out _) ?? false))
@@ -172,6 +172,6 @@ public class Obsessional : DefinedAllocatableModifierTemplate, DefinedAllocatabl
             }
         }
 
-        bool RuntimeModifier.MyCrewmateTaskIsIgnored => obsession?.Role.Role.Category != Virial.Assignable.RoleCategory.CrewmateRole || obsession?.Role.Role == Madmate.MyRole;
+        bool RuntimeModifier.MyCrewmateTaskIsIgnored => obsession?.Role.Role.Category != RoleCategory.CrewmateRole || obsession?.Role.Role == Madmate.MyRole;
     }
 }

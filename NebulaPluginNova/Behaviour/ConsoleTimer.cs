@@ -13,19 +13,19 @@ public class ConsoleTimer : MonoBehaviour
     public ConsoleRestriction.ConsoleType? Type = null;
     public void Awake()
     {
-        timerText = GameObject.Instantiate(VanillaAsset.StandardTextPrefab, transform);
+        timerText = Instantiate(VanillaAsset.StandardTextPrefab, transform);
         timerText.name = "TimerText";
         TextAttributeOld.BoldAttr.Reflect(timerText);
 
         timerText.text = "";
 
-        if (Instance) GameObject.Destroy(Instance.gameObject);
+        if (Instance) Destroy(Instance.gameObject);
         Instance = this;
     }
 
     static public void MarkAsNonConsoleMinigame()
     {
-        if (Instance) GameObject.Destroy(Instance.gameObject);
+        if (Instance) Destroy(Instance.gameObject);
         Instance = null!;
     }
 
@@ -56,7 +56,7 @@ public class ConsoleTimer : MonoBehaviour
             storedUsed = 0f;
         }
 
-        float val = NebulaGameManager.Instance!.ConsoleRestriction!.GetLeftTime(Type.Value);
+        var val = NebulaGameManager.Instance!.ConsoleRestriction!.GetLeftTime(Type.Value);
         if (val > 0f)
             timerText.text = string.Format("{0:0.0}", val) + "s";
         else

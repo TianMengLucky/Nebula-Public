@@ -11,7 +11,7 @@ public class PerkHolder : AbstractModule<Virial.Game.Game>, IGameOperator
     
 
     private GameObject myHolder;
-    private List<PerkInstance> myPerks = new();
+    private List<PerkInstance> myPerks = [];
     private int availableId = 0;
 
     public PerkHolder() {
@@ -22,8 +22,10 @@ public class PerkHolder : AbstractModule<Virial.Game.Game>, IGameOperator
     }
 
     public PerkInstance RegisterPerk(PerkDefinition perk) {
-        var instance = new PerkInstance(perk, myHolder.transform);
-        instance.RuntimeId = availableId++;
+        var instance = new PerkInstance(perk, myHolder.transform)
+        {
+            RuntimeId = availableId++
+        };
         myPerks.Add(instance);
         
         return instance;
@@ -46,7 +48,7 @@ public class PerkHolder : AbstractModule<Virial.Game.Game>, IGameOperator
 
         myHolder.SetActive(myPerks.Count > 0);
         
-        for(int i = 0;i < myPerks.Count;i++)
+        for(var i = 0;i < myPerks.Count;i++)
         {
             var p = myPerks[i];
             p.UpdateLocalPos(ToPerkPos(i));

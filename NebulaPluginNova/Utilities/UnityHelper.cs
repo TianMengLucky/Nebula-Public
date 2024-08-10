@@ -1,4 +1,5 @@
 ﻿using Il2CppInterop.Runtime.InteropTypes;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Utilities;
 
@@ -31,7 +32,7 @@ public static class UnityHelper
 
     public static (MeshRenderer renderer, MeshFilter filter) CreateMeshRenderer(string objName, Transform? parent, Vector3 localPosition, int? layer,Color? color = null)
     {
-        var meshFilter = UnityHelper.CreateObject<MeshFilter>("mesh", parent, localPosition, layer);
+        var meshFilter = CreateObject<MeshFilter>("mesh", parent, localPosition, layer);
         var meshRenderer = meshFilter.gameObject.AddComponent<MeshRenderer>();
         meshRenderer.material = new Material(Shader.Find(color.HasValue ? "Unlit/Color" : "Unlit/Texture"));
         if(color.HasValue) meshRenderer.sharedMaterial.color = color.Value;
@@ -41,7 +42,7 @@ public static class UnityHelper
     }
 
     public static Camera CreateRenderingCamera(string objName, Transform? parent, Vector3 localPosition, float halfYSize, int layerMask = 31511) {
-        var camera = UnityHelper.CreateObject<Camera>(objName, parent, localPosition);
+        var camera = CreateObject<Camera>(objName, parent, localPosition);
         camera.backgroundColor = Color.black;
         camera.allowHDR = false;
         camera.allowMSAA = false;
@@ -56,7 +57,7 @@ public static class UnityHelper
 
     public static RenderTexture SetCameraRenderTexture(this Camera camera, int textureX, int textureY)
     {
-        if (camera.targetTexture) GameObject.Destroy(camera.targetTexture);
+        if (camera.targetTexture) Object.Destroy(camera.targetTexture);
         camera.targetTexture = new RenderTexture(textureX, textureY, 32, RenderTextureFormat.ARGB32);
 
         return camera.targetTexture;
@@ -68,8 +69,8 @@ public static class UnityHelper
 
         var mesh = filter.mesh;
 
-        float x = size.x * 0.5f;
-        float y = size.y * 0.5f;
+        var x = size.x * 0.5f;
+        var y = size.y * 0.5f;
         mesh.SetVertices((Vector3[])[
             new Vector3(-x , -y) + center.Value,
             new Vector3(x, -y) + center.Value,
@@ -85,11 +86,11 @@ public static class UnityHelper
 
     public static LineRenderer SetUpLineRenderer(string objName,Transform? parent,Vector3 localPosition,int? layer = null,float width = 0.2f)
     {
-        var line = UnityHelper.CreateObject<LineRenderer>(objName, parent, localPosition, layer);
+        var line = CreateObject<LineRenderer>(objName, parent, localPosition, layer);
         line.material.shader = Shader.Find("Sprites/Default");
         line.SetColors(Color.clear, Color.clear);
         line.positionCount = 2;
-        line.SetPositions(new Vector3[] { Vector3.zero, Vector3.zero });
+        line.SetPositions(new[] { Vector3.zero, Vector3.zero });
         line.useWorldSpace = false;
         line.SetWidth(width, width);
         return line;
@@ -106,7 +107,7 @@ public static class UnityHelper
 
     public static T MarkDontUnload<T>(this T obj) where T : UnityEngine.Object
     {
-        GameObject.DontDestroyOnLoad(obj);
+        Object.DontDestroyOnLoad(obj);
         obj.hideFlags |= HideFlags.DontUnloadUnusedAsset | HideFlags.HideAndDontSave;
 
         return obj;
@@ -204,7 +205,7 @@ public static class UnityHelper
 
     public static void ForEachAllChildren(this GameObject gameObject,Action<GameObject> todo)
     {
-        gameObject.ForEachChild((Il2CppSystem.Action<GameObject>)((obj) => {
+        gameObject.ForEachChild((Il2CppSystem.Action<GameObject>)(obj => {
             todo.Invoke(obj);
             obj.ForEachAllChildren(todo);
         }));
@@ -230,7 +231,7 @@ public static class UnityHelper
 
         void _sub__DoForAllChildren(GameObject parent)
         {
-            for(int i = 0;i < parent.transform.childCount; i++)
+            for(var i = 0;i < parent.transform.childCount; i++)
             {
                 var child = parent.transform.GetChild(i).gameObject;
                 procedure.Invoke(child);

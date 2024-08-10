@@ -10,12 +10,12 @@ public static class InitializeRolePatch
         //ロール割り当て
         var players = PlayerControl.AllPlayerControls.GetFastEnumerator().OrderBy(p => Guid.NewGuid()).ToList();
         
-        int adjustedNumImpostors = GameOptionsManager.Instance.CurrentGameOptions.GetAdjustedNumImpostors(PlayerControl.AllPlayerControls.Count);
+        var adjustedNumImpostors = GameOptionsManager.Instance.CurrentGameOptions.GetAdjustedNumImpostors(PlayerControl.AllPlayerControls.Count);
 
-        List<byte> impostors = new();
-        List<byte> others = new();
+        List<byte> impostors = [];
+        List<byte> others = [];
 
-        for (int i = 0; i < players.Count; i++)
+        for (var i = 0; i < players.Count; i++)
             if (i < adjustedNumImpostors)
                 impostors.Add(players[i].PlayerId);
             else
@@ -23,7 +23,7 @@ public static class InitializeRolePatch
 
         NebulaGameManager.Instance!.RoleAllocator = GeneralConfigurations.CurrentGameMode.InstantiateRoleAllocator();
         NebulaGameManager.Instance.RoleAllocator.Assign(impostors, others);
-        
+        ChatChannel.Instance.UpdateCanUseChannels();
 
         return false;
     }

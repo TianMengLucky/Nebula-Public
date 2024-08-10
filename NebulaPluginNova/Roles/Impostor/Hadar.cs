@@ -7,6 +7,7 @@ using Virial.Events.Game;
 using Virial.Events.Game.Meeting;
 using Virial.Events.Player;
 using Virial.Game;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Roles.Impostor;
 
@@ -36,13 +37,13 @@ public class Hadar : DefinedRoleTemplate, DefinedRole
 
         static HadarEvidence()
         {
-            NebulaSyncObject.RegisterInstantiater(MyTag, (args) => new HadarEvidence(new Vector2(args[0], args[1])));
+            RegisterInstantiater(MyTag, args => new HadarEvidence(new Vector2(args[0], args[1])));
         }
 
         void OnMeetingStart(MeetingStartEvent ev)
         {
             stage++;
-            if (stage >= 3) NebulaSyncObject.LocalDestroy(this.ObjectId);
+            if (stage >= 3) LocalDestroy(ObjectId);
             else MyRenderer.sprite = evidenceSprite.GetSprite(stage);
         }
     }
@@ -78,13 +79,13 @@ public class Hadar : DefinedRoleTemplate, DefinedRole
         {
             if (AmOwner)
             {
-                Vector2 lastDivePoint = Vector2.zeroVector;
+                var lastDivePoint = Vector2.zeroVector;
 
                 var diveButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability);
                 diveButton.SetSprite(diveButtonSprite.GetSprite());
-                diveButton.Availability = (button) => MyPlayer.VanillaPlayer.CanMove && !IsDiving;
+                diveButton.Availability = button => MyPlayer.VanillaPlayer.CanMove && !IsDiving;
                 diveButton.Visibility = _ => !MyPlayer.IsDead && !IsDiving;
-                diveButton.OnClick = (button) =>
+                diveButton.OnClick = button =>
                 {
                     if (NebulaGameManager.Instance!.CurrentTime - acToken2.Value.lastKill < 8f) acToken2.Value.cleared = true;
                     acTokenAnother.Value.triggered = true;
@@ -126,8 +127,8 @@ public class Hadar : DefinedRoleTemplate, DefinedRole
 
                 if (!GushFromVentsOption)
                 {
-                    gushButton.Availability = (button) => MyPlayer.VanillaPlayer.CanMove && MapData.GetCurrentMapData().CheckMapArea(PlayerControl.LocalPlayer.GetTruePosition());
-                    gushButton.OnClick = (button) =>
+                    gushButton.Availability = button => MyPlayer.VanillaPlayer.CanMove && MapData.GetCurrentMapData().CheckMapArea(PlayerControl.LocalPlayer.GetTruePosition());
+                    gushButton.OnClick = button =>
                     {
                         MyPlayer.VanillaPlayer.ModDive(false);
                         MyPlayer.VanillaPlayer.gameObject.layer = LayerExpansion.GetPlayersLayer();
@@ -140,11 +141,11 @@ public class Hadar : DefinedRoleTemplate, DefinedRole
                 }
                 else
                 {
-                    Arrow? ventArrow = Bind(new Arrow(null, true));
+                    var ventArrow = Bind(new Arrow(null, true));
                     ventArrow.SetColor(Palette.ImpostorRed);
                     ventArrow.IsActive = false;
                     var tracker = Bind(ObjectTrackers.ForVents(VentDetectionRangeOption, MyPlayer, v => true, Palette.ImpostorRed, true));
-                    gushButton.Availability = (button) => MyPlayer.VanillaPlayer.CanMove && tracker.CurrentTarget != null;
+                    gushButton.Availability = button => MyPlayer.VanillaPlayer.CanMove && tracker.CurrentTarget != null;
                     gushButton.OnClick = button =>
                     {
                         MyPlayer.VanillaPlayer.ModDive(false, false);
@@ -168,7 +169,7 @@ public class Hadar : DefinedRoleTemplate, DefinedRole
                     }, ventArrow);
                     
                 }
-                gushButton.Visibility = (button) => !MyPlayer.IsDead && IsDiving;
+                gushButton.Visibility = button => !MyPlayer.IsDead && IsDiving;
                 
                 gushButton.SetLabel("gush");
 
@@ -205,12 +206,12 @@ public class Hadar : DefinedRoleTemplate, DefinedRole
         {
             yield return Effects.Wait(2f);
 
-            SpriteRenderer lightRenderer = AmongUsUtil.GenerateCustomLight(Vector2.zero);
+            var lightRenderer = AmongUsUtil.GenerateCustomLight(Vector2.zero);
             lightRenderer.transform.SetParent(MyPlayer.VanillaPlayer.transform);
             lightRenderer.transform.localScale = new(1.8f, 1.8f, 1.8f);
             lightRenderer.transform.localPosition = new(0f, 0f, -50f);
 
-            float p = 0f;
+            var p = 0f;
             while (p < 1f && MyPlayer.IsDived)
             {
                 p += Time.deltaTime * 0.85f;
@@ -227,7 +228,7 @@ public class Hadar : DefinedRoleTemplate, DefinedRole
                 yield return null;
             }
 
-            GameObject.Destroy(lightRenderer.gameObject);
+            Object.Destroy(lightRenderer.gameObject);
 
             yield break;
         }
@@ -238,7 +239,7 @@ public class Hadar : DefinedRoleTemplate, DefinedRole
 
             while (true)
             {
-                bool playSE = true;
+                var playSE = true;
                 foreach (var p in NebulaGameManager.Instance!.AllPlayerInfo())
                 {
                     if (!IsDiving) yield break;

@@ -3,8 +3,8 @@
 
 public class FungleData : MapData
 {
-    static private Vector2[] MapPositions = new Vector2[]
-        { 
+    static private Vector2[] MapPositions =
+    [
         //ドロップシップ
         new(-9.2f,13.4f),
         //カフェテリア
@@ -52,10 +52,10 @@ public class FungleData : MapData
         //梯子中間
         new(20.1f,7.2f),
         //コミュ
-        new(20.9f,10.8f),new(24.1f,13.2f),new(17.9f,12.7f),
-        };
+        new(20.9f,10.8f),new(24.1f,13.2f),new(17.9f,12.7f)
+    ];
 
     protected override Vector2[] MapArea => MapPositions;
     protected override Vector2[] NonMapArea => [];
-    protected override SystemTypes[] SabotageTypes => new SystemTypes[] { SystemTypes.Reactor, SystemTypes.Comms };
+    protected override SystemTypes[] SabotageTypes => [SystemTypes.Reactor, SystemTypes.Comms];
 }

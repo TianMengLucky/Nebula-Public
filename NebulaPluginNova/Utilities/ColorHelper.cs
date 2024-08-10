@@ -12,8 +12,8 @@ public static class ColorHelper
     /// <param name="v">0～1の範囲で明度を求めます</param>
     static public void ToHSV(this Color color, out float h, out float s, out float v)
     {
-        float max = Mathf.Max(color.r, color.g, color.b);
-        float min = Mathf.Min(color.r, color.g, color.b);
+        var max = Mathf.Max(color.r, color.g, color.b);
+        var min = Mathf.Min(color.r, color.g, color.b);
 
         if (max == min)
             h = 0f;

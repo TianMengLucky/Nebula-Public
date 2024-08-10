@@ -9,7 +9,7 @@ namespace Virial.Configuration;
 
 public class ConfigurationTag
 {
-    public Media.Image Image { get; private init; }
+    public Image Image { get; private init; }
     public GUIWidgetSupplier Overlay { get; private init; }
 
     public ConfigurationTag(Image image, GUIWidgetSupplier overlay)

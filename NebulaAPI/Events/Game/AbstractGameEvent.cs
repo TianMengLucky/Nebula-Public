@@ -12,6 +12,6 @@ public class AbstractGameEvent : Event
 
     internal AbstractGameEvent(Virial.Game.Game game)
     {
-        this.Game = game;
+        Game = game;
     }
 }

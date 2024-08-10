@@ -3,6 +3,7 @@ using Nebula.Game.Statistics;
 using Virial.DI;
 using Virial.Events.Player;
 using static Nebula.Modules.HelpScreen;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Patches;
 
@@ -36,7 +37,7 @@ public static class HudManagerUpdatePatch
 
         if (!TextField.AnyoneValid &&  NebulaInput.GetInput(Virial.Compat.VirtualKeyInput.Help).KeyDownForAction && !IntroCutscene.Instance && !Minigame.Instance && !ExileController.Instance)
         {
-            HelpScreen.TryOpenHelpScreen(HelpTab.MyInfo);
+            TryOpenHelpScreen(HelpTab.MyInfo);
         }
     }
 }
@@ -55,7 +56,7 @@ public static class HudManagerCoStartGamePatch
             __instance.IsIntroDisplayed = true;
             DestroyableSingleton<HudManager>.Instance.FullScreen.transform.localPosition = new Vector3(0f, 0f, -250f);
             yield return DestroyableSingleton<HudManager>.Instance.ShowEmblem(true);
-            IntroCutscene introCutscene = GameObject.Instantiate<IntroCutscene>(__instance.IntroPrefab, __instance.transform);
+            var introCutscene = Object.Instantiate<IntroCutscene>(__instance.IntroPrefab, __instance.transform);
             yield return introCutscene.CoBegin();
 
             yield return ModPreSpawnInPatch.ModPreSpawnIn(__instance.transform, GameStatistics.EventVariation.GameStart, EventDetail.GameStart);

@@ -42,8 +42,8 @@ public struct Vector2
 
     public Vector2()
     {
-        this.x = 0f;
-        this.y = 0f;
+        x = 0f;
+        y = 0f;
     }
 
     public Vector2(float x,float y)
@@ -54,15 +54,15 @@ public struct Vector2
 
     internal Vector2(UnityEngine.Vector2 v)
     {
-        this.x = v.x;
-        this.y = v.y;
+        x = v.x;
+        y = v.y;
     }
 
     internal UnityEngine.Vector2 ToUnityVector() => new(x, y);
 
     static public implicit operator UnityEngine.Vector2(Vector2 v) => v.ToUnityVector();
-    static public Compat.Vector2 operator +(Vector2 v1, Vector2 v2) => new(v1.x + v2.x, v1.y + v2.y);
-    static public Compat.Vector2 operator -(Vector2 v1, Vector2 v2) => new(v1.x - v2.x, v1.y - v2.y);
+    static public Vector2 operator +(Vector2 v1, Vector2 v2) => new(v1.x + v2.x, v1.y + v2.y);
+    static public Vector2 operator -(Vector2 v1, Vector2 v2) => new(v1.x - v2.x, v1.y - v2.y);
 }
 
 
@@ -72,9 +72,9 @@ public struct Vector3
 
     public Vector3()
     {
-        this.x = 0f;
-        this.y = 0f;
-        this.z = 0f;
+        x = 0f;
+        y = 0f;
+        z = 0f;
     }
 
     public Vector3(float x, float y, float z = 0f)
@@ -86,9 +86,9 @@ public struct Vector3
 
     public Vector3(UnityEngine.Vector3 v)
     {
-        this.x = v.x;
-        this.y = v.y;
-        this.z = v.z;
+        x = v.x;
+        y = v.y;
+        z = v.z;
     }
 
     internal UnityEngine.Vector3 ToUnityVector() => new UnityEngine.Vector3(x, y, z);

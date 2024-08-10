@@ -52,9 +52,9 @@ public class CommandLogText : ICommandLogText
 
     public CommandLogText(CommandLogLevel level, string text)
     {
-        this.logLevel = level;
-        this.currentText = text;
-        this.IsDirty = true;
+        logLevel = level;
+        currentText = text;
+        IsDirty = true;
     }
 }
 
@@ -69,7 +69,7 @@ public class NebulaCommandLogger : ICommandLogger
     }
 
     public string ExecutedCommand { get; private init; }
-    List<ICommandLogText> allTexts = new();
+    List<ICommandLogText> allTexts = [];
     IEnumerable<ICommandLogText> AllTexts => allTexts;
 
     ICommandLogText ICommandLogger.Push(CommandLogLevel logLevel, string message)
@@ -152,21 +152,21 @@ public class CommandManager
 
         foreach (var addon in NebulaAddon.AllAddons)
         {
-            string Prefix = addon.InZipPath + "Commands/";
+            var Prefix = addon.InZipPath + "Commands/";
             foreach (var entry in addon.Archive.Entries)
             {
                 if (entry.FullName.StartsWith(Prefix) && entry.FullName.EndsWith(".command"))
                 {
-                    string path = System.IO.Path.GetFileNameWithoutExtension(entry.FullName.Substring(Prefix.Length));
+                    var path = Path.GetFileNameWithoutExtension(entry.FullName.Substring(Prefix.Length));
                     var splittedPath = path.Split("/");
 
                     IResourceAllocator? allocator = addon;
 
-                    string namespacePath = addon.Id.HeadLower();
+                    var namespacePath = addon.Id.HeadLower();
 
                     if (splittedPath.Length > 1)
                     {
-                        string childPath = splittedPath.Take(splittedPath.Length - 1).Join(null, "::");
+                        var childPath = splittedPath.Take(splittedPath.Length - 1).Join(null, "::");
                         allocator = (addon as IResourceAllocator).GetChildAllocator(childPath);
                         namespacePath += "::" + childPath;
                     }
@@ -178,11 +178,11 @@ public class CommandManager
                     }
 
                     string[] arguments = [];
-                    List<ICommandToken> commands = new();
+                    List<ICommandToken> commands = [];
 
                     using (var reader = new StreamReader(entry.Open()))
                     {
-                        bool isFirst = true;
+                        var isFirst = true;
 
                         string? buffer = null;
                         while (true)
@@ -198,7 +198,7 @@ public class CommandManager
                             {
                                 if(!str.StartsWith(" ") && buffer != null)
                                 {
-                                    commands.Add(new StatementCommandToken(CommandManager.ParseCommand(CommandManager.ParseRawCommand(buffer))));
+                                    commands.Add(new StatementCommandToken(ParseCommand(ParseRawCommand(buffer))));
                                     buffer = null;
                                 }
                                 if (buffer == null) buffer = str;
@@ -208,7 +208,7 @@ public class CommandManager
                             isFirst = false;
                         }
 
-                        if(buffer != null) commands.Add(new StatementCommandToken(CommandManager.ParseCommand(CommandManager.ParseRawCommand(buffer))));
+                        if(buffer != null) commands.Add(new StatementCommandToken(ParseCommand(ParseRawCommand(buffer))));
                     }
 
                     varAllocator.Register(splittedPath[splittedPath.Length - 1], new AddonCommand(arguments, commands.ToArray()));
@@ -246,7 +246,7 @@ public class CommandManager
     {
         string ReplaceSpacedCharacter(string str, params char[] character)
         {
-            foreach (char c in character)
+            foreach (var c in character)
                 str = str.Replace(" " + c + " ", c.ToString());
             return str;
         }
@@ -254,7 +254,7 @@ public class CommandManager
         IReadOnlyArray<(ICommandToken label, ICommandToken value)> ParseStructElements(Stack<string> args)
         {
             IReadOnlyArray<ICommandToken>? storedLabel = null;
-            List<(ICommandToken label, ICommandToken value)> members = new();
+            List<(ICommandToken label, ICommandToken value)> members = [];
             while (args.Count > 0)
             {
                 var val = ParseCommand(args, logger);
@@ -288,7 +288,7 @@ public class CommandManager
 
         string ParseTextToken()
         {
-            List<string> sb = new();
+            List<string> sb = [];
             while (args.Count>0)
             {
                 var str = args.Pop();
@@ -306,7 +306,7 @@ public class CommandManager
             return ReplaceSpacedCharacter(sb.Join(null," "),'(',')', '[', ']', '{', '}', ':', ',');
         }
 
-        List<ICommandToken> result = new();
+        List<ICommandToken> result = [];
         while (args.Count > 0)
         {
             var arg = args.Pop();
@@ -436,8 +436,8 @@ public class ConsoleShower : MonoBehaviour
     public void LateUpdate()
     {
 
-        float height = 0f;
-        int num = 0;
+        var height = 0f;
+        var num = 0;
 
         foreach (var bubble in activeBubbles.Reverse())
         {
@@ -453,8 +453,8 @@ public class ConsoleShower : MonoBehaviour
                 logger.MarkUpdated();
             }
 
-            float myHeight = bubble.Text.preferredHeight + 0.2f;
-            float myWidth = bubble.Text.preferredWidth + 0.2f;
+            var myHeight = bubble.Text.preferredHeight + 0.2f;
+            var myWidth = bubble.Text.preferredWidth + 0.2f;
 
             bubble.Holder.transform.localPosition = new UnityEngine.Vector3(0f, height + myHeight * 0.5f);
             bubble.Background.transform.localPosition = new UnityEngine.Vector3((bubble.Text.preferredWidth - bubble.Text.rectTransform.sizeDelta.x) * 0.5f, 0f, 0f);
@@ -475,7 +475,7 @@ public class ConsoleShower : MonoBehaviour
             if (bubble.Timer > 0f) { bubble.Timer -= Time.deltaTime; }
             else if (bubble.Alpha > 0f) bubble.Alpha = Mathf.Clamp01(bubble.Alpha - Time.deltaTime * 0.7f);
 
-            UnityEngine.Color alphaColor = new(1f, 1f, 1f, ConsoleInputHolder.active ? 1f : bubble.Alpha);
+            Color alphaColor = new(1f, 1f, 1f, ConsoleInputHolder.active ? 1f : bubble.Alpha);
 
             bubble.Text.color = alphaColor;
             bubble.Background.color = alphaColor.RGBMultiplied(0.13f);

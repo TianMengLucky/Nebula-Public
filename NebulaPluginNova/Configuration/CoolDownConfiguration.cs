@@ -52,12 +52,12 @@ internal class KillCoolDownConfiguration : IRelativeCoolDownConfiguration
 
     GUIWidgetSupplier IConfiguration.GetEditor() =>
     new HorizontalWidgetsHolder(GUIAlignment.Left,
-        GUI.API.Text(GUIAlignment.Center, GUI.API.GetAttribute(Virial.Text.AttributeAsset.OptionsTitleHalf), title),
-        GUI.API.RawText(GUIAlignment.Center, GUI.API.GetAttribute(Virial.Text.AttributeAsset.OptionsFlexible), ":"),
+        GUI.API.Text(GUIAlignment.Center, GUI.API.GetAttribute(AttributeAsset.OptionsTitleHalf), title),
+        GUI.API.RawText(GUIAlignment.Center, GUI.API.GetAttribute(AttributeAsset.OptionsFlexible), ":"),
         GUI.API.HorizontalMargin(0.1f),
-        GUI.API.LocalizedButton(GUIAlignment.Center, GUI.API.GetAttribute(Virial.Text.AttributeAsset.OptionsButtonLonger), typeTranslateKeys[coolDownTypeEntry.Value], _ => { coolDownTypeEntry.ChangeValue(true, true); NebulaAPI.Configurations.RequireUpdateSettingScreen(); }),
+        GUI.API.LocalizedButton(GUIAlignment.Center, GUI.API.GetAttribute(AttributeAsset.OptionsButtonLonger), typeTranslateKeys[coolDownTypeEntry.Value], _ => { coolDownTypeEntry.ChangeValue(true, true); NebulaAPI.Configurations.RequireUpdateSettingScreen(); }),
         GUI.API.HorizontalMargin(0.2f),
-        GUI.API.RawText(GUIAlignment.Center, GUI.API.GetAttribute(Virial.Text.AttributeAsset.OptionsValueShorter), CurrentCoolDownStr),
+        GUI.API.RawText(GUIAlignment.Center, GUI.API.GetAttribute(AttributeAsset.OptionsValueShorter), CurrentCoolDownStr),
         GUI.API.SpinButton(GUIAlignment.Center, v => { CurrentEntry.ChangeValue(v, true); NebulaAPI.Configurations.RequireUpdateSettingScreen(); })
     );
     

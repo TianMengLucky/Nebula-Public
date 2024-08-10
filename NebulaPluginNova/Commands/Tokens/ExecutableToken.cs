@@ -33,6 +33,6 @@ public class WrappedExecutable : IExecutable
 
     public CoTask<ICommandToken> CoExecute((string label, ICommandToken token)[] extra)
     {
-        return executable.CoExecute(this.arguments.Select(a => a.Invoke()).ToArray());
+        return executable.CoExecute(arguments.Select(a => a.Invoke()).ToArray());
     }
 }

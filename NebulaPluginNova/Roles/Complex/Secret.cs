@@ -55,7 +55,7 @@ public class Secret : DefinedRoleTemplate, DefinedRole
     RuntimeRole RuntimeAssignableGenerator<RuntimeRole>.CreateInstance(GamePlayer player, int[] arguments) => IsEvil ? new EvilInstance(player,arguments) : new NiceInstance(player,arguments);
     bool DefinedAssignable.ShowOnHelpScreen => false;
     bool IGuessed.CanBeGuessDefault => false;
-    bool AssignableFilterHolder.CanLoadDefault(Virial.Assignable.DefinedAssignable assignable) => false;
+    bool AssignableFilterHolder.CanLoadDefault(DefinedAssignable assignable) => false;
 
     public Secret(bool isEvil) : base("secretInGame", 
         new(isEvil ? Palette.ImpostorRed : Palette.CrewmateBlue), 
@@ -110,18 +110,18 @@ public class Secret : DefinedRoleTemplate, DefinedRole
         public NiceInstance(GamePlayer player, int[] savedArgs) : base(player)
         {
             //Niceはタスクの引数を先頭に含む
-            int taskNum = savedArgs[0];
+            var taskNum = savedArgs[0];
 
             savedTasks = Helpers.Sequential(taskNum).Select(index => new NetworkedPlayerInfo.TaskInfo((byte)savedArgs[1 + index * 2], (uint)savedArgs[1 + index * 2 + 1])).ToList();
 
-            this.savedRawArgs = savedArgs;
-            this.savedRoleArgs = savedArgs.Skip(1 + savedArgs[0] * 2).ToArray();
-            this.savedRole = Roles.AllRoles.First(r => r.Id == savedRoleArgs[0]);
+            savedRawArgs = savedArgs;
+            savedRoleArgs = savedArgs.Skip(1 + savedArgs[0] * 2).ToArray();
+            savedRole = Roles.AllRoles.First(r => r.Id == savedRoleArgs[0]);
         }
 
         int[]? RuntimeAssignable.RoleArguments => savedRawArgs;
         
-        List<NetworkedPlayerInfo.TaskInfo> savedTasks = new();
+        List<NetworkedPlayerInfo.TaskInfo> savedTasks = [];
         int[] savedRawArgs;
         int[] savedRoleArgs;
         DefinedRole savedRole;
@@ -153,7 +153,7 @@ public class Secret : DefinedRoleTemplate, DefinedRole
 
         string? RuntimeAssignable.OverrideRoleName(string lastRoleName, bool isShort)
         {
-            string str = (isShort ? "?" : "???").Color(Palette.CrewmateBlue);
+            var str = (isShort ? "?" : "???").Color(Palette.CrewmateBlue);
             if(NebulaGameManager.Instance?.CanSeeAllInfo ?? false) str += $" ({savedRole.DisplayShort.Color(savedRole.UnityColor)})".Color(Color.gray);
             return str;
         }
@@ -171,7 +171,7 @@ public class Secret : DefinedRoleTemplate, DefinedRole
         public EvilInstance(GamePlayer player, int[] savedArgs) : base(player)
         {
             this.savedArgs = savedArgs;
-            this.savedRole = Roles.AllRoles.First(r => r.Id == savedArgs[0]);
+            savedRole = Roles.AllRoles.First(r => r.Id == savedArgs[0]);
         }
 
         bool RuntimeRole.HasVanillaKillButton => ShownSecret.EvilConditionTypeOption.GetValue() == 0;
@@ -189,7 +189,7 @@ public class Secret : DefinedRoleTemplate, DefinedRole
         }
         string? RuntimeAssignable.OverrideRoleName(string lastRoleName, bool isShort)
         {
-            string str = (isShort ? "?" : "???").Color(Palette.ImpostorRed);
+            var str = (isShort ? "?" : "???").Color(Palette.ImpostorRed);
             if (NebulaGameManager.Instance?.CanSeeAllInfo ?? false) str += $" ({savedRole.DisplayShort.Color(savedRole.UnityColor)})".Color(Color.gray);
             return str;
         }

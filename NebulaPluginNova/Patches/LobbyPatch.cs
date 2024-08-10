@@ -12,6 +12,7 @@ using Virial.Events.Game;
 using TMPro;
 using Nebula.Modules.GUIWidget;
 using UnityEngine.Rendering;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Patches;
 
@@ -54,18 +55,18 @@ public class GameStartManagerUpdatePatch
 
         if (DestroyableSingleton<DiscordManager>.InstanceExists)
         {
-            bool active = AmongUsClient.Instance.AmHost && AmongUsClient.Instance.NetworkMode == NetworkModes.OnlineGame && DestroyableSingleton<DiscordManager>.Instance.CanShareGameOnDiscord() && DestroyableSingleton<DiscordManager>.Instance.HasValidPartyID();
+            var active = AmongUsClient.Instance.AmHost && AmongUsClient.Instance.NetworkMode == NetworkModes.OnlineGame && DestroyableSingleton<DiscordManager>.Instance.CanShareGameOnDiscord() && DestroyableSingleton<DiscordManager>.Instance.HasValidPartyID();
             __instance.ShareOnDiscordButton.gameObject.SetActive(active);
         }
 
 
         //人数の調整
         __instance.LastPlayerCount = GameData.Instance.PlayerCount;
-        string arg = "<color=#FF0000FF>";
+        var arg = "<color=#FF0000FF>";
         if (__instance.LastPlayerCount > __instance.MinPlayers) arg = "<color=#00FF00FF>";
         if (__instance.LastPlayerCount == __instance.MinPlayers) arg = "<color=#FFFF00FF>";
 
-        int max = 15;
+        var max = 15;
         if (AmongUsClient.Instance.NetworkMode != NetworkModes.LocalGame) max = GameManager.Instance.LogicOptions.MaxPlayers;    
         var text = string.Format("{0}{1}/{2}", arg, __instance.LastPlayerCount, max);
 
@@ -74,13 +75,13 @@ public class GameStartManagerUpdatePatch
         __instance.PlayerCounter.text = text;
         __instance.PlayerCounter.enableWordWrapping = false;
 
-        bool canStart = __instance.LastPlayerCount >= __instance.MinPlayers;
+        var canStart = __instance.LastPlayerCount >= __instance.MinPlayers;
 
         canStart &= PlayerControl.AllPlayerControls.GetFastEnumerator().All(p => !p.gameObject.TryGetComponent<UncertifiedPlayer>(out _));
 
         LastChecked = canStart;
         __instance.StartButton.SetButtonEnableState(canStart);
-        ActionMapGlyphDisplay startButtonGlyph = __instance.StartButtonGlyph;
+        var startButtonGlyph = __instance.StartButtonGlyph;
         
         startButtonGlyph?.SetColor(canStart ? Palette.EnabledColor : Palette.DisabledClear);
         
@@ -96,9 +97,9 @@ public class GameStartManagerUpdatePatch
         {
             if (__instance.startState == GameStartManager.StartingStates.Countdown)
             {
-                int num = Mathf.CeilToInt(__instance.countDownTimer);
+                var num = Mathf.CeilToInt(__instance.countDownTimer);
                 __instance.countDownTimer -= Time.deltaTime;
-                int num2 = Mathf.CeilToInt(__instance.countDownTimer);
+                var num2 = Mathf.CeilToInt(__instance.countDownTimer);
                 if (!__instance.GameStartTextParent.activeSelf) SoundManager.Instance.PlaySound(__instance.gameStartSound, false, 1f, null);
 
                 __instance.GameStartTextParent.SetActive(true);
@@ -143,7 +144,7 @@ public class GameStartManagerBeginGame
                 {
                     int num = GeneralConfigurations.NumOfDummiesOption;
 
-                    for (int n = 0; n < num; n++) AmongUsUtil.SpawnDummy();
+                    for (var n = 0; n < num; n++) AmongUsUtil.SpawnDummy();
                 }
             }
         }
@@ -210,14 +211,14 @@ public class OptionsConsoleUsePatch
 
         if (AmongUsClient.Instance.AmHost)
         {
-            GameObject gameObject = GameObject.Instantiate<GameObject>(__instance.MenuPrefab);
+            var gameObject = Object.Instantiate<GameObject>(__instance.MenuPrefab);
             gameObject.transform.SetParent(Camera.main.transform, false);
             gameObject.transform.localPosition = __instance.CustomPosition;
             DestroyableSingleton<TransitionFade>.Instance.DoTransitionFade(null, gameObject.gameObject, null);
         }
         else
         {
-            Modules.HelpScreen.TryOpenHelpScreen(HelpScreen.HelpTab.Options);
+            HelpScreen.TryOpenHelpScreen(HelpScreen.HelpTab.Options);
         }
 
         return false;
@@ -230,7 +231,7 @@ public class JoinGameLoadingPatch
 {
     public static void Postfix(AmongUsClient __instance, ref Il2CppSystem.Collections.IEnumerator __result)
     {
-        var overlay = GameObject.Instantiate(TransitionFade.Instance.overlay, null);
+        var overlay = Object.Instantiate(TransitionFade.Instance.overlay, null);
         overlay.transform.position = TransitionFade.Instance.overlay.transform.position;
 
         System.Collections.IEnumerator CoFadeInIf()
@@ -238,7 +239,7 @@ public class JoinGameLoadingPatch
             if (AmongUsClient.Instance.ClientId < 0)
             {
                 yield return Effects.ColorFade(overlay, Color.black, Color.clear, 0.2f);
-                GameObject.Destroy(overlay.gameObject);
+                Object.Destroy(overlay.gameObject);
             }
         }
 
@@ -268,7 +269,7 @@ public class DelayPlayDropshipAmbiencePatch
     {
         SoundManager.Instance.StopAllSound();
         yield return new WaitForSeconds(0.5f);
-        AudioSource audioSource = SoundManager.Instance.PlayNamedSound("DropShipAmb", __instance.DropShipSound, true, SoundManager.Instance.AmbienceChannel);
+        var audioSource = SoundManager.Instance.PlayNamedSound("DropShipAmb", __instance.DropShipSound, true, SoundManager.Instance.AmbienceChannel);
         audioSource.loop = true;
         audioSource.pitch = 1.2f;
     }
@@ -303,7 +304,7 @@ public class DelayPlayDropshipAmbiencePatch
             }
         }
         __instance.StartCoroutine(CoUpdateLogo().WrapToIl2Cpp());
-        GameOperatorManager.Instance!.Register<GameStartEvent>(_ => GameObject.Destroy(logoHolder), Virial.NebulaAPI.CurrentGame!);
+        GameOperatorManager.Instance!.Register<GameStartEvent>(_ => Object.Destroy(logoHolder), Virial.NebulaAPI.CurrentGame!);
     }
 }
 

@@ -155,13 +155,13 @@ public class Language
 
     public static void ReflectFallBackFont()
     {
-        string lang = GetLanguage((uint)AmongUs.Data.DataManager.Settings.Language.CurrentLanguage);
+        var lang = GetLanguage((uint)AmongUs.Data.DataManager.Settings.Language.CurrentLanguage);
         EastAsianFontChanger.SetUpFont(lang);
     }
 
     public static void OnChangeLanguage(uint language)
     {
-        string lang = GetLanguage(language);
+        var lang = GetLanguage(language);
         EastAsianFontChanger.SetUpFont(lang);
 
         CurrentLanguage = new Language();
@@ -183,7 +183,7 @@ public class Language
         using (var reader = new StreamReader(stream, Encoding.GetEncoding("utf-8"))) {
             string? line;
             string[] strings;
-            int pairs = 0;
+            var pairs = 0;
 
             while ((line = reader.ReadLine()) != null)
             {
@@ -207,10 +207,10 @@ public class Language
                     continue;
                 }
 
-                for (int i = 0; i < 2; i++)
+                for (var i = 0; i < 2; i++)
                 {
-                    int first = strings[i].IndexOf('"') + 1;
-                    int last = strings[i].LastIndexOf('"');
+                    var first = strings[i].IndexOf('"') + 1;
+                    var last = strings[i].LastIndexOf('"');
 
                     try
                     {

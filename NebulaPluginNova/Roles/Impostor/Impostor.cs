@@ -32,7 +32,7 @@ public class Impostor : DefinedRoleTemplate, DefinedRole
             if (AmOwner)
             {
                 if (GeneralConfigurations.ImpostorsRadioOption) {
-                    VoiceChatRadio impostorRadio = new((p) => p.Role.Role.Category == RoleCategory.ImpostorRole, Language.Translate("voiceChat.info.impostorRadio"), Palette.ImpostorRed);
+                    VoiceChatRadio impostorRadio = new(p => p.Role.Role.Category == RoleCategory.ImpostorRole, Language.Translate("voiceChat.info.impostorRadio"), Palette.ImpostorRed);
                     Bind(new NebulaGameScript() {
                         OnActivatedEvent = () => NebulaGameManager.Instance?.VoiceChatManager?.AddRadio(impostorRadio) ,
                         OnReleasedEvent = ()=> NebulaGameManager.Instance?.VoiceChatManager?.RemoveRadio(impostorRadio)

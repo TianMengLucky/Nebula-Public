@@ -125,7 +125,7 @@ public interface DefinedAssignable : IRoleID
     /// <summary>
     /// 役職の色
     /// </summary>
-    Virial.Color Color { get; }
+    Color Color { get; }
     internal UnityEngine.Color UnityColor { get; }
 
     IConfigurationHolder? ConfigurationHolder { get; }
@@ -162,7 +162,7 @@ public interface DefinedSingleAssignable : DefinedCategorizedAssignable, ISpawna
 
 public interface RuntimeAssignableGenerator<T> where T : RuntimeAssignable
 {
-    T CreateInstance(Virial.Game.Player player, int[] arguments);
+    T CreateInstance(Player player, int[] arguments);
 }
 
 public interface IGuessed
@@ -398,12 +398,12 @@ public interface RuntimeRole : RuntimeAssignable
     /// <summary>
     /// ベントの使用にクールダウンを設けます。
     /// </summary>
-    Virial.Components.GameTimer? VentCoolDown => null;
+    Components.GameTimer? VentCoolDown => null;
 
     /// <summary>
     /// ベントの潜伏時間に制限を設けます。
     /// </summary>
-    Virial.Components.GameTimer? VentDuration => null;
+    Components.GameTimer? VentDuration => null;
 
     /// <summary>
     /// ベント間の移動ができる場合はtrueを返します。

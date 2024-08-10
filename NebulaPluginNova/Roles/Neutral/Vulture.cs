@@ -48,7 +48,7 @@ public class Vulture : DefinedRoleTemplate, HasCitation, DefinedRole
         {
             if (arguments.Length >= 1) leftEaten = arguments[0];
         }
-        int[]? RuntimeAssignable.RoleArguments => new int[] { leftEaten };
+        int[]? RuntimeAssignable.RoleArguments => [leftEaten];
 
         void OnReported(ReportDeadBodyEvent ev)
         {
@@ -67,14 +67,14 @@ public class Vulture : DefinedRoleTemplate, HasCitation, DefinedRole
 
                 StaticAchievementToken? acTokenCommon = null;
 
-                var eatTracker = Bind(ObjectTrackers.ForDeadBody(null, MyPlayer, (d) => true));
+                var eatTracker = Bind(ObjectTrackers.ForDeadBody(null, MyPlayer, d => true));
 
                 eatButton = Bind(new Modules.ScriptComponents.ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability);
                 var usesIcon = eatButton.ShowUsesIcon(2);
                 eatButton.SetSprite(buttonSprite.GetSprite());
-                eatButton.Availability = (button) => eatTracker.CurrentTarget != null && MyPlayer.CanMove;
-                eatButton.Visibility = (button) => !MyPlayer.IsDead;
-                eatButton.OnClick = (button) => {
+                eatButton.Availability = button => eatTracker.CurrentTarget != null && MyPlayer.CanMove;
+                eatButton.Visibility = button => !MyPlayer.IsDead;
+                eatButton.OnClick = button => {
                     AmongUsUtil.RpcCleanDeadBody(eatTracker.CurrentTarget!.PlayerId, MyPlayer.PlayerId,EventDetail.Eat);
                     leftEaten--;
                     usesIcon.text=leftEaten.ToString();

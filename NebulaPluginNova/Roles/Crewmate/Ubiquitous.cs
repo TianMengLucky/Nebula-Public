@@ -41,7 +41,7 @@ public class UbiquitousDrone : MonoBehaviour
         myRigidBody.sleepMode = RigidbodySleepMode2D.NeverSleep;
         myRigidBody.interpolation = RigidbodyInterpolation2D.Interpolate;
 
-        CircleCollider2D collider = myRigidBody.gameObject.AddComponent<CircleCollider2D>();
+        var collider = myRigidBody.gameObject.AddComponent<CircleCollider2D>();
         collider.radius = 0.2f;
         collider.isTrigger = false;
 
@@ -56,11 +56,11 @@ public class UbiquitousDrone : MonoBehaviour
 
         IEnumerator CoMoveOffset()
         {
-            float t = 0f;
+            var t = 0f;
             while (t < 2f)
             {
                 t += Time.deltaTime;
-                float p = Mathf.Pow(t / 2f, 0.7f);
+                var p = Mathf.Pow(t / 2f, 0.7f);
                 transform.localPosition = new(0f, p * DroneHeight);
                 shadeRenderer.color = new(1f, 1f, 1f, 1f - p * 0.5f);
                 yield return null;
@@ -95,7 +95,7 @@ public class UbiquitousDrone : MonoBehaviour
 
     public void FixedUpdate()
     {
-        bool isOperating = HudManager.Instance.PlayerCam.Target == this;
+        var isOperating = HudManager.Instance.PlayerCam.Target == this;
         if (isOperating)
             myRigidBody.velocity = DestroyableSingleton<HudManager>.Instance.joystick.DeltaL * 3.5f * NebulaGameManager.Instance!.LocalPlayerInfo!.Unbox().DirectionalPlayerSpeed;
         else
@@ -122,11 +122,11 @@ public class UbiquitousDrone : MonoBehaviour
     {
         IEnumerator CoCallBack()
         {
-            float t = 0f;
+            var t = 0f;
             while (t < 0.8f)
             {
                 t += Time.deltaTime;
-                float p = Mathf.Pow(t / 0.8f, 4.5f);
+                var p = Mathf.Pow(t / 0.8f, 4.5f);
                 transform.localPosition = new(0f, DroneHeight + p * 1.25f);
                 droneRenderer.color = new(1f, 1f, 1f, 1f - p);
                 shadeRenderer.color = new(1f, 1f, 1f, 0.5f - p * 0.5f);
@@ -140,7 +140,7 @@ public class UbiquitousDrone : MonoBehaviour
 
     public void DestroyDroneObject()
     {
-        GameObject.Destroy(myRigidBody.gameObject);
+        Destroy(myRigidBody.gameObject);
     }
 }
 
@@ -213,11 +213,15 @@ public class UbiquitousMapLayer : MonoBehaviour
 
     public void Awake()
     {
-        darkIconPool = new(ShipStatus.Instance.MapPrefab.HerePoint, transform);
-        darkIconPool.OnInstantiated = icon => PlayerMaterial.SetColors(new Color(0.3f, 0.3f, 0.3f), icon);
+        darkIconPool = new(ShipStatus.Instance.MapPrefab.HerePoint, transform)
+        {
+            OnInstantiated = icon => PlayerMaterial.SetColors(new Color(0.3f, 0.3f, 0.3f), icon)
+        };
 
-        lightIconPool = new(ShipStatus.Instance.MapPrefab.HerePoint, transform);
-        lightIconPool.OnInstantiated = icon => PlayerMaterial.SetColors(new Color(1f, 1f, 1f), icon);
+        lightIconPool = new(ShipStatus.Instance.MapPrefab.HerePoint, transform)
+        {
+            OnInstantiated = icon => PlayerMaterial.SetColors(new Color(1f, 1f, 1f), icon)
+        };
 
         challengeToken = new("ubiquitous.challenge",false,(val,_) => val && Ubiquitous.droneDetectionRadiousOption < 3f);
     }
@@ -244,7 +248,7 @@ public class UbiquitousMapLayer : MonoBehaviour
 
             foreach (var pos in dronePos)
             {
-                float d = pos.Distance(p.VanillaPlayer.transform.position);
+                var d = pos.Distance(p.VanillaPlayer.transform.position);
                 if(d < Ubiquitous.droneDetectionRadiousOption)
                 {
                     var icon = (DynamicPalette.IsLightColor(Palette.PlayerColors[p.PlayerId]) ? lightIconPool : darkIconPool).Instantiate();
@@ -289,7 +293,7 @@ public class Ubiquitous : DefinedRoleTemplate, DefinedRole
 
         UbiquitousDrone? myDrone = null;
         UbiquitousMapLayer? mapLayer = null;
-        List<Vector2> dronePos = new();
+        List<Vector2> dronePos = [];
 
         static private Image droneButtonSprite = SpriteLoader.FromResource("Nebula.Resources.Buttons.DroneButton.png", 115f);
         static private Image callBackButtonSprite = SpriteLoader.FromResource("Nebula.Resources.Buttons.DroneCallBackButton.png", 115f);
@@ -328,7 +332,7 @@ public class Ubiquitous : DefinedRoleTemplate, DefinedRole
         {
             if (AmOwner)
             {
-                int currentSize = 1;
+                var currentSize = 1;
                 var cameraObj = HudContent.InstantiateContent("UbiquitousCamera", true, true, false, true);
                 this.Bind(cameraObj.gameObject);
 
@@ -344,13 +348,13 @@ public class Ubiquitous : DefinedRoleTemplate, DefinedRole
 
                 droneButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability, "ubiquitous.drone");
                 droneButton.SetSprite(droneButtonSprite.GetSprite());
-                droneButton.Availability = (button) => MyPlayer.CanMove || (myDrone && AmongUsUtil.CurrentCamTarget == myDrone);
-                droneButton.Visibility = (button) =>
+                droneButton.Availability = button => MyPlayer.CanMove || (myDrone && AmongUsUtil.CurrentCamTarget == myDrone);
+                droneButton.Visibility = button =>
                 {
                     cameraObj.gameObject.SetActive(myDrone && AmongUsUtil.CurrentCamTarget != myDrone && !MeetingHud.Instance);
                     if (cameraObj.gameObject.active)
                     {
-                        int level = Mathf.Max(2, myDrone!.CameraRoughness);
+                        var level = Mathf.Max(2, myDrone!.CameraRoughness);
                         if(currentSize != level)
                         {
                             currentSize = level;
@@ -359,7 +363,7 @@ public class Ubiquitous : DefinedRoleTemplate, DefinedRole
                     }
                     return !MyPlayer.IsDead;
                 };
-                droneButton.OnClick = (button) =>
+                droneButton.OnClick = button =>
                 {
                     droneButton.ActivateEffect();
 
@@ -379,7 +383,7 @@ public class Ubiquitous : DefinedRoleTemplate, DefinedRole
                         AmongUsUtil.ToggleCamTarget(myDrone, null);
                     }
                 };
-                droneButton.OnEffectEnd = (button) =>
+                droneButton.OnEffectEnd = button =>
                 {
                     AmongUsUtil.SetCamTarget(null);
                     droneButton.StartCoolDown();
@@ -390,9 +394,9 @@ public class Ubiquitous : DefinedRoleTemplate, DefinedRole
 
                 callBackButton = Bind(new ModAbilityButton());
                 callBackButton.SetSprite(callBackButtonSprite.GetSprite());
-                callBackButton.Availability = (button) => MyPlayer.CanMove || (myDrone && AmongUsUtil.CurrentCamTarget == myDrone);
-                callBackButton.Visibility = (button) => !MyPlayer.IsDead && myDrone;
-                callBackButton.OnClick = (button) =>
+                callBackButton.Availability = button => MyPlayer.CanMove || (myDrone && AmongUsUtil.CurrentCamTarget == myDrone);
+                callBackButton.Visibility = button => !MyPlayer.IsDead && myDrone;
+                callBackButton.OnClick = button =>
                 {
                     callBackButton.DoSubClick();
                     AmongUsUtil.SetCamTarget();
@@ -408,9 +412,9 @@ public class Ubiquitous : DefinedRoleTemplate, DefinedRole
 
                 var hackButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.SecondaryAbility, "ubiquitous.doorHack");
                 hackButton.SetSprite(hackButtonSprite.GetSprite());
-                hackButton.Availability = (button) => MyPlayer.CanMove || (myDrone && AmongUsUtil.CurrentCamTarget == myDrone);
-                hackButton.Visibility = (button) => !MyPlayer.IsDead && myDrone;
-                hackButton.OnClick = (button) =>
+                hackButton.Availability = button => MyPlayer.CanMove || (myDrone && AmongUsUtil.CurrentCamTarget == myDrone);
+                hackButton.Visibility = button => !MyPlayer.IsDead && myDrone;
+                hackButton.OnClick = button =>
                 {
                     float distance = doorHackRadiousOption;
                     foreach(var door in ShipStatus.Instance.AllDoors)

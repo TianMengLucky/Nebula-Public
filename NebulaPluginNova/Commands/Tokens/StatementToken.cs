@@ -12,7 +12,7 @@ public class StatementCommandToken : ICommandToken
 
     public StatementCommandToken(IReadOnlyArray<ICommandToken> arguments)
     {
-        this.tokens = arguments;
+        tokens = arguments;
     }
 
     public IEnumerable<ICommandToken> RawTokens => tokens;

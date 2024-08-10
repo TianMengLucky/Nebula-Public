@@ -56,7 +56,7 @@ public class NebulaSettingMenu : MonoBehaviour
         MainHolder = UnityHelper.CreateObject<MetaScreen>("MainHolder", MainHolderParent.transform, new Vector3(0f, 0f));
         MainHolder.gameObject.AddComponent<ScriptBehaviour>().UpdateHandler += MetaWidgetOld.ScrollView.GetDistHistoryUpdater(() => MainHolder.transform.localPosition.y, "SettingsMenu");
 
-        var firstScroller = new GUIScrollView(Virial.Media.GUIAlignment.Left, new Vector2(4f, 4.1f), null) { ScrollerTag = "RoleSettingFirst" };
+        var firstScroller = new GUIScrollView(GUIAlignment.Left, new Vector2(4f, 4.1f), null) { ScrollerTag = "RoleSettingFirst" };
         FirstInnerScreen = firstScroller.Artifact;
         MainHolder.SetWidget(firstScroller, new(0.5f, 0.5f), out _);
         //FirstScroller = VanillaAsset.GenerateScroller(new Vector2(4f, 4.5f), MainHolderParent.transform, new Vector3(2.2f, -0.05f, -1f), MainHolder.transform, new FloatRange(0f, 1f),4.6f);
@@ -72,14 +72,14 @@ public class NebulaSettingMenu : MonoBehaviour
         SecondMask.transform.localScale = new Vector3(8f, 3.5f);
         SecondScreen = UnityHelper.CreateObject<MetaScreen>("SecondScreen", SecondParent.transform, new Vector3(0f, 0f, -5f));
 
-        var secondScroller = new GUIScrollView(Virial.Media.GUIAlignment.Left, new Vector2(8f, 3.5f), null) { ScrollerTag = "RoleSettingSecond" };
+        var secondScroller = new GUIScrollView(GUIAlignment.Left, new Vector2(8f, 3.5f), null) { ScrollerTag = "RoleSettingSecond" };
         SecondInnerScreen = secondScroller.Artifact;
         SecondScreen.SetWidget(secondScroller, new(0.5f, 0.5f), out _);
         //SecondScroller = VanillaAsset.GenerateScroller(new Vector2(8f, 4.1f), SecondParent.transform, new Vector3(4.2f, -0.05f, -1f), SecondScreen.transform, new FloatRange(0f, 1f), 4.2f);
         
 
         //左上タイトルと戻るボタン
-        SecondTitle = GameObject.Instantiate(VanillaAsset.StandardTextPrefab, SecondPage.transform);
+        SecondTitle = Instantiate(VanillaAsset.StandardTextPrefab, SecondPage.transform);
         TextAttributeOld.TitleAttr.Reflect(SecondTitle);
         SecondTitle.text = "Configuration Title";
         SecondTitle.transform.localPosition = new Vector3(-2.8f, 1.9f, -10f);
@@ -92,8 +92,8 @@ public class NebulaSettingMenu : MonoBehaviour
     private IEnumerator CoShowRightImage()
     {
         Color col = new(0.2f, 0.2f, 0.2f, 0f);
-        float p = 0f;
-        float pp = 0f; 
+        var p = 0f;
+        var pp = 0f; 
         while (p < 1f)
         {
             pp = (1f - p) * (1f - p);
@@ -123,7 +123,7 @@ public class NebulaSettingMenu : MonoBehaviour
         widget.Append(new MetaWidgetOld.VerticalMargin(0.2f));
         foreach (var tab in ConfigurationTab.AllTab)
         {
-            ConfigurationTab copiedTab = tab;
+            var copiedTab = tab;
             widget.Append(
                 new MetaWidgetOld.Button(() => {
                     CurrentTab = copiedTab;
@@ -193,11 +193,11 @@ public class NebulaSettingMenu : MonoBehaviour
         widget.Append(new MetaWidgetOld.VerticalMargin(0.12f));
 
         IEnumerable<IConfigurationHolder> holders = ConfigurationHolder.AllHolders.Where(h => h.IsShown && h.Tabs.Test(CurrentTab) && h.GameModes.Test(GeneralConfigurations.CurrentGameMode));
-        UnityEngine.Color HolderToColor(IConfigurationHolder h) => h.DisplayOption switch
+        Color HolderToColor(IConfigurationHolder h) => h.DisplayOption switch
         {
             ConfigurationHolderState.Inactivated => new(0.2f, 0.2f, 0.2f),
             ConfigurationHolderState.Emphasized => Color.yellow,
-            _ => UnityEngine.Color.white
+            _ => Color.white
         };
 
         IConfigurationHolder? lastRight = null;
@@ -248,13 +248,13 @@ public class NebulaSettingMenu : MonoBehaviour
 
                         text.transform.localPosition += new Vector3(0.03f, -0.03f, 0f);
 
-                        var subTxt = GameObject.Instantiate(VanillaAsset.StandardTextPrefab, renderer.transform);
+                        var subTxt = Instantiate(VanillaAsset.StandardTextPrefab, renderer.transform);
                         subTextAttr.Reflect(subTxt);
                         subTxt.text = holder.Detail.GetString();
                         subTxt.transform.localPosition = new Vector3(0f, -0.15f, -0.5f);
                         subTxt.sortingOrder = 30;
 
-                        int tagCount = 0;
+                        var tagCount = 0;
                         foreach (var tag in holder.Tags)
                         {
                             var tagRenderer = UnityHelper.CreateObject<SpriteRenderer>("Tag", renderer.transform, new(-1.62f + tagCount * 0.25f, 0.4f, -1f));
@@ -325,7 +325,11 @@ public class NebulaSettingMenu : MonoBehaviour
         //SecondScroller.SetYBoundsMax(SecondScreen.SetWidget(new Vector2(7.8f, 4.1f), CurrentHolder.GetWidget()) - 4.1f);
 
         //ホルダから上方ボタンを生成
-        List<IMetaParallelPlacableOld> topContents = new(CurrentHolder.RelatedInformations.Where(info => info.predicate.Invoke()).Select(info => new MetaWidgetOld.Button(info.onClicked, RelatedButtonAttr) { Text = info.text }));
+        List<IMetaParallelPlacableOld> topContents =
+        [
+            ..CurrentHolder.RelatedInformations.Where(info => info.predicate.Invoke()).Select(info =>
+                new MetaWidgetOld.Button(info.onClicked, RelatedButtonAttr) { Text = info.text })
+        ];
 
      
         //関連する役職プリセット

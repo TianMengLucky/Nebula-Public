@@ -12,6 +12,7 @@ using Virial.Assignable;
 using Virial.Game;
 using Virial.Media;
 using static Nebula.Modules.MetaWidgetOld;
+using Object = UnityEngine.Object;
 
 namespace Nebula.VoiceChat;
 
@@ -30,7 +31,7 @@ public interface IVoiceComponent
 
     public float CanCatch(Vector2 speaker)
     {
-        float dis = speaker.Distance(Position);
+        var dis = speaker.Distance(Position);
         if (dis < Radious) return dis / Radious;
         return 0f;
     }
@@ -53,7 +54,7 @@ public class VoiceChatRadio
     {
         get
         {
-            int mask = 0;
+            var mask = 0;
             foreach (var p in NebulaGameManager.Instance!.AllPlayerInfo()) if (predicate.Invoke(p)) mask |= 1 << p.PlayerId;
             return mask;
         } 
@@ -62,8 +63,8 @@ public class VoiceChatRadio
     public VoiceChatRadio(Predicate<GamePlayer> listenable,string displayName, Color radioColor)
     {
         predicate = listenable;
-        this.DisplayRadioName = displayName;
-        this.Color = radioColor;
+        DisplayRadioName = displayName;
+        Color = radioColor;
     }
 }
 
@@ -101,14 +102,14 @@ public class VoiceChatManager : IDisposable
     public int RadioMask;
 
     Dictionary<byte, VCClient> allClients = new();
-    List<IVoiceComponent> allSpeakers = new();
-    List<IVoiceComponent> allMics = new();
+    List<IVoiceComponent> allSpeakers = [];
+    List<IVoiceComponent> allMics = [];
     public IEnumerable<IVoiceComponent> AllSpeakers() => allSpeakers;
     public IEnumerable<IVoiceComponent> AllMics() => allMics;
     public void AddSpeaker(IVoiceComponent speaker) => allSpeakers.Add(speaker);
     public void AddMicrophone(IVoiceComponent mic) => allMics.Add(mic);
 
-    List<VoiceChatRadio> allRadios= new();
+    List<VoiceChatRadio> allRadios= [];
     VoiceChatRadio? currentRadio = null;
 
     private static bool AllowedUsingMic = false;
@@ -179,8 +180,8 @@ public class VoiceChatManager : IDisposable
 
             SampleFunctionalProvider resampler = new(remixer, (ary, offset, count) =>
             {
-                byte[] byteArray = new byte[count * 4];
-                for (int i = 0; i < count; i++)
+                var byteArray = new byte[count * 4];
+                for (var i = 0; i < count; i++)
                 {
                     Unsafe.As<byte, float>(ref byteArray[i * 4]) = (float)(ary[offset + i] * 0.42f);
                 }
@@ -195,7 +196,7 @@ public class VoiceChatManager : IDisposable
         {
             var lowPass = BiQuadFilter.LowPassFilter(22050, 2300, 1f);
             var highPass = BiQuadFilter.HighPassFilter(22050, 300, 0.8f);
-            SampleFunctionalProvider radioEffector = new(routeRadio, (f) =>
+            SampleFunctionalProvider radioEffector = new(routeRadio, f =>
             {
                 f = highPass.Transform(lowPass.Transform(f));
                 f = Math.Clamp(f * 1.4f, -0.28f, 0.28f) * 2.8f;
@@ -247,7 +248,7 @@ public class VoiceChatManager : IDisposable
     public IEnumerable<(string Id, int num)> GetAllMicDevice()
     {
         var count = WaveInEvent.DeviceCount;
-        for(int i = 0; i < count; i++)
+        for(var i = 0; i < count; i++)
         {
             yield return (WaveInEvent.GetCapabilities(i).ProductName, i);
         }
@@ -350,7 +351,7 @@ public class VoiceChatManager : IDisposable
             }
             else
             {
-                for (int i = 0; i < allRadios.Count; i++)
+                for (var i = 0; i < allRadios.Count; i++)
                 {
                     if (Input.GetKeyDown((KeyCode)(KeyCode.Alpha1 + i + 1)))
                     {
@@ -382,12 +383,12 @@ public class VoiceChatManager : IDisposable
 
             MetaWidgetOld widget = new();
 
-            widget.Append(new MetaWidgetOld.Text(TextAttributeOld.BoldAttr) { Alignment = IMetaWidgetOld.AlignmentOption.Center, TranslationKey = "voiceChat.dialog.confirm" });
-            widget.Append(new MetaWidgetOld.VerticalMargin(0.15f));
+            widget.Append(new Text(TextAttributeOld.BoldAttr) { Alignment = IMetaWidgetOld.AlignmentOption.Center, TranslationKey = "voiceChat.dialog.confirm" });
+            widget.Append(new VerticalMargin(0.15f));
             widget.Append(new CombinedWidgetOld(0.45f,
-                new MetaWidgetOld.Button(() => { AllowedUsingMic = true; screen.CloseScreen(); }, new(TextAttributeOld.BoldAttr) { Size = new(0.42f, 0.2f) }) { Alignment = IMetaWidgetOld.AlignmentOption.Center, TranslationKey = "ui.dialog.yes" },
-                new MetaWidgetOld.HorizonalMargin(0.1f),
-                new MetaWidgetOld.Button(() => { AllowedUsingMic = false; screen.CloseScreen(); }, new(TextAttributeOld.BoldAttr) { Size = new(0.42f, 0.2f) }) { Alignment = IMetaWidgetOld.AlignmentOption.Center, TranslationKey = "ui.dialog.no" }));
+                new Button(() => { AllowedUsingMic = true; screen.CloseScreen(); }, new(TextAttributeOld.BoldAttr) { Size = new(0.42f, 0.2f) }) { Alignment = IMetaWidgetOld.AlignmentOption.Center, TranslationKey = "ui.dialog.yes" },
+                new HorizonalMargin(0.1f),
+                new Button(() => { AllowedUsingMic = false; screen.CloseScreen(); }, new(TextAttributeOld.BoldAttr) { Size = new(0.42f, 0.2f) }) { Alignment = IMetaWidgetOld.AlignmentOption.Center, TranslationKey = "ui.dialog.no" }));
 
             screen.SetWidget(widget);
 
@@ -404,10 +405,10 @@ public class VoiceChatManager : IDisposable
 
         if (!isValid) yield break;
 
-        uint sId = GetClient(PlayerControl.LocalPlayer.PlayerId)?.sId ?? 0;
+        var sId = GetClient(PlayerControl.LocalPlayer.PlayerId)?.sId ?? 0;
 
         var micName = VCMicEntry.Value;
-        int deviceNumber = GetAllMicDevice().FirstOrDefault(d => d.Id == micName).num;
+        var deviceNumber = GetAllMicDevice().FirstOrDefault(d => d.Id == micName).num;
 
         OpusEncoder myEncoder = new(OpusDotNet.Application.VoIP, 24000, 1);
         myWaveIn = new WaveInEvent();
@@ -415,37 +416,39 @@ public class VoiceChatManager : IDisposable
         myWaveIn.DeviceNumber = deviceNumber;
         myWaveIn.WaveFormat = new WaveFormat(22050, 16, 1);
         
-        byte[] left = new byte[960];
-        int leftLength = 0;
-        byte[] opusBuffer = new byte[2048];
+        var left = new byte[960];
+        var leftLength = 0;
+        var opusBuffer = new byte[2048];
 
-        List<byte[]> data = new();
+        List<byte[]> data = [];
 
-        short gate = short.MaxValue;
-        int tension = 0;
+        var gate = short.MaxValue;
+        var tension = 0;
 
         myWaveIn.DataAvailable += (_, ee) =>
         {
-            int read = 0;
+            var read = 0;
             while (ee.BytesRecorded - read > 0)
             {
-                int consumed = Math.Min(left.Length - leftLength, ee.BytesRecorded - read);
-                System.Buffer.BlockCopy(ee.Buffer, read, left, leftLength, consumed);
+                var consumed = Math.Min(left.Length - leftLength, ee.BytesRecorded - read);
+                Buffer.BlockCopy(ee.Buffer, read, left, leftLength, consumed);
                 leftLength += consumed;
                 read += consumed;
 
                 if (leftLength == 960)
                 {
                     //音量チェック
-                    WaveBuffer waveBuffer = new WaveBuffer(left);
-                    waveBuffer.ByteBufferCount = 960;
+                    var waveBuffer = new WaveBuffer(left)
+                    {
+                        ByteBufferCount = 960
+                    };
 
-                    int shortLen = waveBuffer.ShortBufferCount;
+                    var shortLen = waveBuffer.ShortBufferCount;
                     var shortBuffer = waveBuffer.ShortBuffer;
 
-                    bool findPeek = false;
-                    float coeff = VoiceChatManager.MicVolumeEntry.Value;
-                    for (int i = 0; i < shortLen; i++)
+                    var findPeek = false;
+                    var coeff = MicVolumeEntry.Value;
+                    for (var i = 0; i < shortLen; i++)
                     {
                         if (shortBuffer[i] > 0)
                             shortBuffer[i] = (short)Math.Min(shortBuffer[i] * coeff, (float)short.MaxValue);
@@ -533,12 +536,12 @@ public class VoiceChatManager : IDisposable
             writer.Write(message.dataLength);
             writer.Write(message.dataAry,0,message.dataLength);
         },
-        (reader) => {
-            byte id = reader.ReadByte();
-            uint sId = reader.ReadUInt32();
-            bool isRadio = reader.ReadBoolean();
-            int radioMask = reader.ReadInt32();
-            int length = reader.ReadInt32();
+        reader => {
+            var id = reader.ReadByte();
+            var sId = reader.ReadUInt32();
+            var isRadio = reader.ReadBoolean();
+            var radioMask = reader.ReadInt32();
+            var length = reader.ReadInt32();
             return (id, sId, isRadio, radioMask, length, reader.ReadBytes(length));
             },
         (message,calledByMe) => {
@@ -556,8 +559,8 @@ public class VoiceChatManager : IDisposable
 
         GameObject InstantiateSlideBar(Transform? parent, float value, Action<float> onVolumeChange)
         {
-            var bar = GameObject.Instantiate(menu.MusicSlider, parent);
-            GameObject.Destroy(bar.transform.GetChild(0).gameObject);
+            var bar = Object.Instantiate(menu.MusicSlider, parent);
+            Object.Destroy(bar.transform.GetChild(0).gameObject);
 
             var collider = bar.Bar.GetComponent<BoxCollider2D>();
             collider.size = new Vector2(1.2f, 0.2f);
@@ -577,16 +580,16 @@ public class VoiceChatManager : IDisposable
             return bar.gameObject;
         }
 
-        var phoneSetting = new HorizontalWidgetsHolder(Virial.Media.GUIAlignment.Left,
-            GUI.API.LocalizedText(Virial.Media.GUIAlignment.Center, GUI.API.GetAttribute(Virial.Text.AttributeAsset.CenteredBoldFixed), "voiceChat.settings.outputDevice"),
+        var phoneSetting = new HorizontalWidgetsHolder(GUIAlignment.Left,
+            GUI.API.LocalizedText(GUIAlignment.Center, GUI.API.GetAttribute(Virial.Text.AttributeAsset.CenteredBoldFixed), "voiceChat.settings.outputDevice"),
             GUI.API.HorizontalMargin(0.5f),
-            GUI.API.Button(Virial.Media.GUIAlignment.Center, GUI.API.GetAttribute(Virial.Text.AttributeAsset.DeviceButton), new RawTextComponent(VCPlayerEntry.Value.Length > 0 ? VCPlayerEntry.Value : Language.Translate("voiceChat.settings.device.default")), _ =>
+            GUI.API.Button(GUIAlignment.Center, GUI.API.GetAttribute(Virial.Text.AttributeAsset.DeviceButton), new RawTextComponent(VCPlayerEntry.Value.Length > 0 ? VCPlayerEntry.Value : Language.Translate("voiceChat.settings.device.default")), _ =>
             {
                 var phonesScreen = MetaScreen.GenerateWindow(new Vector2(3f, 4.2f), HudManager.Instance.transform, Vector3.zero, true, false, withMask: true);
 
-                var inner = new VerticalWidgetsHolder(Virial.Media.GUIAlignment.Center,
+                var inner = new VerticalWidgetsHolder(GUIAlignment.Center,
                     GetAllSpeakerDevice()!.Prepend((null, null)).Select(d =>
-                    GUI.API.RawButton(Virial.Media.GUIAlignment.Center, GUI.API.GetAttribute(Virial.Text.AttributeAsset.DeviceButton), d.Item1 ?? Language.Translate("voiceChat.settings.device.default"),
+                    GUI.API.RawButton(GUIAlignment.Center, GUI.API.GetAttribute(Virial.Text.AttributeAsset.DeviceButton), d.Item1 ?? Language.Translate("voiceChat.settings.device.default"),
                     _ =>
                     {
                         VCPlayerEntry.Value = d.Item1 ?? "";
@@ -595,25 +598,25 @@ public class VoiceChatManager : IDisposable
                         phonesScreen.CloseScreen();
                         OpenSettingScreen(menu);
                     })));
-                phonesScreen.SetWidget(new GUIScrollView(Virial.Media.GUIAlignment.Center, new(3f, 4.2f), inner), out var _);
+                phonesScreen.SetWidget(new GUIScrollView(GUIAlignment.Center, new(3f, 4.2f), inner), out var _);
             }),
-            GUI.API.LocalizedText(Virial.Media.GUIAlignment.Center, GUI.API.GetAttribute(Virial.Text.AttributeAsset.CenteredBoldFixed), "voiceChat.settings.outputVolume"),
+            GUI.API.LocalizedText(GUIAlignment.Center, GUI.API.GetAttribute(Virial.Text.AttributeAsset.CenteredBoldFixed), "voiceChat.settings.outputVolume"),
             new NoSGameObjectGUIWrapper(GUIAlignment.Center, () => (InstantiateSlideBar(null, PlayerVolume * 0.5f, v => PlayerVolume = v * 2f), new(1.2f, 0.8f)))
             );
 
         TextMeshPro micTestText = null!;
         DemoMode = false;
         DemoScreen = screen;
-        var micSetting = new HorizontalWidgetsHolder(Virial.Media.GUIAlignment.Left,
-            GUI.API.LocalizedText(Virial.Media.GUIAlignment.Center, GUI.API.GetAttribute(Virial.Text.AttributeAsset.CenteredBoldFixed), "voiceChat.settings.inputDevice"),
+        var micSetting = new HorizontalWidgetsHolder(GUIAlignment.Left,
+            GUI.API.LocalizedText(GUIAlignment.Center, GUI.API.GetAttribute(Virial.Text.AttributeAsset.CenteredBoldFixed), "voiceChat.settings.inputDevice"),
             GUI.API.HorizontalMargin(0.5f),
-            GUI.API.Button(Virial.Media.GUIAlignment.Center, GUI.API.GetAttribute(Virial.Text.AttributeAsset.DeviceButton), new RawTextComponent(VCMicEntry.Value.Length > 0 ? VCMicEntry.Value : Language.Translate("voiceChat.settings.device.default")), _ =>
+            GUI.API.Button(GUIAlignment.Center, GUI.API.GetAttribute(Virial.Text.AttributeAsset.DeviceButton), new RawTextComponent(VCMicEntry.Value.Length > 0 ? VCMicEntry.Value : Language.Translate("voiceChat.settings.device.default")), _ =>
             {
                 var micsScreen = MetaScreen.GenerateWindow(new Vector2(3f, 4.2f), HudManager.Instance.transform, Vector3.zero, true, false, withMask: true);
 
-                var inner = new VerticalWidgetsHolder(Virial.Media.GUIAlignment.Center,
+                var inner = new VerticalWidgetsHolder(GUIAlignment.Center,
                     GetAllMicDevice()!.Prepend((null, 0)).Select(d =>
-                    GUI.API.RawButton(Virial.Media.GUIAlignment.Center, GUI.API.GetAttribute(Virial.Text.AttributeAsset.DeviceButton), d.Item1 ?? Language.Translate("voiceChat.settings.device.default"),
+                    GUI.API.RawButton(GUIAlignment.Center, GUI.API.GetAttribute(Virial.Text.AttributeAsset.DeviceButton), d.Item1 ?? Language.Translate("voiceChat.settings.device.default"),
                     _ =>
                     {
                         VCMicEntry.Value = d.Item1 ?? "";
@@ -622,11 +625,11 @@ public class VoiceChatManager : IDisposable
                         micsScreen.CloseScreen();
                         OpenSettingScreen(menu);
                     })));
-                micsScreen.SetWidget(new GUIScrollView(Virial.Media.GUIAlignment.Center, new(3f, 4.2f), inner), out var _);
+                micsScreen.SetWidget(new GUIScrollView(GUIAlignment.Center, new(3f, 4.2f), inner), out var _);
             }),
-            GUI.API.LocalizedText(Virial.Media.GUIAlignment.Center, GUI.API.GetAttribute(Virial.Text.AttributeAsset.CenteredBoldFixed), "voiceChat.settings.inputVolume"),
+            GUI.API.LocalizedText(GUIAlignment.Center, GUI.API.GetAttribute(Virial.Text.AttributeAsset.CenteredBoldFixed), "voiceChat.settings.inputVolume"),
             new NoSGameObjectGUIWrapper(GUIAlignment.Center, () => (InstantiateSlideBar(null, MicVolumeEntry.Value * 0.5f, v => MicVolumeEntry.Value = v * 2f), new(1.2f, 0.8f))),
-            new GUIButton(Virial.Media.GUIAlignment.Center, GUI.API.GetAttribute(Virial.Text.AttributeAsset.CenteredBoldFixed), new TranslateTextComponent("voiceChat.settings.micTest")) { 
+            new GUIButton(GUIAlignment.Center, GUI.API.GetAttribute(Virial.Text.AttributeAsset.CenteredBoldFixed), new TranslateTextComponent("voiceChat.settings.micTest")) { 
                 PostBuilder = t => micTestText = t,
                 OnClick = clickable =>
                 {
@@ -637,20 +640,20 @@ public class VoiceChatManager : IDisposable
             );
 
         var micSettingMore = new HorizontalWidgetsHolder(GUIAlignment.Left,
-            GUI.API.LocalizedText(Virial.Media.GUIAlignment.Center, GUI.API.GetAttribute(Virial.Text.AttributeAsset.CenteredBoldFixed), "voiceChat.settings.noiseGate"),
+            GUI.API.LocalizedText(GUIAlignment.Center, GUI.API.GetAttribute(Virial.Text.AttributeAsset.CenteredBoldFixed), "voiceChat.settings.noiseGate"),
             new NoSGameObjectGUIWrapper(GUIAlignment.Center, () => (InstantiateSlideBar(null, MicGateEntry.Value, v => MicGateEntry.Value = v), new(1.2f, 0.8f)))
             );
 
-        widget.Append(new WrappedWidget(new VerticalWidgetsHolder(Virial.Media.GUIAlignment.Center, phoneSetting, micSetting, micSettingMore)));
+        widget.Append(new WrappedWidget(new VerticalWidgetsHolder(GUIAlignment.Center, phoneSetting, micSetting, micSettingMore)));
 
         var nameAttr = new TextAttributeOld(TextAttributeOld.BoldAttr) { Size = new(1.4f, 0.3f) };
-        widget.Append(allClients.Values.Where(v => !v.MyPlayer.AmOwner), (client) =>
+        widget.Append(allClients.Values.Where(v => !v.MyPlayer.AmOwner), client =>
         {
 
-            return new MetaWidgetOld.Text(nameAttr)
+            return new Text(nameAttr)
             {
                 RawText = client.MyPlayer.name,
-                PostBuilder = (text) =>
+                PostBuilder = text =>
                 {
                     InstantiateSlideBar(text.transform.parent, client.Volume * 0.125f, v => client.SetVolume(v * 8f));
                 }
@@ -677,9 +680,9 @@ public class AdvancedVolumeProvider : ISampleProvider
     public WaveFormat WaveFormat { get => sourceProvider.WaveFormat; }
     public int Read(float[] buffer, int offset, int count)
     {
-        int num = sourceProvider.Read(buffer, offset, count);
+        var num = sourceProvider.Read(buffer, offset, count);
 
-        float vol = volume.Value;
+        var vol = volume.Value;
         Parallel.For(0, num, i => buffer[offset + i] *= vol);
 
         return num;
@@ -700,10 +703,10 @@ public class SampleFunctionalProvider : ISampleProvider
     public WaveFormat WaveFormat { get => sourceProvider.WaveFormat; }
     public int Read(float[] buffer, int offset, int count)
     {
-        int num = sourceProvider.Read(buffer, offset, count);
+        var num = sourceProvider.Read(buffer, offset, count);
         //for (int i = num; i < count; i++) buffer[offset + i] = 0f;
         if (OnReadArray != null) OnReadArray(buffer, offset, num);
-        if(OnRead != null) for(int i = 0; i < num; i++) buffer[offset + i] = OnRead(buffer[offset + i]);
+        if(OnRead != null) for(var i = 0; i < num; i++) buffer[offset + i] = OnRead(buffer[offset + i]);
         
         return num;
     }
@@ -739,11 +742,11 @@ public class VolumeMeter : ISampleProvider
 
     public int Read(float[] buffer, int offset, int sampleCount)
     {
-        int result = source.Read(buffer, offset, sampleCount);
+        var result = source.Read(buffer, offset, sampleCount);
 
         Level = 0f;
-        bool onlySampleVolume = OnlySampleVolume.Invoke();
-        for (int i = 0; i < sampleCount; i++)
+        var onlySampleVolume = OnlySampleVolume.Invoke();
+        for (var i = 0; i < sampleCount; i++)
         {
             if(buffer[offset + i] > Level) Level = buffer[offset + i];
             if (onlySampleVolume) buffer[offset + i] = 0f;
@@ -789,13 +792,13 @@ public class AdvancedCircularBuffer<T>
     {
         lock (lockObject)
         {
-            int num = 0;
+            var num = 0;
             if (count > buffer.Length - byteCount)
             {
                 count = buffer.Length - byteCount;
             }
 
-            int num2 = Math.Min(buffer.Length - writePosition, count);
+            var num2 = Math.Min(buffer.Length - writePosition, count);
             Array.Copy(data, offset, buffer, writePosition, num2);
             writePosition += num2;
             writePosition %= buffer.Length;
@@ -821,8 +824,8 @@ public class AdvancedCircularBuffer<T>
                 count = byteCount;
             }
 
-            int num = 0;
-            int num2 = Math.Min(buffer.Length - readPosition, count);
+            var num = 0;
+            var num2 = Math.Min(buffer.Length - readPosition, count);
             Array.Copy(buffer, readPosition, data, offset, num2);
             num += num2;
             readPosition += num2;
@@ -848,9 +851,9 @@ public class AdvancedCircularBuffer<T>
                 count = byteCount;
             }
 
-            int num = 0;
-            int peekPosition = (buffer.Length + readPosition + bufferOffset) % buffer.Length;
-            int num2 = Math.Min(buffer.Length - peekPosition, count);
+            var num = 0;
+            var peekPosition = (buffer.Length + readPosition + bufferOffset) % buffer.Length;
+            var num2 = Math.Min(buffer.Length - peekPosition, count);
             Array.Copy(buffer, peekPosition, data, offset, num2);
             num += num2;
             peekPosition += num2;
@@ -956,7 +959,7 @@ public class ReverbBufferedSampleProvider : ISampleProvider
 
     public int Read(float[] buffer, int offset, int count)
     {
-        int num = circularBuffer?.Read(buffer, offset, count) ?? 0;
+        var num = circularBuffer?.Read(buffer, offset, count) ?? 0;
         
 
         if (ReadFully && num < count)
@@ -970,7 +973,7 @@ public class ReverbBufferedSampleProvider : ISampleProvider
 
     public int Peek(float[] buffer, int offset, int count, int bufferOffset)
     {
-        int num = circularBuffer?.Peek(buffer, offset, count, bufferOffset) ?? 0;
+        var num = circularBuffer?.Peek(buffer, offset, count, bufferOffset) ?? 0;
 
         if (ReadFully && num < count)
         {
@@ -995,15 +998,15 @@ public class ReverbSampleProvider : ISampleProvider
 
     public int Read(float[] buffer, int offset, int count)
     {
-        int num = sourceProvider.Read(buffer,offset,count);
+        var num = sourceProvider.Read(buffer,offset,count);
         reverb.AddSamples(buffer, offset, num);
 
-        float[] reverbBuffer = new float[num];
-        for (int n = 0; n < 7; n++)
+        var reverbBuffer = new float[num];
+        for (var n = 0; n < 7; n++)
         {
             Array.Clear(reverbBuffer);
             reverb.Peek(reverbBuffer, 0, num, -1100 * (n + 1));
-            for (int i = 0; i < num; i++) buffer[i + offset] += reverbBuffer[i] * (float)Math.Pow(0.985f, (float)(n + 1.2f));
+            for (var i = 0; i < num; i++) buffer[i + offset] += reverbBuffer[i] * (float)Math.Pow(0.985f, (float)(n + 1.2f));
         }
         reverb.Read(reverbBuffer, 0, num);
         return num;

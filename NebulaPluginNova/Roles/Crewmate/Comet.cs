@@ -45,10 +45,10 @@ public class Comet : DefinedRoleTemplate, DefinedRole
 
                 boostButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability);
                 boostButton.SetSprite(buttonSprite.GetSprite());
-                boostButton.Availability = (button) => MyPlayer.CanMove;
-                boostButton.Visibility = (button) => !MyPlayer.IsDead;
-                boostButton.OnClick = (button) => button.ActivateEffect();
-                boostButton.OnEffectStart = (button) => {
+                boostButton.Availability = button => MyPlayer.CanMove;
+                boostButton.Visibility = button => !MyPlayer.IsDead;
+                boostButton.OnClick = button => button.ActivateEffect();
+                boostButton.OnEffectStart = button => {
                     using (RPCRouter.CreateSection("CometBlaze"))
                     {
                         PlayerModInfo.RpcAttrModulator.Invoke(new(MyPlayer.PlayerId, new SpeedModulator(BlazeSpeedOption, Vector2.one, true, BlazeDurationOption, false, 100, "nebula::comet"), true));
@@ -60,7 +60,7 @@ public class Comet : DefinedRoleTemplate, DefinedRole
                     acTokenCommon.Value = true;
                     if(acTokenCommon2 != null) acTokenCommon2.Value.pos = MyPlayer.VanillaPlayer.GetTruePosition();
                 };
-                boostButton.OnEffectEnd = (button) =>
+                boostButton.OnEffectEnd = button =>
                 {
                     boostButton.StartCoolDown();
 

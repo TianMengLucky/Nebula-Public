@@ -46,12 +46,12 @@ public class Confused : DefinedAllocatableModifierTemplate, DefinedAllocatableMo
 
             var alives = NebulaGameManager.Instance!.AllPlayerInfo().Where(p => !p.IsDead && !p.AmOwner).ToArray();
             var randomArray = Helpers.GetRandomArray(alives.Length);
-            int maxPairs = Mathf.Min(NumOfMaxShuffledPairsOption, alives.Length / 2);
+            var maxPairs = Mathf.Min(NumOfMaxShuffledPairsOption, alives.Length / 2);
 
             float prob = ChanceOfShuffleOption;
 
-            bool shuffled = false;
-            for (int i = 0; i < maxPairs; i++)
+            var shuffled = false;
+            for (var i = 0; i < maxPairs; i++)
             {
                 if (System.Random.Shared.NextSingle() * 100 > prob) continue;
 
@@ -89,11 +89,11 @@ public class Confused : DefinedAllocatableModifierTemplate, DefinedAllocatableMo
         {
             //無能本人で、生存していて、生存者が全員クルーで、クルーメイト勝利の場合
             if (
-                NebulaGameManager.Instance!.AllPlayerInfo().Count(p => p.Role.Role.Category == Virial.Assignable.RoleCategory.NeutralRole) >= 2 &&
-                NebulaGameManager.Instance!.AllPlayerInfo().Count(p => p.Role.Role.Category == Virial.Assignable.RoleCategory.ImpostorRole) >= 2 &&
+                NebulaGameManager.Instance!.AllPlayerInfo().Count(p => p.Role.Role.Category == RoleCategory.NeutralRole) >= 2 &&
+                NebulaGameManager.Instance!.AllPlayerInfo().Count(p => p.Role.Role.Category == RoleCategory.ImpostorRole) >= 2 &&
                 !MyPlayer.IsDead &&
                 ev.EndState.EndCondition == NebulaGameEnds.CrewmateGameEnd &&
-                NebulaGameManager.Instance!.AllPlayerInfo().All(p => p.IsDead || p.Role.Role.Category == Virial.Assignable.RoleCategory.CrewmateRole))
+                NebulaGameManager.Instance!.AllPlayerInfo().All(p => p.IsDead || p.Role.Role.Category == RoleCategory.CrewmateRole))
                 new StaticAchievementToken("confused.challenge");
         }
 

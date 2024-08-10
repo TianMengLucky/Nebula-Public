@@ -16,6 +16,7 @@ using static Rewired.ComponentControls.Effects.RotateAroundAxis;
 using Virial.Events.Game.Meeting;
 using Nebula.Roles.Ghost.Neutral;
 using static Nebula.Roles.Ghost.Neutral.Grudge;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Roles.Ghost.Impostor;
 
@@ -35,7 +36,7 @@ public class Hallucination : DefinedGhostRoleTemplate, DefinedGhostRole
 
         void IGameOperator.OnReleased()
         {
-            if (display) GameObject.Destroy(display.gameObject);
+            if (display) Object.Destroy(display.gameObject);
         }
 
         public void Disappear()
@@ -200,13 +201,13 @@ public class Hallucination : DefinedGhostRoleTemplate, DefinedGhostRole
 
                 var hallucinationButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability);
                 hallucinationButton.SetSprite(buttonSprite.GetSprite());
-                hallucinationButton.Availability = (button) => MyPlayer.CanMove;
-                hallucinationButton.Visibility = (button) => MyPlayer.IsDead;
-                hallucinationButton.OnClick = (button) =>
+                hallucinationButton.Availability = button => MyPlayer.CanMove;
+                hallucinationButton.Visibility = button => MyPlayer.IsDead;
+                hallucinationButton.OnClick = button =>
                 {
                     button.ToggleEffect();
                 };
-                hallucinationButton.OnEffectStart = (button) =>
+                hallucinationButton.OnEffectStart = button =>
                 {
                     var cand = NebulaGameManager.Instance!.AllPlayerInfo().Where(p => p.PlayerId != MyPlayer.PlayerId);
                     if (cand.Any(p => !p.IsDead)) cand = cand.Where(p => !p.IsDead);
@@ -221,7 +222,7 @@ public class Hallucination : DefinedGhostRoleTemplate, DefinedGhostRole
 
                     acTokenAnother1.Value.mask |= 1u << random.PlayerId;
                 };
-                hallucinationButton.OnEffectEnd = (button) =>
+                hallucinationButton.OnEffectEnd = button =>
                 {
                     RpcDisappearHallucination.Invoke(MyPlayer);
                     button.StartCoolDown();
@@ -248,7 +249,7 @@ public class Hallucination : DefinedGhostRoleTemplate, DefinedGhostRole
         RemoteProcess<(GamePlayer hallucination, GamePlayer target, Vector2 pos)> RpcShowHallucination = new("ShowHallucination",
             (message, _) =>
             {
-                var hallucination = message.hallucination.Unbox().GhostRole as Hallucination.Instance;
+                var hallucination = message.hallucination.Unbox().GhostRole as Instance;
                 if (hallucination != null)
                 {
                     if (hallucination.currentHallucination != null) hallucination.currentHallucination.Disappear();
@@ -259,7 +260,7 @@ public class Hallucination : DefinedGhostRoleTemplate, DefinedGhostRole
         RemoteProcess<GamePlayer> RpcDisappearHallucination = new("DisappearHallucination",
             (message, _) =>
             {
-                var hallucination = message.Unbox().GhostRole as Hallucination.Instance;
+                var hallucination = message.Unbox().GhostRole as Instance;
                 if (hallucination?.currentHallucination != null)
                 {
                     hallucination.currentHallucination.Disappear();

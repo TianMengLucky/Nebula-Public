@@ -5,22 +5,22 @@ namespace Nebula.Roles.Assignment;
 
 internal class RoleTable : IRoleTable
 {
-    public List<(DefinedRole role, int[] arguments, byte playerId)> roles = new();
-    public List<(DefinedModifier modifier, int[] arguments, byte playerId)> modifiers = new();
+    public List<(DefinedRole role, int[] arguments, byte playerId)> roles = [];
+    public List<(DefinedModifier modifier, int[] arguments, byte playerId)> modifiers = [];
 
     public void SetRole(byte player, DefinedRole role, int[]? arguments = null)
     {
-        roles.Add(new(role, arguments ?? Array.Empty<int>(), player));
+        roles.Add(new(role, arguments ?? [], player));
     }
 
     public void SetModifier(byte player, DefinedModifier role, int[]? arguments = null)
     {
-        modifiers.Add(new(role, arguments ?? Array.Empty<int>(), player));
+        modifiers.Add(new(role, arguments ?? [], player));
     }
 
     public void Determine()
     {
-        List<NebulaRPCInvoker> allInvokers = new();
+        List<NebulaRPCInvoker> allInvokers = [];
         foreach (var role in roles) allInvokers.Add(PlayerModInfo.RpcSetAssignable.GetInvoker((role.playerId, role.role.Id, role.arguments, RoleType.Role)));
         foreach (var modifier in modifiers) allInvokers.Add(PlayerModInfo.RpcSetAssignable.GetInvoker((modifier.playerId, modifier.modifier.Id, modifier.arguments, RoleType.Modifier)));
 
@@ -58,7 +58,7 @@ public class StandardRoleAllocator : IRoleAllocator
 
     public StandardRoleAllocator()
     {
-        ghostRolePool = new(Roles.AllGhostRoles.Select(r => r.GenerateRoleAllocator()));
+        ghostRolePool = [..Roles.AllGhostRoles.Select(r => r.GenerateRoleAllocator())];
     }
 
     private void OnSetRole(DefinedRole role,params List<RoleChance>[] pool)
@@ -85,7 +85,7 @@ public class StandardRoleAllocator : IRoleAllocator
             OnSetRole(selected.role, allRolePool);
         }
 
-        bool left100Roles = true;
+        var left100Roles = true;
         while (main.Count > 0 && left > 0 && rolePool.Count > 0)
         {
             //コスト超過によって割り当てられない役職を弾く
@@ -134,8 +134,12 @@ public class StandardRoleAllocator : IRoleAllocator
         RoleTable table = new();
 
         //ロールプールを作る
-        List<RoleChance> GetRolePool(RoleCategory category) => new(Roles.AllRoles.Where(r => r.Category == category && (r.AllocationParameters?.RoleCountSum ?? 0) > 0).Select(r =>
-        new RoleChance(r) { cost = 1,otherCost = 0 }));
+        List<RoleChance> GetRolePool(RoleCategory category) =>
+        [
+            ..Roles.AllRoles.Where(r => r.Category == category && (r.AllocationParameters?.RoleCountSum ?? 0) > 0)
+                .Select(r =>
+                    new RoleChance(r) { cost = 1, otherCost = 0 })
+        ];
 
         List<RoleChance> crewmateRoles = GetRolePool(RoleCategory.CrewmateRole);
         List<RoleChance> impostorRoles = GetRolePool(RoleCategory.ImpostorRole);
@@ -166,8 +170,8 @@ public class StandardRoleAllocator : IRoleAllocator
         {
             //Normal
             if(GeneralConfigurations.GhostAssignmentOption.GetValue() == 0) {
-                int sum = pool.Sum(g => g.GetChance(category));
-                int random = System.Random.Shared.Next(sum);
+                var sum = pool.Sum(g => g.GetChance(category));
+                var random = System.Random.Shared.Next(sum);
                 foreach(var p in pool)
                 {
                     random -= p.GetChance(category);

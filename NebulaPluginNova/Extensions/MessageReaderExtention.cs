@@ -31,7 +31,7 @@ public static class MessageReaderExtention
         float output = 0;
         fixed (byte* bufPtr = &(((byte[])reader.Buffer)[reader.readHead - offset]))
         {
-            byte* outPtr = (byte*)&output;
+            var outPtr = (byte*)&output;
 
             *outPtr = *bufPtr;
             *(outPtr + 1) = *(bufPtr + 1);

@@ -74,7 +74,7 @@ public class Timer : INebulaScriptComponent, GameTimer, IGameOperator
     }
     public Timer Expand(float time)
     {
-        this.max += time;
+        max += time;
         return this;
     }
 
@@ -104,7 +104,7 @@ public class Timer : INebulaScriptComponent, GameTimer, IGameOperator
         return this;
     }
 
-    public Func<bool>? Predicate => this.predicate;
+    public Func<bool>? Predicate => predicate;
 
     public Timer SetAsKillCoolDown()
     {
@@ -149,7 +149,7 @@ public class Timer : INebulaScriptComponent, GameTimer, IGameOperator
     {
         private Timer myTimer;
         public TimerCoolDownHelper(Timer timer) { 
-            this.myTimer = timer; 
+            myTimer = timer; 
         }
 
         void ResetVentCoolDownOnTaskPhaseRestart(TaskPhaseRestartEvent ev) => myTimer?.Start();

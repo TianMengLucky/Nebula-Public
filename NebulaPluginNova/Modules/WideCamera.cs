@@ -57,7 +57,7 @@ public class WideCamera
         button.OnClick.AddListener(() => {
             var cameraPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             var worldPos = ConvertToWorldPos(cameraPos);
-            int layer = (1 << LayerExpansion.GetShortObjectsLayer()) | (1 << LayerExpansion.GetObjectsLayer());
+            var layer = (1 << LayerExpansion.GetShortObjectsLayer()) | (1 << LayerExpansion.GetObjectsLayer());
 
             PassiveUiElement? passiveButton = null;
             foreach (var button in PassiveButtonManager.Instance.Buttons)
@@ -109,10 +109,10 @@ public class WideCamera
     public int Roughness { get => roughness * (int)((AmongUsUtil.CurrentCamTarget as INoisedCamera)?.CameraRoughness ?? 1f); set
         {
 
-            int max = gcd(Screen.height, Screen.width);
+            var max = gcd(Screen.height, Screen.width);
             if (max < value) roughness = value;
 
-            int temp = value;
+            var temp = value;
             while (temp < max && (Screen.height % temp != 0 || Screen.width % temp != 0)) temp++;
             roughness = temp;
         }
@@ -179,8 +179,8 @@ public class WideCamera
             {
                 var myVentPos = NebulaGameManager.Instance!.WideCamera.ConvertToWideCameraPos(vent!.transform.position);
 
-                int length = vent.NearbyVents.Length;
-                for (int i = 0; i < length; i++)
+                var length = vent.NearbyVents.Length;
+                for (var i = 0; i < length; i++)
                 {
                     var targetVent = vent.NearbyVents[i];
                     if (targetVent)
@@ -232,12 +232,12 @@ public class WideCamera
             meshTransform.localScale -= (meshTransform.localScale - goalScale).Delta(2.4f, 0.003f);
             meshTransform.localEulerAngles = new(0f, 0f, meshAngleZ);
 
-            float targetRateByEffect = NebulaGameManager.Instance?.LocalPlayerInfo?.Unbox().CalcAttributeVal(PlayerAttributes.ScreenSize, true) ?? 1f;
+            var targetRateByEffect = NebulaGameManager.Instance?.LocalPlayerInfo?.Unbox().CalcAttributeVal(PlayerAttributes.ScreenSize, true) ?? 1f;
 
-            float currentOrth = myCamera.orthographicSize;
-            float targetOrth = targetRate * targetRateByEffect * 3f;
-            float diff = currentOrth - targetOrth;
-            bool reached = Mathf.Abs(diff) < 0.001f;
+            var currentOrth = myCamera.orthographicSize;
+            var targetOrth = targetRate * targetRateByEffect * 3f;
+            var diff = currentOrth - targetOrth;
+            var reached = Mathf.Abs(diff) < 0.001f;
 
             if (reached)
                 currentOrth = targetOrth;
@@ -248,7 +248,7 @@ public class WideCamera
 
             if (drawShadow)
             {
-                float currentShadow = AmongUsUtil.GetShadowSize();
+                var currentShadow = AmongUsUtil.GetShadowSize();
                 
                 if (targetOrth > currentShadow)
                     AmongUsUtil.ChangeShadowSize(targetOrth);
@@ -257,7 +257,7 @@ public class WideCamera
             }
 
             //コマンドによるモザイクの設定値に変化が生じたら再計算する
-            int currentCommandRoughness =  Mathf.Max(1, (int?)NebulaGameManager.Instance?.LocalPlayerInfo?.Unbox().CalcAttributeVal(PlayerAttributes.Roughening, true) ?? 1);
+            var currentCommandRoughness =  Mathf.Max(1, (int?)NebulaGameManager.Instance?.LocalPlayerInfo?.Unbox().CalcAttributeVal(PlayerAttributes.Roughening, true) ?? 1);
             if(lastCommandRoughness != currentCommandRoughness)
             {
                 lastCommandRoughness = currentCommandRoughness;

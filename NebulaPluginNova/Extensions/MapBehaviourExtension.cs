@@ -28,7 +28,7 @@ public static class MapBehaviourExtension
         if (mapColor.HasValue)
         {
             MapColor = mapColor.Value;
-            overlay.BackgroundColor.SetColor(MapBehaviourExtension.MapColor ?? Color.green);
+            overlay.BackgroundColor.SetColor(MapColor ?? Color.green);
         }
     }
 
@@ -36,22 +36,22 @@ public static class MapBehaviourExtension
     {
         while (counterArea.myIcons.Count < cnt)
         {
-            PoolableBehavior item = counterArea.pool.Get<PoolableBehavior>();
+            var item = counterArea.pool.Get<PoolableBehavior>();
             counterArea.myIcons.Add(item);
         }
         while (counterArea.myIcons.Count > cnt)
         {
-            PoolableBehavior poolableBehavior = counterArea.myIcons[counterArea.myIcons.Count - 1];
+            var poolableBehavior = counterArea.myIcons._items[counterArea.myIcons.Count - 1];
             counterArea.myIcons.RemoveAt(counterArea.myIcons.Count - 1);
             poolableBehavior.OwnerPool.Reclaim(poolableBehavior);
         }
 
-        for (int i = 0; i < counterArea.myIcons.Count; i++)
+        for (var i = 0; i < counterArea.myIcons.Count; i++)
         {
-            int num = i % counterArea.MaxColumns;
-            int num2 = i / counterArea.MaxColumns;
-            float num3 = (float)(Mathf.Min(cnt - num2 * counterArea.MaxColumns, counterArea.MaxColumns) - 1) * counterArea.XOffset / -2f;
-            counterArea.myIcons[i].transform.position = counterArea.transform.position + new Vector3(num3 + (float)num * counterArea.XOffset, (float)num2 * counterArea.YOffset, -1f);
+            var num = i % counterArea.MaxColumns;
+            var num2 = i / counterArea.MaxColumns;
+            var num3 = (float)(Mathf.Min(cnt - num2 * counterArea.MaxColumns, counterArea.MaxColumns) - 1) * counterArea.XOffset / -2f;
+            counterArea.myIcons._items[i].transform.position = counterArea.transform.position + new Vector3(num3 + (float)num * counterArea.XOffset, (float)num2 * counterArea.YOffset, -1f);
 
             if (impostors > 0)
             {

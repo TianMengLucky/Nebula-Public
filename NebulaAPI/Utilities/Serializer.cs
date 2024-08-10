@@ -9,7 +9,7 @@ namespace Virial.Utilities;
 
 public class SerializedDataWriter
 {
-    private List<byte[]> bytes = new();
+    private List<byte[]> bytes = [];
 
     /// <summary>
     /// 文字列を書き込みます。
@@ -43,7 +43,7 @@ public class SerializedDataWriter
         return this;
     }
 
-    internal SerializedDataWriter Write(UnityEngine.Color32 val)
+    internal SerializedDataWriter Write(Color32 val)
     {
         bytes.Add([val.r, val.g, val.b, val.a]);
         return this;
@@ -51,8 +51,8 @@ public class SerializedDataWriter
 
     public byte[] ToData()
     {
-        byte[] data = new byte[bytes.Sum(b => b.Length)];
-        int written = 0;
+        var data = new byte[bytes.Sum(b => b.Length)];
+        var written = 0;
         foreach(var ary in bytes)
         {
             Array.Copy(ary, 0, data, written, ary.Length);
@@ -73,10 +73,10 @@ public class SerializedDataReader : IDisposable
 
     public string ReadString()
     {
-        byte[] lengthByte = new byte[4];
+        var lengthByte = new byte[4];
         myStream.Read(lengthByte, 0, 4);
-        int length = BitConverter.ToInt32(lengthByte);
-        byte[] strByte = new byte[length];
+        var length = BitConverter.ToInt32(lengthByte);
+        var strByte = new byte[length];
         myStream.Read(strByte, 0, length);
         return Encoding.UTF8.GetString(strByte);
     }
@@ -88,14 +88,14 @@ public class SerializedDataReader : IDisposable
 
     public int ReadInt32()
     {
-        byte[] dataByte = new byte[4];
+        var dataByte = new byte[4];
         myStream.Read(dataByte, 0, 4);
         return BitConverter.ToInt32(dataByte);
     }
 
     public float ReadSingle()
     {
-        byte[] dataByte = new byte[4];
+        var dataByte = new byte[4];
         myStream.Read(dataByte, 0, 4);
         return BitConverter.ToSingle(dataByte);
     }

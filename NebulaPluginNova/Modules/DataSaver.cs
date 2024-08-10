@@ -85,11 +85,11 @@ public class BooleanDataEntry : DataEntry<bool>
 public class IntegerTupleAryDataEntry : DataEntry<(int,int)[]>
 {
     public override (int,int)[] Parse(string str) {
-        if (str == "Empty") return new (int, int)[0];
+        if (str == "Empty") return [];
 
         var strings = str.Split('|');
-        (int, int)[] result = new (int, int)[strings.Length];
-        for(int i = 0; i < result.Length; i++)
+        var result = new (int, int)[strings.Length];
+        for(var i = 0; i < result.Length; i++)
         {
             var tuple = strings[i].Split(',');
             result[i] = (int.Parse(tuple[0]), int.Parse(tuple[1]));
@@ -116,11 +116,11 @@ public class StringTupleAryDataEntry : DataEntry<(string, string)[]>
 {
     public override (string, string)[] Parse(string str)
     {
-        if (str == "Empty") return new (string, string)[0];
+        if (str == "Empty") return [];
 
         var strings = str.Split('|');
         (string, string)[] result = new (string, string)[strings.Length];
-        for (int i = 0; i < result.Length; i++)
+        for (var i = 0; i < result.Length; i++)
         {
             var tuple = strings[i].Split(',');
             result[i] = (tuple[0], tuple[1]);
@@ -148,7 +148,7 @@ public class StringArrayDataEntry : DataEntry<string[]>
 {
     public override string[] Parse(string str)
     {
-        if (str == "Empty") return new string[0];
+        if (str == "Empty") return [];
 
         return str.Split('|');
     }
@@ -172,7 +172,7 @@ public class StringArrayDataEntry : DataEntry<string[]>
 public class DataSaveSegment : IDisposable
 {
     private static DataSaveSegment? CurrentSegment = null;
-    private HashSet<DataSaver> SaveQueue = new();
+    private HashSet<DataSaver> SaveQueue = [];
 
     public DataSaveSegment()
     {
@@ -203,7 +203,7 @@ public class DataSaveSegment : IDisposable
 public class DataSaver
 {
     private Dictionary<string, string> contents = new();
-    internal List<IDataEntry> allEntries = new();
+    internal List<IDataEntry> allEntries = [];
     string filename;
 
     public IEnumerable<(string,string)> AllRawContents()
@@ -212,7 +212,7 @@ public class DataSaver
     }
     public string GetValue(string name, object defaultValue)
     {
-        if (contents.TryGetValue(name, out string? value))
+        if (contents.TryGetValue(name, out var value))
         {
             return value!;
         }
@@ -236,16 +236,17 @@ public class DataSaver
 
     public static bool ExistData(string filename) => FileIO.Exists(ToDataSaverPath(filename));
 
-    public static string ToDataSaverPath(string filename) => FileIO.GetDataPathTo(new string[] { "NebulaOnTheShip\\" + filename + ".dat" });
+    public static string ToDataSaverPath(string filename) => FileIO.GetDataPathTo(["NebulaOnTheShip\\" + filename + ".dat"
+    ]);
 
     public void Load()
     {
-        string dataPathTo = ToDataSaverPath(filename);
+        var dataPathTo = ToDataSaverPath(filename);
 
         if (!FileIO.Exists(dataPathTo)) return;
         
         string[] vals = (FileIO.ReadAllText(dataPathTo)).Split("\n");
-        foreach (string val in vals)
+        foreach (var val in vals)
         {
             string[] str = val.Split(":", 2);
             if (str.Length != 2) continue;
@@ -255,7 +256,7 @@ public class DataSaver
 
     public void WriteToFile()
     {
-        string strContents = "";
+        var strContents = "";
         foreach (var entry in contents)
         {
             strContents += entry.Key + ":" + entry.Value + "\n";
@@ -290,13 +291,13 @@ public class JsonDataSaver<T> where T : class, new()
 
     public void Save()
     {
-        string json = JsonStructure.Serialize(Data);
+        var json = JsonStructure.Serialize(Data);
         FileIO.WriteAllText(DataSaver.ToDataSaverPath(filename), json);
     }
 
     public void Load()
     {
-        string dataPathTo = DataSaver.ToDataSaverPath(filename);
+        var dataPathTo = DataSaver.ToDataSaverPath(filename);
 
         if (!FileIO.Exists(dataPathTo)) return;
 

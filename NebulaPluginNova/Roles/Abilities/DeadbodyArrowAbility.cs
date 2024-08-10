@@ -11,7 +11,7 @@ namespace Nebula.Roles.Abilities;
 
 public class DeadbodyArrowAbility : ComponentHolder, IGameOperator
 {
-    private List<(DeadBody deadBody, Arrow arrow)> AllArrows = new();
+    private List<(DeadBody deadBody, Arrow arrow)> AllArrows = [];
     public bool ShowArrow { get; set; } = true;
 
     void IGameOperator.OnReleased() => this.ReleaseIt();
@@ -24,7 +24,7 @@ public class DeadbodyArrowAbility : ComponentHolder, IGameOperator
 
     void LocalUpdate(GameUpdateEvent ev)
     {
-        AllArrows.RemoveAll((tuple) =>
+        AllArrows.RemoveAll(tuple =>
         {
             tuple.arrow.IsActive = ShowArrow;
 

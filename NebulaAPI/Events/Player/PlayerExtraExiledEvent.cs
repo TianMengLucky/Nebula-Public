@@ -13,7 +13,7 @@ public class PlayerExtraExiledEvent : PlayerDieEvent
 
     internal PlayerExtraExiledEvent(Virial.Game.Player dead, Virial.Game.Player? killer) : base(dead)
     {
-        this.Murderer = killer;
+        Murderer = killer;
     }
 
 }

@@ -11,9 +11,9 @@ namespace Virial.Events.Player;
 /// </summary>
 public class PlayerModifierSetEvent : AbstractPlayerEvent
 {
-    public Virial.Assignable.RuntimeModifier Modifier { get; private init; }
-    internal PlayerModifierSetEvent(Virial.Game.Player player, Virial.Assignable.RuntimeModifier modifier) : base(player)
+    public Assignable.RuntimeModifier Modifier { get; private init; }
+    internal PlayerModifierSetEvent(Virial.Game.Player player, Assignable.RuntimeModifier modifier) : base(player)
     {
-        this.Modifier = modifier;
+        Modifier = modifier;
     }
 }

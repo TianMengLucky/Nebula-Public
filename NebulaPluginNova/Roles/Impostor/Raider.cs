@@ -124,7 +124,7 @@ public class Raider : DefinedRoleTemplate, DefinedRole
                     }
                 }
 
-                float d = speed * 4f * Time.deltaTime;
+                var d = speed * 4f * Time.deltaTime;
                 if (thrownDistance > 50f)
                 {
                     state = 2;
@@ -165,7 +165,7 @@ public class Raider : DefinedRoleTemplate, DefinedRole
 
         static RaiderAxe()
         {
-            NebulaSyncObject.RegisterInstantiater(MyTag, (args) => new RaiderAxe(Helpers.GetPlayer((byte)args[0])!));
+            RegisterInstantiater(MyTag, args => new RaiderAxe(Helpers.GetPlayer((byte)args[0])!));
         }
     }
 
@@ -195,9 +195,9 @@ public class Raider : DefinedRoleTemplate, DefinedRole
 
                 equipButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability, "raider.equip");
                 equipButton.SetSprite(buttonSprite.GetSprite());
-                equipButton.Availability = (button) => MyPlayer.VanillaPlayer.CanMove;
-                equipButton.Visibility = (button) => !MyPlayer.IsDead;
-                equipButton.OnClick = (button) =>
+                equipButton.Availability = button => MyPlayer.VanillaPlayer.CanMove;
+                equipButton.Visibility = button => !MyPlayer.IsDead;
+                equipButton.OnClick = button =>
                 {
                     if (MyAxe == null)
                         equipButton.SetLabel("unequip");
@@ -209,9 +209,9 @@ public class Raider : DefinedRoleTemplate, DefinedRole
                 equipButton.SetLabel("equip");
 
                 killButton = Bind(new ModAbilityButton(isArrangedAsKillButton: true)).KeyBind(Virial.Compat.VirtualKeyInput.Kill, "raider.kill");
-                killButton.Availability = (button) => MyAxe != null && MyPlayer.CanMove && MyAxe.MyRenderer.color.b > 0.5f;
-                killButton.Visibility = (button) => !MyPlayer.IsDead;
-                killButton.OnClick = (button) =>
+                killButton.Availability = button => MyAxe != null && MyPlayer.CanMove && MyAxe.MyRenderer.color.b > 0.5f;
+                killButton.Visibility = button => !MyPlayer.IsDead;
+                killButton.OnClick = button =>
                 {
                     if (MyAxe != null)
                     {
@@ -260,7 +260,7 @@ public class Raider : DefinedRoleTemplate, DefinedRole
 
         void EquipAxe()
         {
-            MyAxe = (NebulaSyncObject.RpcInstantiate(RaiderAxe.MyTag, new float[] { (float)PlayerControl.LocalPlayer.PlayerId }) as RaiderAxe);
+            MyAxe = (NebulaSyncObject.RpcInstantiate(RaiderAxe.MyTag, [(float)PlayerControl.LocalPlayer.PlayerId]) as RaiderAxe);
         }
 
         void UnequipAxe()

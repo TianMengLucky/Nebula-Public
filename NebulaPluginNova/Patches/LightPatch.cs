@@ -27,20 +27,20 @@ public class LightPatch
 
         if ((NebulaGameManager.Instance?.GameState ?? NebulaGameStates.NotStarted) == NebulaGameStates.NotStarted) return true;
 
-        ISystemType? systemType = __instance.Systems.ContainsKey(SystemTypes.Electrical) ? __instance.Systems[SystemTypes.Electrical] : null;
-        SwitchSystem? switchSystem = systemType?.TryCast<SwitchSystem>();
+        var systemType = __instance.Systems.ContainsKey(SystemTypes.Electrical) ? __instance.Systems[SystemTypes.Electrical] : null;
+        var switchSystem = systemType?.TryCast<SwitchSystem>();
 
-        float t = (float)(switchSystem?.Value ?? 255f) / 255f;
+        var t = (float)(switchSystem?.Value ?? 255f) / 255f;
 
         var info = PlayerControl.LocalPlayer.GetModInfo();
-        bool hasImpostorVision = info?.Unbox().Role.HasImpostorVision ?? false;
-        bool ignoreBlackOut = info?.Unbox().Role.IgnoreBlackout ?? true;
+        var hasImpostorVision = info?.Unbox().Role.HasImpostorVision ?? false;
+        var ignoreBlackOut = info?.Unbox().Role.IgnoreBlackout ?? true;
 
         if (ignoreBlackOut) t = 1f;
 
-        float radiusRate = Mathf.Lerp(__instance.MinLightRadius, __instance.MaxLightRadius, t);
-        float range = GameOptionsManager.Instance.CurrentGameOptions.GetFloat(hasImpostorVision ? FloatOptionNames.ImpostorLightMod : FloatOptionNames.CrewLightMod);
-        float rate = GameOperatorManager.Instance?.Run(new LightRangeUpdateEvent(1f)).LightRange ?? 1f;
+        var radiusRate = Mathf.Lerp(__instance.MinLightRadius, __instance.MaxLightRadius, t);
+        var range = GameOptionsManager.Instance.CurrentGameOptions.GetFloat(hasImpostorVision ? FloatOptionNames.ImpostorLightMod : FloatOptionNames.CrewLightMod);
+        var rate = GameOperatorManager.Instance?.Run(new LightRangeUpdateEvent(1f)).LightRange ?? 1f;
         rate *= NebulaGameManager.Instance?.LocalPlayerInfo?.Unbox().CalcAttributeVal(PlayerAttributes.Eyesight) ?? 1f;
 
         lastRange -= (lastRange - rate).Delta(0.7f, 0.005f);

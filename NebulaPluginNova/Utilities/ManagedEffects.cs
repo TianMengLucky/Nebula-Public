@@ -1,4 +1,6 @@
 ﻿
+using Object = UnityEngine.Object;
+
 namespace Nebula.Utilities;
 
 public static class ManagedEffects
@@ -6,7 +8,7 @@ public static class ManagedEffects
     //actionはt=0,1の両方の場合で必ず実行されます。
     static public IEnumerator Lerp(float duration, Action<float> action)
     {
-        float t = 0f;
+        var t = 0f;
         while(t < duration)
         {
             action.Invoke(t / duration);
@@ -52,13 +54,13 @@ public static class ManagedEffects
 
     static public IEnumerator Smooth(this Transform transform, Vector3 goalLocalPosition, float duration)
     {
-        float p = 0f;
+        var p = 0f;
         var origin = transform.localPosition;
         while(p < 1f)
         {
             p += Time.deltaTime / duration;
 
-            float pp = (1f - p) * (1f - p);
+            var pp = (1f - p) * (1f - p);
             pp *= pp * pp;
             transform.localPosition = origin * pp + goalLocalPosition * (1f - pp);
             yield return null;
@@ -78,13 +80,13 @@ public static class ManagedEffects
         var renderer = obj.AddComponent<SpriteRenderer>();
         renderer.sprite = sprite.GetSprite();
 
-        float p = 0f;
+        var p = 0f;
         while (p < maxTime)
         {
             obj.transform.localPosition += velocity * Time.deltaTime;
             obj.transform.eulerAngles += new Vector3(0, 0, angVel * Time.deltaTime);
 
-            float c = 1f;
+            var c = 1f;
             if (fadeInTime > 0f && p < fadeInTime) c = Math.Clamp(p / fadeInTime, 0f, 1f);
             else if (fadeOutTime > 0f) c = Math.Clamp((maxTime - p) / fadeOutTime, 0f, 1f);
 
@@ -92,7 +94,7 @@ public static class ManagedEffects
             p += Time.deltaTime;
             yield return null;
         }
-        GameObject.Destroy(obj);
+        Object.Destroy(obj);
     }
 
     private static Image smokeSprite = SpriteLoader.FromResource("Nebula.Resources.Smoke.png", 100f);
@@ -108,17 +110,17 @@ public static class ManagedEffects
         obj.transform.localPosition = pos;
         obj.transform.localScale = new Vector3(scale, scale, 1f);
 
-        List<IEnumerator> coroutines = new();
+        List<IEnumerator> coroutines = [];
 
         //円を描くように7つの煙を配置
-        for (int i = 0; i < 7; i++)
+        for (var i = 0; i < 7; i++)
         {
             coroutines.Add(CoSmokeEffect(layer, obj.transform, new Vector3(0.4f, 0f).RotateZ(360f / 7f * (float)i),
                 new Vector3(System.Random.Shared.NextSingle() * 0.4f + 0.1f, System.Random.Shared.NextSingle() * -0.1f).RotateZ(System.Random.Shared.NextSingle() * 360f),
                 System.Random.Shared.NextSingle() * 40, 0.35f + System.Random.Shared.NextSingle() * 0.1f));
         }
         //ランダムに配置
-        for (int i = 0; i < 4; i++)
+        for (var i = 0; i < 4; i++)
         {
             coroutines.Add(CoSmokeEffect(layer, obj.transform,
                  new Vector3(System.Random.Shared.NextSingle() * 0.3f, 0f).RotateZ(System.Random.Shared.NextSingle() * 360f),
@@ -127,6 +129,6 @@ public static class ManagedEffects
         }
 
         yield return Effects.All(coroutines.Select(r => r.WrapToIl2Cpp()).ToArray());
-        GameObject.Destroy(obj);
+        Object.Destroy(obj);
     }
 }

@@ -22,9 +22,9 @@ public static class GraphicsHelper
 {
     public static Texture2D LoadTextureFromResources(string path)
     {
-        Texture2D texture = new Texture2D(2, 2, TextureFormat.ARGB32, true);
-        Assembly assembly = Assembly.GetExecutingAssembly();
-        Stream? stream = assembly.GetManifestResourceStream(path);
+        var texture = new Texture2D(2, 2, TextureFormat.ARGB32, true);
+        var assembly = Assembly.GetExecutingAssembly();
+        var stream = assembly.GetManifestResourceStream(path);
         if (stream == null) return null!;
         var byteTexture = new byte[stream.Length];
         stream.Read(byteTexture, 0, (int)stream.Length);
@@ -36,7 +36,7 @@ public static class GraphicsHelper
 
     public static Texture2D LoadTextureFromByteArray(byte[] data)
     {
-        Texture2D texture = new Texture2D(2, 2, TextureFormat.ARGB32, true);
+        var texture = new Texture2D(2, 2, TextureFormat.ARGB32, true);
         LoadImage(texture, data, false);
         return texture;
     }
@@ -47,8 +47,8 @@ public static class GraphicsHelper
         {
             if (File.Exists(path))
             {
-                Texture2D texture = new Texture2D(2, 2, TextureFormat.ARGB32, true);
-                byte[] byteTexture = File.ReadAllBytes(path);
+                var texture = new Texture2D(2, 2, TextureFormat.ARGB32, true);
+                var byteTexture = File.ReadAllBytes(path);
                 LoadImage(texture, byteTexture, false);
                 return texture;
             }
@@ -68,9 +68,9 @@ public static class GraphicsHelper
             var entry = zip.GetEntry(path);
             if (entry != null)
             {
-                Texture2D texture = new Texture2D(2, 2, TextureFormat.ARGB32, true);
-                Stream stream = entry.Open();
-                byte[] byteTexture = new byte[entry.Length];
+                var texture = new Texture2D(2, 2, TextureFormat.ARGB32, true);
+                var stream = entry.Open();
+                var byteTexture = new byte[entry.Length];
                 stream.Read(byteTexture, 0, byteTexture.Length);
                 stream.Close();
                 LoadImage(texture, byteTexture, false);
@@ -160,7 +160,7 @@ public class ZipTextureLoader : ITextureLoader
 
     public ZipTextureLoader(ZipArchive zip,string address)
     {
-        this.archive = zip;
+        archive = zip;
         this.address = address;
     }
 
@@ -209,7 +209,7 @@ public class UnloadTextureLoader : ITextureLoader
         public AsyncLoader(Func<Stream?> stream, bool isFake = false)
         {
             this.stream = stream;
-            this.IsFake = isFake;
+            IsFake = isFake;
         }
 
         private async Task<byte[]> ReadStreamAsync(Action<Exception>? exceptionHandler = null)
@@ -217,9 +217,9 @@ public class UnloadTextureLoader : ITextureLoader
             try
             {
                 var myStream = stream.Invoke();
-                if (myStream == null) return new byte[0];
+                if (myStream == null) return [];
 
-                List<byte> bytes = new();
+                List<byte> bytes = [];
 
                 MemoryStream dest = new();
                 await myStream.CopyToAsync(dest);
@@ -230,7 +230,7 @@ public class UnloadTextureLoader : ITextureLoader
                 exceptionHandler?.Invoke(ex);
 
             }
-            return new byte[0];
+            return [];
         }
 
         public IEnumerator LoadAsync(Action<Exception>? exceptionHandler = null)
@@ -333,13 +333,13 @@ public class DividedSpriteLoader : Image, IDividedSpriteLoader
         this.pixelsPerUnit = pixelsPerUnit;
         if (isSize)
         {
-            this.size = new(x, y);
-            this.division = null;
+            size = new(x, y);
+            division = null;
         }
         else
         {
-            this.division = new(x, y);
-            this.size = null;
+            division = new(x, y);
+            size = null;
         }
         sprites = null!;
         texture = textureLoader;
@@ -360,8 +360,8 @@ public class DividedSpriteLoader : Image, IDividedSpriteLoader
         if (!sprites[index])
         {
             var texture2D = texture.GetTexture();
-            int _x = index % division!.Item1;
-            int _y = index / division!.Item1;
+            var _x = index % division!.Item1;
+            var _y = index / division!.Item1;
             sprites[index] = texture2D.ToSprite(new Rect(_x * size.Item1, (division.Item2 - _y - 1) * size.Item2, size.Item1, size.Item2), Pivot, pixelsPerUnit);
         }
         return sprites[index];
@@ -397,13 +397,13 @@ public class XOnlyDividedSpriteLoader : Image, IDividedSpriteLoader
         this.pixelsPerUnit = pixelsPerUnit;
         if (isSize)
         {
-            this.size = x;
-            this.division = null;
+            size = x;
+            division = null;
         }
         else
         {
-            this.division = x;
-            this.size = null;
+            division = x;
+            size = null;
         }
         sprites = null!;
         texture = textureLoader;

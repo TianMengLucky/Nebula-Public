@@ -25,7 +25,7 @@ public class BooleanCommandToken : ICommandToken
             return new CoImmediateTask<T>(Unsafe.As<bool, T>(ref val));
         else if (type == typeof(string))
         {
-            string name = val ? "true" : "false";
+            var name = val ? "true" : "false";
             return new CoImmediateTask<T>(Unsafe.As<string, T>(ref name));
         }
 
@@ -60,7 +60,7 @@ public class IntegerCommandToken : ICommandToken
         }
         else if (type == typeof(string))
         {
-            string name = val.ToString();
+            var name = val.ToString();
             return new CoImmediateTask<T>(Unsafe.As<string, T>(ref name));
         }
 
@@ -90,12 +90,12 @@ public class FloatCommandToken : ICommandToken
             return new CoImmediateTask<T>(Unsafe.As<float, T>(ref val));
         else if (type == typeof(int))
         {
-            int num = (int)val;
+            var num = (int)val;
             return new CoImmediateTask<T>(Unsafe.As<int, T>(ref num));
         }
         else if (type == typeof(string))
         {
-            string name = val.ToString();
+            var name = val.ToString();
             return new CoImmediateTask<T>(Unsafe.As<string, T>(ref name));
         }
 

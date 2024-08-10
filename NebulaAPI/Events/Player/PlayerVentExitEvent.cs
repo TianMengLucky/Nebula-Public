@@ -12,7 +12,7 @@ public class PlayerVentExitEvent : AbstractPlayerEvent
 
     internal PlayerVentExitEvent(Virial.Game.Player player, Vent vent) : base(player)
     {
-        this.Vent = vent;
+        Vent = vent;
     }
 }
 

@@ -5,6 +5,7 @@ using Virial.Events.Game;
 using Virial.Events.Game.Meeting;
 using Virial.Game;
 using static Nebula.Behaviour.MeetingPlayerButtonManager;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Behaviour;
 
@@ -44,10 +45,10 @@ public class MeetingPlayerButtonManager : AbstractModule<Virial.Game.Game>, IGam
         this.Register(NebulaAPI.CurrentGame!);
     }
 
-    List<MeetingPlayerAction> allActions = new();
+    List<MeetingPlayerAction> allActions = [];
     MeetingPlayerAction? currentAction = null;
 
-    List<MeetingPlayerButton> allButtons = new();
+    List<MeetingPlayerButton> allButtons = [];
 
     public IEnumerable<MeetingPlayerButtonState> AllStates => allButtons.Select(b => b.state.Value!);
 
@@ -69,7 +70,7 @@ public class MeetingPlayerButtonManager : AbstractModule<Virial.Game.Game>, IGam
     {
         if (allActions.Count <= 1) return;
 
-        int index = allActions.IndexOf(currentAction!);
+        var index = allActions.IndexOf(currentAction!);
 
         if(index < 0)index = 0;
         index++;
@@ -88,15 +89,15 @@ public class MeetingPlayerButtonManager : AbstractModule<Virial.Game.Game>, IGam
             var player = NebulaGameManager.Instance?.GetPlayer(playerVoteArea.TargetPlayerId);
             if (player == null) continue;
 
-            GameObject template = playerVoteArea.Buttons.transform.Find("CancelButton").gameObject;
-            GameObject targetBox = UnityEngine.Object.Instantiate(template, playerVoteArea.transform);
+            var template = playerVoteArea.Buttons.transform.Find("CancelButton").gameObject;
+            var targetBox = UnityEngine.Object.Instantiate(template, playerVoteArea.transform);
 
             targetBox.name = "MeetingModButton";
             targetBox.transform.localPosition = new Vector3(-0.95f, 0.03f, -1f);
 
-            SpriteRenderer renderer = targetBox.GetComponent<SpriteRenderer>();
+            var renderer = targetBox.GetComponent<SpriteRenderer>();
             renderer.sprite = null;
-            PassiveButton button = targetBox.GetComponent<PassiveButton>();
+            var button = targetBox.GetComponent<PassiveButton>();
             button.OnClick.RemoveAllListeners();
 
             Reference<MeetingPlayerButtonState> stateRef = new();
@@ -161,7 +162,7 @@ public class MeetingPlayerButtonManager : AbstractModule<Virial.Game.Game>, IGam
         var nextAction = currentAction;
         while (nextAction != null && AllStates.All(p => !(nextAction!.predicate.Invoke(p))))
         {
-            int index = allActions.IndexOf(nextAction);
+            var index = allActions.IndexOf(nextAction);
             allActions.RemoveAt(index);
             if (allActions.Count <= index) index = 0;
 
@@ -178,7 +179,7 @@ public class MeetingPlayerButtonManager : AbstractModule<Virial.Game.Game>, IGam
         {
             try
             {
-                GameObject.Destroy(b.gameObject);
+                Object.Destroy(b.gameObject);
             }
             catch { }
         });

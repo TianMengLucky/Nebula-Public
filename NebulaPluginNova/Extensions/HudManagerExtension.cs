@@ -21,8 +21,8 @@ public static class HudManagerExtension
             return;
         }
 
-        bool flag = PlayerControl.LocalPlayer.Data != null && PlayerControl.LocalPlayer.Data.IsDead;
-        RuntimeRole? modRole = PlayerControl.LocalPlayer.GetModInfo()?.Role;
+        var flag = PlayerControl.LocalPlayer.Data != null && PlayerControl.LocalPlayer.Data.IsDead;
+        var modRole = PlayerControl.LocalPlayer.GetModInfo()?.Role;
 
         manager.ReportButton.ToggleVisible(!flag && (modRole?.CanReport ?? false) && GameManager.Instance.CanReportBodies() && ShipStatus.Instance != null);
         manager.KillButton.ToggleVisible((modRole?.HasVanillaKillButton ?? false) && !flag);

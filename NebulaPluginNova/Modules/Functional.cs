@@ -52,7 +52,7 @@ public interface IFunctionalVariable
         private string val;
         public FunctionalVariableString(string val) { this.val = val; }
         public string AsString() => val;
-        public float AsNumber() => float.TryParse(val, out float num) ? num : 0;
+        public float AsNumber() => float.TryParse(val, out var num) ? num : 0;
     }
 
     public class FunctionalVariableFloat : IFunctionalVariable
@@ -130,7 +130,7 @@ public class TextFunction
     public TextFunction(Predicate<FunctionalEnvironment?>? requiredEnv, int requiredArguments, Func<IFunctionalVariable[], IFunctionalVariable> function)
     {
         myfunc = function;
-        RequiredArguments = (num) => num == requiredArguments;
+        RequiredArguments = num => num == requiredArguments;
         RequiredEnvironments = requiredEnv;
     }
 
@@ -189,9 +189,9 @@ static public class ArgumentTableHelper
 
     public static IFunctionalVariable GetValueOrRaw(this FunctionalEnvironment? table, string rawString)
     {
-        if (!rawString.StartsWith("#")) return IFunctionalVariable.Generate(rawString);
+        if (!rawString.StartsWith("#")) return Generate(rawString);
 
-        string inStr = rawString.Substring(1);
+        var inStr = rawString.Substring(1);
         return GetValue(table, inStr);
     }
 
@@ -203,46 +203,46 @@ static public class ArgumentTableHelper
         }
         catch
         {
-            return IFunctionalVariable.Generate($"BADTEXTCODE({programStr})");
+            return Generate($"BADTEXTCODE({programStr})");
         }
     }
 
     private static IFunctionalVariable GetValueInternal(FunctionalEnvironment? table, string innerString, out int progress)
     {
         //生文字列
-        string tokenString = innerString.TrimStart();
+        var tokenString = innerString.TrimStart();
         if (tokenString.StartsWith('\''))
         {
             string[] splitted = tokenString.Split('\'', 3);
             if (splitted.Length == 3)
             {
                 progress = (innerString.Length - tokenString.Length) + 2 + splitted[1].Length;
-                return IFunctionalVariable.Generate(splitted[1]);
+                return Generate(splitted[1]);
             }
         }
 
-        int diff = innerString.Length - tokenString.Length;
+        var diff = innerString.Length - tokenString.Length;
 
         //引数・関数と一致する場合
-        int lastIndex = 0;
+        var lastIndex = 0;
         while (tokenString.Length > lastIndex && TextField.IdPredicate.Invoke(tokenString[lastIndex])) lastIndex++;
 
         //関数
         if (lastIndex < tokenString.Length && tokenString[lastIndex] is '(')
         {
-            string funcName = tokenString.Substring(0, lastIndex);
+            var funcName = tokenString.Substring(0, lastIndex);
 
-            string argStr = tokenString.Substring(lastIndex + 1);
+            var argStr = tokenString.Substring(lastIndex + 1);
             progress = lastIndex + 1 + diff;
-            List<IFunctionalVariable> args = new();
+            List<IFunctionalVariable> args = [];
             while (true)
             {
 
-                args.Add(GetValueInternal(table, argStr, out int p));
+                args.Add(GetValueInternal(table, argStr, out var p));
                 if (p == -1)
                 {
                     progress = -1;
-                    return IFunctionalVariable.Generate($"BADFORMAT({tokenString}) at ({argStr})");
+                    return Generate($"BADFORMAT({tokenString}) at ({argStr})");
                 }
 
                 argStr = argStr.Substring(p);
@@ -252,7 +252,7 @@ static public class ArgumentTableHelper
                 progress += argStr.Length - temp.Length;
                 argStr = temp;
 
-                if (argStr.Length == 0) return IFunctionalVariable.Generate($"BADFORMAT({tokenString})");
+                if (argStr.Length == 0) return Generate($"BADFORMAT({tokenString})");
 
 
                 if (argStr[0] is ',')
@@ -270,17 +270,17 @@ static public class ArgumentTableHelper
         }
 
         //引数
-        string valString = lastIndex == 0 ? "" : tokenString.Substring(0, lastIndex);
+        var valString = lastIndex == 0 ? "" : tokenString.Substring(0, lastIndex);
         progress = lastIndex + diff;
-        string trimmed = valString.Trim();
+        var trimmed = valString.Trim();
         if (float.TryParse(trimmed, out var num))
-            return IFunctionalVariable.Generate(num);
+            return Generate(num);
         else if (table != null && table!.Arguments.TryGetValue(trimmed, out var val))
             return val;
         else if (bool.TryParse(trimmed, out var flag))
-            return IFunctionalVariable.Generate(flag);
+            return Generate(flag);
         else
-            return IFunctionalVariable.Generate($"UNKNOWN({trimmed})");
+            return Generate($"UNKNOWN({trimmed})");
     }
 }
 
@@ -296,55 +296,55 @@ public class FunctionalSpace
     {
         DefaultSpace = new();
 
-        DefaultSpace.LoadFunction("Concat", new(n => n >= 2, (args) => {
+        DefaultSpace.LoadFunction("Concat", new(n => n >= 2, args => {
             StringBuilder builder = new();
             foreach (var arg in args) builder.Append(arg.AsString());
-            return IFunctionalVariable.Generate(builder.ToString());
+            return Generate(builder.ToString());
         }));
-        DefaultSpace.LoadFunction("ToRoleName", new(1, (args) => IFunctionalVariable.Generate("role." + args[0].AsString())));
-        DefaultSpace.LoadFunction("IfConfig", new(3, (args) =>
+        DefaultSpace.LoadFunction("ToRoleName", new(1, args => Generate("role." + args[0].AsString())));
+        DefaultSpace.LoadFunction("IfConfig", new(3, args =>
         {
 
             var option = ConfigurationValues.AllEntries.FirstOrDefault(option => option.Name == args[0].AsString()) as ValueConfiguration<bool>;
             if (option == null)
-                return IFunctionalVariable.Generate($"BADCONF({args[0]})");
+                return Generate($"BADCONF({args[0]})");
             if (option.GetValue()) return args[1]; else return args[2];
         }));
-        DefaultSpace.LoadFunction("Translate", new(1, (args) => IFunctionalVariable.Generate(Language.Translate(args[0].AsString()))));
+        DefaultSpace.LoadFunction("Translate", new(1, args => Generate(Language.Translate(args[0].AsString()))));
         //DefaultSpace.LoadFunction("ConfigVal", new(1, (args) => IFunctionalVariable.Generate(ConfigurationValues.AllEntries.FirstOrDefault(option => option.Name == args[0].AsString())?.va ?.ToDisplayString() ?? $"BADCONF({args[0]})")));
         //DefaultSpace.LoadFunction("ConfigBool", new(1, (args) => IFunctionalVariable.Generate(NebulaConfiguration.AllConfigurations.FirstOrDefault(option => option.Id == args[0].AsString())?.GetBool() ?? false)));
         //DefaultSpace.LoadFunction("ConfigRaw", new(1, (args) => IFunctionalVariable.Generate(NebulaConfiguration.AllConfigurations.FirstOrDefault(option => option.Id == args[0].AsString())?.CurrentValue ?? 0)));
-        DefaultSpace.LoadFunction("Replace", new(3, (args) => IFunctionalVariable.Generate(args[0].AsString().Replace(args[1].AsString(), args[2].AsString()))));
-        DefaultSpace.LoadFunction("Property", new(1, (args) => IFunctionalVariable.Generate(PropertyManager.GetProperty(args[0].AsString())?.GetString() ?? $"BADPROP({args[0]})")));
-        DefaultSpace.LoadFunction("PropertyVal", new(1, (args) => IFunctionalVariable.Generate(PropertyManager.GetProperty(args[0].AsString())?.GetFloat() ?? 0f)));
+        DefaultSpace.LoadFunction("Replace", new(3, args => Generate(args[0].AsString().Replace(args[1].AsString(), args[2].AsString()))));
+        DefaultSpace.LoadFunction("Property", new(1, args => Generate(PropertyManager.GetProperty(args[0].AsString())?.GetString() ?? $"BADPROP({args[0]})")));
+        DefaultSpace.LoadFunction("PropertyVal", new(1, args => Generate(PropertyManager.GetProperty(args[0].AsString())?.GetFloat() ?? 0f)));
 
         //整数演算
-        DefaultSpace.LoadFunction("Add", new(2, (args) => IFunctionalVariable.Generate(args[0].AsNumber() + args[1].AsNumber())));
-        DefaultSpace.LoadFunction("Sub", new(2, (args) => IFunctionalVariable.Generate(args[0].AsNumber() - args[1].AsNumber())));
-        DefaultSpace.LoadFunction("Mul", new(2, (args) => IFunctionalVariable.Generate(args[0].AsNumber() * args[1].AsNumber())));
-        DefaultSpace.LoadFunction("Lessthan", new(2, (args) => IFunctionalVariable.Generate(args[0].AsNumber() < args[1].AsNumber())));
-        DefaultSpace.LoadFunction("Morethan", new(2, (args) => IFunctionalVariable.Generate(args[0].AsNumber() > args[1].AsNumber())));
+        DefaultSpace.LoadFunction("Add", new(2, args => Generate(args[0].AsNumber() + args[1].AsNumber())));
+        DefaultSpace.LoadFunction("Sub", new(2, args => Generate(args[0].AsNumber() - args[1].AsNumber())));
+        DefaultSpace.LoadFunction("Mul", new(2, args => Generate(args[0].AsNumber() * args[1].AsNumber())));
+        DefaultSpace.LoadFunction("Lessthan", new(2, args => Generate(args[0].AsNumber() < args[1].AsNumber())));
+        DefaultSpace.LoadFunction("Morethan", new(2, args => Generate(args[0].AsNumber() > args[1].AsNumber())));
 
         //論理演算
-        DefaultSpace.LoadFunction("Not", new(1, (args) => IFunctionalVariable.Generate(!args[0].AsBool())));
-        DefaultSpace.LoadFunction("And", new(2, (args) => IFunctionalVariable.Generate(args[0].AsBool() && args[1].AsBool())));
-        DefaultSpace.LoadFunction("Or", new(2, (args) => IFunctionalVariable.Generate(args[0].AsBool() || args[1].AsBool())));
-        DefaultSpace.LoadFunction("Xor", new(2, (args) => IFunctionalVariable.Generate(args[0].AsBool() != args[1].AsBool())));
+        DefaultSpace.LoadFunction("Not", new(1, args => Generate(!args[0].AsBool())));
+        DefaultSpace.LoadFunction("And", new(2, args => Generate(args[0].AsBool() && args[1].AsBool())));
+        DefaultSpace.LoadFunction("Or", new(2, args => Generate(args[0].AsBool() || args[1].AsBool())));
+        DefaultSpace.LoadFunction("Xor", new(2, args => Generate(args[0].AsBool() != args[1].AsBool())));
 
         //制御
-        DefaultSpace.LoadFunction("If", new(3, (args) => args[0].AsBool() ? args[1] : args[2]));
+        DefaultSpace.LoadFunction("If", new(3, args => args[0].AsBool() ? args[1] : args[2]));
 
         //比較
-        DefaultSpace.LoadFunction("Equal", new(2, (args) => IFunctionalVariable.Generate(args[0].Equals(args[1]))));
+        DefaultSpace.LoadFunction("Equal", new(2, args => Generate(args[0].Equals(args[1]))));
 
         //列挙型
-        DefaultSpace.LoadFunction("GetIterator", new(1, (args) => IFunctionalVariable.Generate(new EnumeratorView<string>(args[1].AsStringEnumerable()!.GetEnumerator()))));
-        DefaultSpace.LoadFunction("GetNext", new(1, (args) => IFunctionalVariable.Generate(args[1].AsStringEnumerator()!.GetNext()!)));
-        DefaultSpace.LoadFunction("GetPrev", new(1, (args) => IFunctionalVariable.Generate(args[1].AsStringEnumerator()!.GetPrev()!)));
+        DefaultSpace.LoadFunction("GetIterator", new(1, args => Generate(new EnumeratorView<string>(args[1].AsStringEnumerable()!.GetEnumerator()))));
+        DefaultSpace.LoadFunction("GetNext", new(1, args => Generate(args[1].AsStringEnumerator()!.GetNext()!)));
+        DefaultSpace.LoadFunction("GetPrev", new(1, args => Generate(args[1].AsStringEnumerator()!.GetPrev()!)));
 
         //オブジェクト
         DefaultSpace.LoadFunction("GetRole", new(1, args => GenerateWrapped(Roles.Roles.AllAssignables().FirstOrDefault(r => r.LocalizedName == args[0].AsString()))));
-        DefaultSpace.LoadFunction("GetCitation", new(1, (args) =>
+        DefaultSpace.LoadFunction("GetCitation", new(1, args =>
         {
             Citation? citation = null;
             if (args[0] is FunctionalObjectWrapping<DefinedAssignable> w)
@@ -369,10 +369,10 @@ public class FunctionalSpace
     public IFunctionalVariable CallFunction(string name, FunctionalEnvironment? env, IFunctionalVariable[] argument)
     {
         if (allFunctions.TryGetValue(name, out var func))
-            return (func.Execute(env, argument, out var result) ? result : IFunctionalVariable.Generate($"BADARGS({name})")) ?? IFunctionalVariable.Generate($"BADFUNC({name})");
+            return (func.Execute(env, argument, out var result) ? result : Generate($"BADARGS({name})")) ?? Generate($"BADFUNC({name})");
 
         if (parentSpace != null) return parentSpace.CallFunction(name, env, argument);
-        else return IFunctionalVariable.Generate($"BADCALL({name})");
+        else return Generate($"BADCALL({name})");
     }
 
     public void SetParent(FunctionalSpace? parent)

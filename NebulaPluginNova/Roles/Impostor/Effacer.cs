@@ -51,9 +51,9 @@ public class Effacer : DefinedRoleTemplate, HasCitation, DefinedRole
 
                 var effaceButton = Bind(new ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability);
                 effaceButton.SetSprite(buttonSprite.GetSprite());
-                effaceButton.Availability = (button) => effaceTracker.CurrentTarget != null && MyPlayer.CanMove;
-                effaceButton.Visibility = (button) => !MyPlayer.IsDead;
-                effaceButton.OnClick = (button) => {
+                effaceButton.Availability = button => effaceTracker.CurrentTarget != null && MyPlayer.CanMove;
+                effaceButton.Visibility = button => !MyPlayer.IsDead;
+                effaceButton.OnClick = button => {
                     effaceTracker.CurrentTarget!.GainAttribute(PlayerAttributes.InvisibleElseImpostor, EffaceDurationOption, false, 0);
                     effaceButton.StartCoolDown();
 

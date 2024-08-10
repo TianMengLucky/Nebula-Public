@@ -5,6 +5,7 @@ using Virial.Events.Game;
 using Virial.Events.Game.Meeting;
 using Virial.Events.Player;
 using Virial.Helpers;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Patches;
 
@@ -14,10 +15,10 @@ public static class ModPreSpawnInPatch
     {
         if (NebulaPreSpawnMinigame.PreSpawnLocations.Length > 0)
         {
-            NebulaPreSpawnMinigame spawnInMinigame = UnityHelper.CreateObject<NebulaPreSpawnMinigame>("PreSpawnInMinigame", minigameParent, new Vector3(0, 0, -600f), LayerExpansion.GetUILayer());
+            var spawnInMinigame = UnityHelper.CreateObject<NebulaPreSpawnMinigame>("PreSpawnInMinigame", minigameParent, new Vector3(0, 0, -600f), LayerExpansion.GetUILayer());
             spawnInMinigame.Begin(null!);
-            yield return NebulaAPI.CurrentGame.GetModule<Synchronizer>()?.CoSync(Modules.SynchronizeTag.PreSpawnMinigame, true, false, false);
-            NebulaAPI.CurrentGame.GetModule<Synchronizer>()?.ResetSync(Modules.SynchronizeTag.PreSpawnMinigame);
+            yield return NebulaAPI.CurrentGame.GetModule<Synchronizer>()?.CoSync(SynchronizeTag.PreSpawnMinigame, true, false, false);
+            NebulaAPI.CurrentGame.GetModule<Synchronizer>()?.ResetSync(SynchronizeTag.PreSpawnMinigame);
             spawnInMinigame.CloseSpawnInMinigame();
 
             NebulaGameManager.Instance?.GameStatistics.RecordEvent(new GameStatistics.Event(eventVariation, null, 0, GameStatisticsGatherTag.Spawn) { RelatedTag = tag });
@@ -62,17 +63,17 @@ public static class NebulaExileWrapUp
                 NebulaAPI.CurrentGame?.GetModule<Synchronizer>()?.SendSync(SynchronizeTag.CheckExtraVictims);
             }
 
-            yield return NebulaAPI.CurrentGame?.GetModule<Synchronizer>()?.CoSyncAndReset(Modules.SynchronizeTag.CheckExtraVictims, true, true, false);
+            yield return NebulaAPI.CurrentGame?.GetModule<Synchronizer>()?.CoSyncAndReset(SynchronizeTag.CheckExtraVictims, true, true, false);
 
-            bool extraExile = MeetingHudExtension.ExtraVictims.Count > 0;
+            var extraExile = MeetingHudExtension.ExtraVictims.Count > 0;
             MeetingHudExtension.ExileExtraVictims();
 
             //誰かが追加でいなくなったとき
             if (GeneralConfigurations.NoticeExtraVictimsOption && extraExile)
             {
-                string str = Language.Translate("game.meeting.someoneDisappeared");
-                int num = 0;
-                var additionalText = GameObject.Instantiate(__instance.Text, __instance.transform);
+                var str = Language.Translate("game.meeting.someoneDisappeared");
+                var num = 0;
+                var additionalText = Object.Instantiate(__instance.Text, __instance.transform);
                 additionalText.transform.localPosition = new Vector3(0, 0, -800f);
                 additionalText.text = "";
 
@@ -85,7 +86,7 @@ public static class NebulaExileWrapUp
                 }
                 yield return new WaitForSeconds(1.9f);
 
-                float a = 1f;
+                var a = 1f;
                 while (a > 0f)
                 {
                     a -= Time.deltaTime * 1.5f;
@@ -99,10 +100,10 @@ public static class NebulaExileWrapUp
         yield return GameOperatorManager.Instance?.Run(new MeetingPreEndEvent()).Coroutines.WaitAll();
         
         NebulaAPI.CurrentGame?.GetModule<Synchronizer>()?.SendSync(SynchronizeTag.PostMeeting);
-        yield return NebulaAPI.CurrentGame?.GetModule<Synchronizer>()?.CoSyncAndReset(Modules.SynchronizeTag.PostMeeting, true, true, false);
+        yield return NebulaAPI.CurrentGame?.GetModule<Synchronizer>()?.CoSyncAndReset(SynchronizeTag.PostMeeting, true, true, false);
 
         NebulaGameManager.Instance?.OnMeetingEnd(MeetingHudExtension.ExiledAll);
-        GamePlayer[] exiledArray = MeetingHudExtension.ExiledAll?.Select(p => p.GetModInfo()!).ToArray() ?? new GamePlayer[0];
+        GamePlayer[] exiledArray = MeetingHudExtension.ExiledAll?.Select(p => p.GetModInfo()!).ToArray() ?? [];
         GameOperatorManager.Instance?.Run(new MeetingEndEvent(exiledArray));
 
         yield return ModPreSpawnInPatch.ModPreSpawnIn(__instance.transform.parent, GameStatistics.EventVariation.MeetingEnd, EventDetail.MeetingEnd);
@@ -114,7 +115,7 @@ public static class NebulaExileWrapUp
         __instance.ReEnableGameplay();
         AmongUsUtil.SetEmergencyCoolDown(0f, true);
 
-        GameObject.Destroy(__instance.gameObject);
+        Object.Destroy(__instance.gameObject);
     }
 }
 

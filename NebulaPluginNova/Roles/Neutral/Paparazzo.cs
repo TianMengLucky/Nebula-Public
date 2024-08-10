@@ -9,6 +9,7 @@ using Virial.Events.Game;
 using Virial.Events.Game.Meeting;
 using Virial.Events.Player;
 using Virial.Game;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Roles.Neutral;
 
@@ -29,7 +30,7 @@ public class PaparazzoShot : MonoBehaviour
 
     public void SetLayer(int layer)
     {
-        gameObject.ForEachChild((Il2CppSystem.Action<GameObject>)((obj) => obj.layer = layer));
+        gameObject.ForEachChild((Il2CppSystem.Action<GameObject>)(obj => obj.layer = layer));
     }
 
     public void Awake()
@@ -50,7 +51,7 @@ public class PaparazzoShot : MonoBehaviour
     public void SetUpButton(Action action)
     {
         var button = gameObject.SetUpButton();
-        button.OnClick.AddListener(() => { if (focus) { action.Invoke(); GameObject.Destroy(button); } });
+        button.OnClick.AddListener(() => { if (focus) { action.Invoke(); Destroy(button); } });
     }
 
     public void Update()
@@ -79,7 +80,7 @@ public class PaparazzoShot : MonoBehaviour
 
         var scale = transform.localScale;
         
-        GameObject camObj = new GameObject();
+        var camObj = new GameObject();
         camObj.transform.SetParent(transform);
         camObj.transform.localScale = new Vector3(1, 1);
         camObj.transform.localPosition = new Vector3(0f, 0f, 0f);
@@ -90,13 +91,13 @@ public class PaparazzoShot : MonoBehaviour
         pos.z = -0.4f;
         camObj.transform.position = pos;
 
-        Camera cam = camObj.AddComponent<Camera>();
+        var cam = camObj.AddComponent<Camera>();
         cam.orthographic = true;
         cam.orthographicSize = transform.localScale.y * frameRenderer.size.y * 0.5f;
         cam.clearFlags = CameraClearFlags.SolidColor;
         cam.cullingMask = 0b1101100000001;
         cam.enabled = true;
-        RenderTexture rt = new RenderTexture((int)(frameRenderer.size.x * 100f * scale.x), (int)(frameRenderer.size.y * 100f * scale.y), 16);
+        var rt = new RenderTexture((int)(frameRenderer.size.x * 100f * scale.x), (int)(frameRenderer.size.y * 100f * scale.y), 16);
         rt.Create();
         cam.targetTexture = rt;
 
@@ -106,15 +107,15 @@ public class PaparazzoShot : MonoBehaviour
         using(var ignoreShadow = AmongUsUtil.IgnoreShadow(false)) cam.Render();
 
         RenderTexture.active = cam.targetTexture;
-        Texture2D texture2D = new Texture2D(rt.width, rt.height, TextureFormat.ARGB32, false, false);
+        var texture2D = new Texture2D(rt.width, rt.height, TextureFormat.ARGB32, false, false);
         texture2D.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
         texture2D.Apply();
         var sprite = texture2D.ToSprite(100f);
 
         cam.targetTexture = null;
         RenderTexture.active = null;
-        GameObject.Destroy(rt);
-        GameObject.Destroy(camObj);
+        Destroy(rt);
+        Destroy(camObj);
 
         centerRenderer.transform.localPosition = new(0f, 0f, 0.1f);
         centerRenderer.transform.localScale = new(1f / scale.x, 1f / scale.y, 0.1f);
@@ -124,8 +125,8 @@ public class PaparazzoShot : MonoBehaviour
         NebulaAsset.PlaySE(NebulaAudioClip.Camera);
 
         //映っているプレイヤーを調べる
-        int playerMask = 0;
-        int playerNum = 0;
+        var playerMask = 0;
+        var playerNum = 0;
         foreach (var p in PlayerControl.AllPlayerControls.GetFastEnumerator())
         {
             if (p.Data.IsDead || !p.Visible || (p.GetModInfo()?.Unbox().IsInvisible ?? false)) continue;
@@ -166,7 +167,7 @@ public class PaparazzoShot : MonoBehaviour
         //UI変換後のスケーラ
         IEnumerator CoScale()
         {
-            float t = 5f;
+            var t = 5f;
             while (t > 0f)
             {
                 pictureScaler.transform.localScale -= (pictureScaler.transform.localScale - Vector3.one).Delta(2f, 0.02f);
@@ -180,7 +181,7 @@ public class PaparazzoShot : MonoBehaviour
         IEnumerator CoFlash()
         {
             flashRenderer.color = Color.white;
-            float a = 1f;
+            var a = 1f;
             while (a > 0f)
             {
                 a -= Time.deltaTime * 1.4f;
@@ -203,8 +204,8 @@ public class PaparazzoShot : MonoBehaviour
                     scale -= Time.deltaTime * 1.2f;
                     yield return null;
                 }
-                GameObject.Destroy(gameObject);
-                GameObject.Destroy(pictureScaler);
+                Destroy(gameObject);
+                Destroy(pictureScaler);
             }
             else
             {
@@ -215,13 +216,13 @@ public class PaparazzoShot : MonoBehaviour
 
                 shots.Add((pictureScaler.transform, this,playerMask));
 
-                GameObject players = UnityHelper.CreateObject("Players", pictureScaler.transform, Vector3.zero);
+                var players = UnityHelper.CreateObject("Players", pictureScaler.transform, Vector3.zero);
                 players.transform.localEulerAngles = Vector3.zero;
                 players.transform.localPosition = new(0, 0, -15f);
 
                 var paparazzo = (PlayerControl.LocalPlayer.GetModInfo()!.Role as Paparazzo.Instance)!;
 
-                int num = 0;
+                var num = 0;
                 foreach (var p in PlayerControl.AllPlayerControls.GetFastEnumerator()) {
                     if (((1 << p.PlayerId) & playerMask) == 0) continue;
 
@@ -286,7 +287,7 @@ public class Paparazzo : DefinedRoleTemplate, DefinedRole
         GameTimer? RuntimeRole.VentCoolDown => ventCoolDown;
         GameTimer? RuntimeRole.VentDuration => ventDuration;
         bool RuntimeRole.CanUseVent => canUseVent;
-        private List<(Transform holder,PaparazzoShot shot,int playerMask)> shots = new();
+        private List<(Transform holder,PaparazzoShot shot,int playerMask)> shots = [];
         private HudContent? shotsHolder = null;
 
         AchievementToken<(bool cleared, int? lastAlive)>? acTokenChallenge = null;
@@ -309,7 +310,7 @@ public class Paparazzo : DefinedRoleTemplate, DefinedRole
 
         private int GetActivatedBits(int mask)
         {
-            int num = 0;
+            var num = 0;
             while (mask != 0)
             {
                 if ((mask & 1) != 0) num++;
@@ -333,16 +334,16 @@ public class Paparazzo : DefinedRoleTemplate, DefinedRole
 
                 shotButton = Bind(new Modules.ScriptComponents.ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability, "paparazzo.camera").SubKeyBind(Virial.Compat.VirtualKeyInput.AidAction,"paparazzo.toggle");
                 shotButton.SetSprite(cameraButtonSprite.GetSprite());
-                shotButton.Availability = (button) => MyPlayer.VanillaPlayer.CanMove && MyFinder != null;
-                shotButton.Visibility = (button) => !MyPlayer.IsDead;
-                shotButton.OnClick = (button) => {
-                    GameObject.Destroy(MyFinder?.MyObject?.GetComponent<PassiveButton>());
+                shotButton.Availability = button => MyPlayer.VanillaPlayer.CanMove && MyFinder != null;
+                shotButton.Visibility = button => !MyPlayer.IsDead;
+                shotButton.OnClick = button => {
+                    Object.Destroy(MyFinder?.MyObject?.GetComponent<PassiveButton>());
                     MyFinder?.MyObject?.TakePicture(shots, success => acTokenCommon.Value += success ? 1 : 0);
                     MyFinder?.Detach();
                     MyFinder = null;
                     shotButton.StartCoolDown();
                 };
-                shotButton.OnSubAction= (button) => MyFinder?.MyObject!.ToggleDirection();
+                shotButton.OnSubAction= button => MyFinder?.MyObject!.ToggleDirection();
                 shotButton.CoolDownTimer = Bind(new Timer(0f, ShotCoolDownOption).SetAsAbilityCoolDown().Start());
                 shotButton.SetLabel("shot");
                 shotButton.SetCanUseByMouseClick();
@@ -355,7 +356,7 @@ public class Paparazzo : DefinedRoleTemplate, DefinedRole
         {
             if (!MyPlayer.IsDead && !(shotButton?.CoolDownTimer?.IsProgressing ?? true) && MyFinder == null && !MeetingHud.Instance && !ExileController.Instance)
             {
-                MyFinder = Bind(new ComponentBinding<PaparazzoShot>(GameObject.Instantiate(NebulaAsset.PaparazzoShot, null).AddComponent<PaparazzoShot>()));
+                MyFinder = Bind(new ComponentBinding<PaparazzoShot>(Object.Instantiate(NebulaAsset.PaparazzoShot, null).AddComponent<PaparazzoShot>()));
                 var shot = MyFinder.MyObject!;
                 shot.gameObject.layer = LayerExpansion.GetUILayer();
                 shot.transform.localScale = Vector3.zero;
@@ -382,17 +383,17 @@ public class Paparazzo : DefinedRoleTemplate, DefinedRole
         void LocalHudUpdate(GameHudUpdateEvent ev)
         {
             if (shotsHolder != null) {
-                int num = 0;
+                var num = 0;
                 shots.RemoveAll(shot => {
                     if ((shot.playerMask & (~DisclosedMask)) == 0)
                     {
-                        GameObject.Destroy(shot.holder.gameObject);
+                        Object.Destroy(shot.holder.gameObject);
                         return true;
                     }
                     return false;
                 });
 
-                int mask = 0;
+                var mask = 0;
                 foreach (var shot in shots) mask |= shot.playerMask;
                 if((mask | CapturedMask) != CapturedMask)
                 {
@@ -425,12 +426,12 @@ public class Paparazzo : DefinedRoleTemplate, DefinedRole
         {
             if (!MyPlayer.IsDead)
             {
-                bool shareFlag = false;
-                float timer = 20f;
+                var shareFlag = false;
+                var timer = 20f;
 
                 var hourglass = UnityHelper.CreateObject<SpriteRenderer>("Hourglass", shotsHolder!.transform, new Vector3(shots.Count * 0.6f, -0.25f, -10f));
                 hourglass.sprite = hourGlassSprite.GetSprite();
-                var hourText = GameObject.Instantiate(HudManager.Instance.KillButton.cooldownTimerText, hourglass.transform);
+                var hourText = Object.Instantiate(HudManager.Instance.KillButton.cooldownTimerText, hourglass.transform);
                 hourText.text = Mathf.CeilToInt(timer).ToString();
                 hourText.transform.localScale = new(0.5f, 0.5f, 1f);
                 hourText.gameObject.SetActive(true);
@@ -448,10 +449,10 @@ public class Paparazzo : DefinedRoleTemplate, DefinedRole
                     foreach (var shot in shots)
                     {
                         if (!shot.shot) continue;
-                        if (shot.shot.gameObject.TryGetComponent<PassiveButton>(out var button)) GameObject.Destroy(button);
+                        if (shot.shot.gameObject.TryGetComponent<PassiveButton>(out var button)) Object.Destroy(button);
                     }
 
-                    if (hourglass) GameObject.Destroy(hourglass.gameObject);
+                    if (hourglass) Object.Destroy(hourglass.gameObject);
                 }
 
                 NebulaManager.Instance.StartCoroutine(CoWaitSharing().WrapToIl2Cpp());
@@ -474,7 +475,7 @@ public class Paparazzo : DefinedRoleTemplate, DefinedRole
                     {
                         if (MyPlayer.IsDead) return;
 
-                        int aliveMask = 0;
+                        var aliveMask = 0;
                         foreach (var p in NebulaGameManager.Instance!.AllPlayerInfo()) if (!p.IsDead) aliveMask |= 1 << p.PlayerId;
                         DisclosedMask |= (shot.playerMask & aliveMask);
                         RpcShareState.Invoke((MyPlayer.PlayerId, CapturedMask, DisclosedMask));
@@ -529,27 +530,27 @@ public class Paparazzo : DefinedRoleTemplate, DefinedRole
 
     public static void SharePicture(int playersMask, float scale,float angle,Texture2D texture)
     {
-        RpcSharePicture.Invoke((scale,angle,UnityEngine.ImageConversion.EncodeToJPG(texture, 60)));
+        RpcSharePicture.Invoke((scale,angle,ImageConversion.EncodeToJPG(texture, 60)));
         RpcShareDisclosedPlayers.Invoke(playersMask);
     }
 
     public static RemoteProcess<int> RpcShareDisclosedPlayers = new("ShareDisclosed",
         (message, _) =>
         {
-            bool takenSelf = (message & (1 << PlayerControl.LocalPlayer.PlayerId)) != 0;
+            var takenSelf = (message & (1 << PlayerControl.LocalPlayer.PlayerId)) != 0;
             if (takenSelf && (NebulaGameManager.Instance?.LocalPlayerInfo.IsImpostor ?? false)) new StaticAchievementToken("paparazzo.another1");
         });
     public static DivisibleRemoteProcess<(float, float, byte[]), (int id, float scale, float angle, int length, int index, byte[] bytes)> RpcSharePicture = new("SharePicture",
-        (message) =>
+        message =>
         {
-            int id = System.Random.Shared.Next(100000);
+            var id = System.Random.Shared.Next(100000);
 
-            List<(byte[],int)> arrays = new();
-            int proceed = 0;
-            int index = 0;
+            List<(byte[],int)> arrays = [];
+            var proceed = 0;
+            var index = 0;
             while (proceed < message.Item3.Length)
             {
-                int last = proceed;
+                var last = proceed;
                 proceed = Mathf.Min(proceed + 500, message.Item3.Length);
 
                 arrays.Add((message.Item3.SubArray(last, proceed - last),index));
@@ -565,7 +566,7 @@ public class Paparazzo : DefinedRoleTemplate, DefinedRole
             writer.Write(divided.index);
             writer.WriteBytesAndSize(divided.bytes);
         },
-        (reader) => {
+        reader => {
             return (reader.ReadInt32(), reader.ReadSingle(), reader.ReadSingle(), reader.ReadInt32(), reader.ReadInt32(), reader.ReadBytesAndSize());
         },
         (divided,_) => {
@@ -575,22 +576,22 @@ public class Paparazzo : DefinedRoleTemplate, DefinedRole
             stored.bytes[divided.index] = divided.bytes;
             if (stored.bytes.All(b => b != null))
             {
-                var obj = GameObject.Instantiate(NebulaAsset.PaparazzoShot, null);
+                var obj = Object.Instantiate(NebulaAsset.PaparazzoShot, null);
                 MeetingHudExtension.AddLeftContent(obj);
                 var renderer = obj.transform.GetChild(3).GetComponent<SpriteRenderer>();
-                List<byte> data = new();
-                foreach (byte[]? b in stored.bytes) data.AddRange(b!);
-                Texture2D texture = new Texture2D(1, 1);
+                List<byte> data = [];
+                foreach (var b in stored.bytes) data.AddRange(b!);
+                var texture = new Texture2D(1, 1);
                 ImageConversion.LoadImage(texture, data.ToArray());
                 renderer.sprite = texture.ToSprite(100f);
                 renderer.transform.localPosition = new(0f, 0f, 0.1f);
                 renderer.transform.localScale = Vector3.one * stored.scale;
                 storedTexture.Remove(divided.id);
                 obj.transform.localEulerAngles = new(0, 0, stored.angle);
-                obj.ForEachChild((Il2CppSystem.Action<GameObject>)((obj) => obj.layer = LayerExpansion.GetUILayer()));
+                obj.ForEachChild((Il2CppSystem.Action<GameObject>)(obj => obj.layer = LayerExpansion.GetUILayer()));
                 IEnumerator CoShow()
                 {
-                    float scale = 0f;
+                    var scale = 0f;
                     while (scale < 0.4f)
                     {
                         scale -= (scale - 0.4f) * Time.deltaTime * 4f;
@@ -610,7 +611,7 @@ public class Paparazzo : DefinedRoleTemplate, DefinedRole
     public static RemoteProcess<(byte playerId, int subjectMask, int disclosedMask)> RpcShareState = new ("SharePaparazzo", (message,_) =>
     {
         var role = NebulaGameManager.Instance?.GetPlayer(message.playerId)?.Role;
-        if (role is Paparazzo.Instance paparazzo)
+        if (role is Instance paparazzo)
         {
             paparazzo.CapturedMask = message.subjectMask;
             paparazzo.DisclosedMask = message.disclosedMask;

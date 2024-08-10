@@ -1,6 +1,7 @@
 ﻿using Nebula.Behaviour;
 using Virial.Events.Game.Minimap;
 using Virial.Game;
+using Object = UnityEngine.Object;
 
 namespace Nebula.Roles.Abilities;
 
@@ -15,7 +16,7 @@ public class JailerAbility : IGameOperator
         this.canMoveWithMapWatching = canMoveWithMapWatching;
         this.canUseAdminOnMeeting = canUseAdminOnMeeting;
 
-        if (MapBehaviour.Instance) GameObject.Destroy(MapBehaviour.Instance.gameObject);
+        if (MapBehaviour.Instance) Object.Destroy(MapBehaviour.Instance.gameObject);
     }
 
     void OnOpenNormalMap(MapOpenNormalEvent ev)
@@ -46,7 +47,7 @@ public class JailerAbility : IGameOperator
 
     void IGameOperator.OnReleased()
     {
-        if (MapBehaviour.Instance) GameObject.Destroy(MapBehaviour.Instance.gameObject);
+        if (MapBehaviour.Instance) Object.Destroy(MapBehaviour.Instance.gameObject);
     }
 
     void OnMapInstantiated(MapInstantiateEvent ev)
@@ -60,7 +61,7 @@ public class JailerAbility : IGameOperator
 
     public static void OptimizeMap(Transform roomNames, MapCountOverlay countOverlay, InfectedOverlay infectedOverlay)
     {
-        for (int i = 0; i < infectedOverlay.transform.childCount; i++) infectedOverlay.transform.GetChild(i).transform.localScale *= 0.8f;
+        for (var i = 0; i < infectedOverlay.transform.childCount; i++) infectedOverlay.transform.GetChild(i).transform.localScale *= 0.8f;
         foreach (var c in countOverlay.CountAreas) c.YOffset *= -1f;
 
         switch (AmongUsUtil.CurrentMapId)

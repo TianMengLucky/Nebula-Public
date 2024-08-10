@@ -52,10 +52,10 @@ public class Busker : DefinedRoleTemplate, DefinedRole
                 var reviveButton = Bind(new ModAbilityButton()).KeyBind(NebulaInput.GetInput(Virial.Compat.VirtualKeyInput.Ability));
 
                 pseudocideButton.SetSprite(pseudocideButtonSprite.GetSprite());
-                pseudocideButton.Availability = (button) => MyPlayer.CanMove;
-                pseudocideButton.Visibility = (button) => !MyPlayer.IsDead;
+                pseudocideButton.Availability = button => MyPlayer.CanMove;
+                pseudocideButton.Visibility = button => !MyPlayer.IsDead;
                 pseudocideButton.CoolDownTimer = Bind(new Timer(0f, PseudocideCoolDownOption).SetAsAbilityCoolDown().Start());
-                pseudocideButton.OnClick = (button) => {
+                pseudocideButton.OnClick = button => {
                     NebulaManager.Instance.ScheduleDelayAction(() => {
                         using (RPCRouter.CreateSection("BuskerPseudocide"))
                         {
@@ -70,11 +70,11 @@ public class Busker : DefinedRoleTemplate, DefinedRole
                 StaticAchievementToken? acTokenCommon1 = null;
 
                 reviveButton.SetSprite(reviveButtonSprite.GetSprite());
-                reviveButton.Availability = (button) => MyPlayer.CanMove && MapData.GetCurrentMapData().CheckMapArea(PlayerControl.LocalPlayer.GetTruePosition());
-                reviveButton.Visibility = (button) => button.EffectActive && Helpers.AllDeadBodies().Any(deadBody => deadBody.ParentId == MyPlayer.PlayerId);
+                reviveButton.Availability = button => MyPlayer.CanMove && MapData.GetCurrentMapData().CheckMapArea(PlayerControl.LocalPlayer.GetTruePosition());
+                reviveButton.Visibility = button => button.EffectActive && Helpers.AllDeadBodies().Any(deadBody => deadBody.ParentId == MyPlayer.PlayerId);
                 reviveButton.EffectTimer = Bind(new Timer(0f, PseudocideDurationOption));
                 reviveButton.PlayFlash = () => reviveButton.EffectActive;
-                reviveButton.OnClick = (button) => {
+                reviveButton.OnClick = button => {
                     using (RPCRouter.CreateSection("ReviveBusker"))
                     {
                         PlayerModInfo.RpcRemoveAttr.Invoke((MyPlayer.PlayerId, PlayerAttributes.BuskerEffect.Id));
@@ -87,7 +87,7 @@ public class Busker : DefinedRoleTemplate, DefinedRole
                     acTokenChallenge ??= new("busker.challenge", (false, 0f), (val, _) => val.isCleared);
                     acTokenChallenge.Value.lastRevive = NebulaGameManager.Instance!.CurrentTime;
                 };
-                reviveButton.OnEffectEnd = (button) =>
+                reviveButton.OnEffectEnd = button =>
                 {
                     if (MyPlayer.IsDead)
                     {

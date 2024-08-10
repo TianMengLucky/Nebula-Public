@@ -16,15 +16,15 @@ public enum FontAsset
 
 public enum TextAlignment
 {
-    Left = TMPro.TextAlignmentOptions.Left,
-    Right = TMPro.TextAlignmentOptions.Right,
-    Center = TMPro.TextAlignmentOptions.Center,
-    TopLeft = TMPro.TextAlignmentOptions.TopLeft,
-    TopRight = TMPro.TextAlignmentOptions.TopRight,
-    Top = TMPro.TextAlignmentOptions.Top,
-    BottomLeft = TMPro.TextAlignmentOptions.BottomLeft,
-    BottomRight = TMPro.TextAlignmentOptions.BottomRight,
-    Bottom = TMPro.TextAlignmentOptions.Bottom,
+    Left = TextAlignmentOptions.Left,
+    Right = TextAlignmentOptions.Right,
+    Center = TextAlignmentOptions.Center,
+    TopLeft = TextAlignmentOptions.TopLeft,
+    TopRight = TextAlignmentOptions.TopRight,
+    Top = TextAlignmentOptions.Top,
+    BottomLeft = TextAlignmentOptions.BottomLeft,
+    BottomRight = TextAlignmentOptions.BottomRight,
+    Bottom = TextAlignmentOptions.Bottom,
 }
 
 [Flags]
@@ -222,15 +222,15 @@ public enum AttributeAsset
 [Flags]
 public enum FontStyle
 {
-    Normal = TMPro.FontStyles.Normal,
-    Bold = TMPro.FontStyles.Bold,
-    Italic = TMPro.FontStyles.Italic
+    Normal = FontStyles.Normal,
+    Bold = FontStyles.Bold,
+    Italic = FontStyles.Italic
 }
 
 public interface Font
 {
     internal Material? FontMaterial { get; }
-    internal TMPro.TMP_FontAsset Font { get; }
+    internal TMP_FontAsset Font { get; }
 }
 
 internal class StaticFont : Font

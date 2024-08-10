@@ -28,13 +28,13 @@ public class DocumentManager
         yield return preprocessor.SetLoadingText("Loading Serializable Documents");
 
         
-        string Postfix = ".json";
-        int PostfixLength = Postfix.Length;
+        var Postfix = ".json";
+        var PostfixLength = Postfix.Length;
 
         foreach (var addon in NebulaAddon.AllAddons)
         {
-            string Prefix = addon.InZipPath + "Documents/";
-            int PrefixLength = Prefix.Length;
+            var Prefix = addon.InZipPath + "Documents/";
+            var PrefixLength = Prefix.Length;
 
             foreach (var entry in addon.Archive.Entries)
             {
@@ -59,7 +59,7 @@ public class DocumentManager
 
         foreach (var assembly in AddonScriptManager.ScriptAssemblies.Select(s => s.Assembly))
         {
-            var types = assembly?.GetTypes().Where((type) => type.IsAssignableTo(typeof(IDocument)) && type.GetCustomAttributes<AddonDocumentAttribute>().Any(_ => true));
+            var types = assembly?.GetTypes().Where(type => type.IsAssignableTo(typeof(IDocument)) && type.GetCustomAttributes<AddonDocumentAttribute>().Any(_ => true));
             foreach (var type in types ?? [])
             {
                 foreach (var attr in type.GetCustomAttributes<AddonDocumentAttribute>())
@@ -285,7 +285,7 @@ public class SerializableDocument : IDocument
         List<SerializableDocument>? list = MyContainer;
         if (list == null) return;
 
-        int index = list.IndexOf(content);
+        var index = list.IndexOf(content);
         if (index == -1) return;
 
         index += moveToHead ? -1 : 1;
@@ -326,7 +326,7 @@ public class SerializableDocument : IDocument
         return widget;
     }
 
-    Virial.Media.GUIWidget? IDocument.Build(Virial.Compat.Artifact<Virial.Media.GUIScreen>? target) => Build(target);
+    Virial.Media.GUIWidget? IDocument.Build(Artifact<GUIScreen>? target) => Build(target);
     public Virial.Media.GUIWidget? Build(Artifact<GUIScreen>? myScreen, bool useMaskedMaterial = true, int leftNesting = MaxNesting, IResourceAllocator? nameSpace = null) => BuildInternal(nameSpace ?? RelatedNamespace, null, myScreen, c => c.Build(myScreen, useMaskedMaterial, leftNesting, nameSpace ?? RelatedNamespace), true, useMaskedMaterial, leftNesting);
     public Virial.Media.GUIWidget? BuildReference(FunctionalEnvironment? table, IResourceAllocator? nameSpace, Artifact<GUIScreen>? myScreen, bool buildHyperLink, int leftNesting = MaxNesting) => BuildInternal(nameSpace, table, myScreen, c => c.BuildReference(table, c.RelatedNamespace, myScreen, buildHyperLink, leftNesting), buildHyperLink, true, leftNesting);
 
@@ -357,26 +357,26 @@ public class SerializableDocument : IDocument
         {
             TextComponent text = TranslationKey != null ? new TranslateTextComponent(ConsiderArgumentAsStr(TranslationKey!)) : new RawTextComponent(ConsiderArgumentAsStr(RawText!));
 
-            TextAttribute? attr = GetAttribute(ConsiderArgumentAsStr(Style ?? ""));
+            var attr = GetAttribute(ConsiderArgumentAsStr(Style ?? ""));
 
-            float fontSize = FontSize.HasValue ? FontSize.Value : attr.FontSize.FontSizeDefault;
+            var fontSize = FontSize.HasValue ? FontSize.Value : attr.FontSize.FontSizeDefault;
             attr = new(attr) {
-                FontSize = new Virial.Text.FontSize(fontSize, Mathf.Min(fontSize, attr.FontSize.FontSizeMin), Mathf.Max(fontSize, attr.FontSize.FontSizeMax)),
+                FontSize = new FontSize(fontSize, Mathf.Min(fontSize, attr.FontSize.FontSizeMin), Mathf.Max(fontSize, attr.FontSize.FontSizeMax)),
                 Color = new(Color?.AsColor(arguments) ?? UnityEngine.Color.white),
                 Style = IsBold.HasValue ? (IsBold.Value ? Virial.Text.FontStyle.Bold : Virial.Text.FontStyle.Normal) : attr.Style,
                 Alignment = GetTextAlignment(),
                 IsFlexible = IsVariable ?? true
             };
 
-            void PostBuilder(TMPro.TextMeshPro text) {
+            void PostBuilder(TextMeshPro text) {
                 if (myScreen != null && buildHyperLink)
                 {
                     foreach (var linkInfo in text.textInfo.linkInfo)
                     {
-                        int begin = linkInfo.linkTextfirstCharacterIndex;
-                        for (int i = 0; i < linkInfo.linkTextLength; i++)
+                        var begin = linkInfo.linkTextfirstCharacterIndex;
+                        for (var i = 0; i < linkInfo.linkTextLength; i++)
                         {
-                            int index = begin + i;
+                            var index = begin + i;
                             text.textInfo.characterInfo[i].color = new Color32(116, 132, 169, 255);
                         }
                     }
@@ -389,7 +389,7 @@ public class SerializableDocument : IDocument
                         var cam = UnityHelper.FindCamera(LayerExpansion.GetUILayer());
                         if (cam == null) return;
 
-                        int linkIdx = TMP_TextUtilities.FindIntersectingLink(text, Input.mousePosition, cam);
+                        var linkIdx = TMP_TextUtilities.FindIntersectingLink(text, Input.mousePosition, cam);
                         if (linkIdx == -1) return;
 
                         var action = text.textInfo.linkInfo[linkIdx].GetLinkID();
@@ -414,7 +414,7 @@ public class SerializableDocument : IDocument
 
         if(Image != null)
         {
-            string image = ConsiderArgumentAsStr(Image);
+            var image = ConsiderArgumentAsStr(Image);
 
             if (imageLoader == null || image != lastImagePath)
             {
@@ -447,10 +447,10 @@ public class SerializableDocument : IDocument
             {
                 SerializableDocument? doc = null;
 
-                string docId = ConsiderArgumentAsStr(Document.Id);
+                var docId = ConsiderArgumentAsStr(Document.Id);
                 if (nameSpace is DevAddon addon)
                 {
-                    string path = "Documents/" + docId + ".json";
+                    var path = "Documents/" + docId + ".json";
                     var stream = nameSpace.GetResource(new ReadOnlyArray<string>(Array.Empty<string>()), path)?.AsStream();
                     if (stream != null) {
                         doc = JsonStructure.Deserialize<SerializableDocument>(new StreamReader(stream).ReadToEnd());
@@ -469,11 +469,11 @@ public class SerializableDocument : IDocument
             if(citation == null) return new NoSGUIMargin(GetAlignment(), UnityEngine.Vector2.zero);
 
             GUIClickableAction? onClick = (buildHyperLink && citation.RelatedUrl != null) ? _ => Application.OpenURL(citation.RelatedUrl) : null;
-            var overlay = (buildHyperLink && citation.RelatedUrl != null) ? GUI.API.LocalizedText(GUIAlignment.Left, GUI.API.GetAttribute(Virial.Text.AttributeAsset.OverlayContent), "ui.citation.openUrl") : null;
+            var overlay = (buildHyperLink && citation.RelatedUrl != null) ? GUI.API.LocalizedText(GUIAlignment.Left, GUI.API.GetAttribute(AttributeAsset.OverlayContent), "ui.citation.openUrl") : null;
 
             if (citation?.LogoImage != null) return GUI.Instance.Image(GetAlignment(), citation.LogoImage, new(1.5f, 0.37f), onClick, overlay);
             
-            return new NoSGUIText(GetAlignment(), GUI.Instance.GetAttribute(Virial.Text.AttributeAsset.OverlayTitle), citation!.Name) {
+            return new NoSGUIText(GetAlignment(), GUI.Instance.GetAttribute(AttributeAsset.OverlayTitle), citation!.Name) {
                 OverlayWidget = overlay,
                 OnClickText = onClick != null ? (() => onClick?.Invoke(null!), false) : null
             };

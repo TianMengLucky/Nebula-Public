@@ -17,9 +17,9 @@ public class Avenger : DefinedRoleTemplate, DefinedRole
     static public RoleTeam MyTeam = new Team("teams.avenger", new(141,111,131), TeamRevealType.OnlyMe);
     private Avenger() : base("avenger", MyTeam.Color, RoleCategory.NeutralRole, MyTeam,
         [KillCoolDownOption, VentOption, CanKnowExistanceOfAvengerOption, TargetCanKnowAvengerOption, AvengerFlashForMurdererOption, NotificationForMurdererIntervalOption, NotificationForAvengerIntervalOption],
-        false, optionHolderPredicate: () => (Modifier.Lover.NumOfPairsOption > 0 && Modifier.Lover.AvengerModeOption))
+        false, optionHolderPredicate: () => (Lover.NumOfPairsOption > 0 && Lover.AvengerModeOption))
     {
-        ConfigurationHolder?.ScheduleAddRelated(() => [Modifier.Lover.MyRole.ConfigurationHolder!]);
+        ConfigurationHolder?.ScheduleAddRelated(() => [Lover.MyRole.ConfigurationHolder!]);
     }
 
     AllocationParameters? DefinedSingleAssignable.AllocationParameters => null;
@@ -68,9 +68,9 @@ public class Avenger : DefinedRoleTemplate, DefinedRole
                 var killTracker = Bind(ObjectTrackers.ForPlayer(null, MyPlayer, ObjectTrackers.StandardPredicate));
 
                 var killButton = Bind(new Modules.ScriptComponents.ModAbilityButton(isArrangedAsKillButton: true)).KeyBind(Virial.Compat.VirtualKeyInput.Kill);
-                killButton.Availability = (button) => killTracker.CurrentTarget != null && MyPlayer.CanMove;
-                killButton.Visibility = (button) => !MyPlayer.IsDead;
-                killButton.OnClick = (button) => {
+                killButton.Availability = button => killTracker.CurrentTarget != null && MyPlayer.CanMove;
+                killButton.Visibility = button => !MyPlayer.IsDead;
+                killButton.OnClick = button => {
                     MyPlayer.MurderPlayer(killTracker.CurrentTarget!, PlayerState.Dead, EventDetail.Kill, KillParameter.NormalKill);
                     killButton.StartCoolDown();
                 };
@@ -118,7 +118,7 @@ public class Avenger : DefinedRoleTemplate, DefinedRole
         [Local, OnlyMyPlayer]
         void OnKillPlayer(PlayerKillPlayerEvent ev)
         {
-            if(ev.Dead == this.target) new StaticAchievementToken("avenger.common1");
+            if(ev.Dead == target) new StaticAchievementToken("avenger.common1");
         }
 
         [Local]

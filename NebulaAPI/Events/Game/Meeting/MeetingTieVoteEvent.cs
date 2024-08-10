@@ -10,7 +10,7 @@ namespace Virial.Events.Game.Meeting;
 public class MeetingTieVoteEvent : Event
 {
     private Dictionary<byte, Virial.Game.Player?> voteForMap;
-    internal List<Virial.Game.Player?> ExtraVotes { get; private init; } = new();
+    internal List<Virial.Game.Player?> ExtraVotes { get; private init; } = [];
 
     internal MeetingTieVoteEvent(Dictionary<byte, Virial.Game.Player?> voteForMap)
     {
