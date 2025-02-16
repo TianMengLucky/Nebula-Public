@@ -31,15 +31,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-	<Reference Include="$(AmongUs)\BepInEx\core\*.dll" />
-	<Reference Include="$(AmongUs)\BepInEx\interop\*.dll" />
+    <PackageReference Include="AmongUs.GameLibs.Steam" Version="2024.10.29"/>
+    <PackageReference Include="BepInEx.IL2CPP.MSBuild" Version="2.1.0-rc.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="BepInEx.Unity.IL2CPP" Version="6.0.0-be.700"/>
   </ItemGroup>
-	
-  <Target Name="CopyCustomContent" AfterTargets="AfterBuild">
-	<Message Text="Second occurrence" />
-	<Copy SourceFiles="bin\Release\net6.0\NebulaAPI.dll" DestinationFolder="$(AmongUsRelease)\" />
-	<Copy SourceFiles="bin\Release\net6.0\NebulaAPI.dll" DestinationFolder="..\NebulaPluginNova\Resources\API\" />
-  </Target>
-	
 	
 </Project>

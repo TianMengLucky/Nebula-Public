@@ -175,7 +175,8 @@ class ExileControllerBeginPatch
             if (role != null)
             {
                 __instance.completeString = Language.Translate("game.meeting.roleText").Replace("%PLAYER%", init.networkedPlayer.PlayerName).Replace("%ROLE%", role.Role.DisplayName);
-                if (role.Role == Roles.Neutral.Jester.MyRole) __instance.ImpostorText.text = Language.Translate("game.meeting.roleJesterText");
+                if (role.Role == Roles.Neutral.Jester.MyRole) 
+                    __instance.ImpostorText.text = Language.Translate("game.meeting.roleJesterText");
             }
         }
     }

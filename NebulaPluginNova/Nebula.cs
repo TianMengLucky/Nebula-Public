@@ -30,8 +30,10 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using Nebula.Modules.CustomMap;
 using System.IO.Compression;
+using System.Runtime.CompilerServices;
 
 [assembly: System.Reflection.AssemblyFileVersionAttribute(Nebula.NebulaPlugin.PluginEpochStr + "."  + Nebula.NebulaPlugin.PluginBuildNumStr)]
+[assembly: InternalsVisibleTo("AddonDev")]
 
 namespace Nebula;
 

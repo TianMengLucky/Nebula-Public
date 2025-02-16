@@ -218,7 +218,8 @@ public class NebulaEndCriteria
         [OnlyHost]
         void OnExiled(PlayerExiledEvent ev) 
         {
-            if (ev.Player?.Role.Role == Roles.Neutral.Jester.MyRole) NebulaAPI.CurrentGame?.TriggerGameEnd(NebulaGameEnd.JesterWin, GameEndReason.Special, BitMasks.AsPlayer(1u << ev.Player.PlayerId));
+            if (ev.Player?.Role.Role == Roles.Neutral.Jester.MyRole) 
+                NebulaAPI.CurrentGame?.TriggerGameEnd(NebulaGameEnd.JesterWin, GameEndReason.Special, BitMasks.AsPlayer(1u << ev.Player.PlayerId));
         }
     };
 }

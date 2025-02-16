@@ -8,6 +8,7 @@ using Virial.Media;
 using Virial.Runtime;
 using Virial.Text;
 
+[assembly: InternalsVisibleTo("AddonDev")]
 [assembly: InternalsVisibleTo("Nebula")]
 
 namespace Virial;

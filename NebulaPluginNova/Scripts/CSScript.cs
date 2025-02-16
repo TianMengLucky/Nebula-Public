@@ -109,6 +109,7 @@ internal static class AddonScriptManager
 
             var myCompilationOptions = compilationOptions.WithModuleName("Script." + addon.Id.HeadUpper());
 
+            System.Console.WriteLine("usehiddenmembers: " + (addonBehaviour?.UseHiddenMembers ?? false));
             if (addonBehaviour?.UseHiddenMembers ?? false)
             {
                 //全Internal, Privateメンバにアクセスできるようにする
