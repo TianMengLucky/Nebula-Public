@@ -204,7 +204,7 @@ public class TitleShower : AbstractModule<Virial.Game.Game>, IGameOperator
 
 
 [NebulaRPCHolder]
-internal class NebulaGameManager : AbstractModuleContainer, IRuntimePropertyHolder, Virial.Game.Game
+public class NebulaGameManager : AbstractModuleContainer, IRuntimePropertyHolder, Virial.Game.Game
 {
     static private NebulaGameManager? instance = null;
     static public NebulaGameManager? Instance { get => instance; }

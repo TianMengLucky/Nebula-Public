@@ -14,21 +14,19 @@ namespace AddonDev;
 
 public class SchrodingerCat : DefinedRoleTemplate, DefinedRole
 {
-	private static Team RoleTeam = new Team("teams.SchrodingerCat", new Color(115, 115, 115), TeamRevealType.OnlyMe);
+	private static Team RoleTeam = new("teams.SchrodingerCat", new Color(115, 115, 115), TeamRevealType.OnlyMe);
 	private SchrodingerCat() : base("SchrodingerCat", RoleTeam.Color, RoleCategory.NeutralRole, RoleTeam) { }
 
     RuntimeRole RuntimeAssignableGenerator<RuntimeRole>.CreateInstance(Player player, int[] arguments) => new Instance(player);
     
-    public static SchrodingerCat MyRole = new SchrodingerCat();
-    public class Instance : RuntimeAssignableTemplate, RuntimeRole
+    public static SchrodingerCat MyRole = new();
+    public class Instance(Player player) : RuntimeAssignableTemplate(player), RuntimeRole
     {
         DefinedRole RuntimeRole.Role => MyRole;
-        
-        public Instance(Player player) : base(player)
-        {
-        }
-        
+
         void RuntimeAssignable.OnActivated() { }
+        
+        public bool hasGuard = true;
         [OnlyMyPlayer]
         void CheckKill(PlayerCheckKilledEvent ev)
         {
@@ -40,21 +38,19 @@ public class SchrodingerCat : DefinedRoleTemplate, DefinedRole
             //Avengerのキルは呪いを貫通する(このあと、Avengerに呪いを起こす)
             if (ev.Killer.Role.Role == Avenger.MyRole && (ev.Killer.Role as Avenger.Instance)?.AvengerTarget == ev.Player) return;
 
-            ev.Result = KillResult.ObviousGuard;
+            ev.Result = hasGuard ? KillResult.ObviousGuard : KillResult.Kill;
         }
         
         [OnlyMyPlayer]
         void OnGuard(PlayerGuardEvent ev)
         {
+            hasGuard = false;
             var nextRole = ev.Murderer.Role.Role;
             var nextArgs = ev.Murderer.Role.RoleArguments;
-            
-            if (ev.Murderer.AmOwner)
+
+            using (RPCRouter.CreateSection("SchrodingerCatAction"))
             {
-                using (RPCRouter.CreateSection("SchrodingerCatAction"))
-                {
-                    UnboxExtension.Unbox(MyPlayer).RpcInvokerSetRole(nextRole, nextArgs).InvokeSingle();
-                }
+                MyPlayer.Unbox().RpcInvokerSetRole(nextRole, nextArgs).InvokeSingle();
             }
 
             if(AmOwner) 

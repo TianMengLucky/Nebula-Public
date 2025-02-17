@@ -14,6 +14,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NebulaAddonDevEnv", "Nebula
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AddonDev", "AddonDev\AddonDev.csproj", "{B364370A-CBC9-4E7F-B274-5B6EE279380A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AddonBuilder", "AddonBuilder\AddonBuilder.csproj", "{3D8FF9C8-7057-4D7D-9113-EBEED217D154}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -96,6 +98,18 @@ Global
 		{B364370A-CBC9-4E7F-B274-5B6EE279380A}.Release|x64.Build.0 = Release|Any CPU
 		{B364370A-CBC9-4E7F-B274-5B6EE279380A}.Release|x86.ActiveCfg = Release|Any CPU
 		{B364370A-CBC9-4E7F-B274-5B6EE279380A}.Release|x86.Build.0 = Release|Any CPU
+		{3D8FF9C8-7057-4D7D-9113-EBEED217D154}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D8FF9C8-7057-4D7D-9113-EBEED217D154}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D8FF9C8-7057-4D7D-9113-EBEED217D154}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3D8FF9C8-7057-4D7D-9113-EBEED217D154}.Debug|x64.Build.0 = Debug|Any CPU
+		{3D8FF9C8-7057-4D7D-9113-EBEED217D154}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3D8FF9C8-7057-4D7D-9113-EBEED217D154}.Debug|x86.Build.0 = Debug|Any CPU
+		{3D8FF9C8-7057-4D7D-9113-EBEED217D154}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D8FF9C8-7057-4D7D-9113-EBEED217D154}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D8FF9C8-7057-4D7D-9113-EBEED217D154}.Release|x64.ActiveCfg = Release|Any CPU
+		{3D8FF9C8-7057-4D7D-9113-EBEED217D154}.Release|x64.Build.0 = Release|Any CPU
+		{3D8FF9C8-7057-4D7D-9113-EBEED217D154}.Release|x86.ActiveCfg = Release|Any CPU
+		{3D8FF9C8-7057-4D7D-9113-EBEED217D154}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

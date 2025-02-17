@@ -103,7 +103,6 @@ public class Damned : DefinedAllocatableModifierTemplate, DefinedAllocatableModi
                         {
                             MyPlayer.Unbox().RpcInvokerUnsetModifier(MyRole).InvokeSingle();
                             MyPlayer.Unbox().RpcInvokerSetRole(myNextRole, myNextArgs).InvokeSingle();
-
                         }
                         else
                         {

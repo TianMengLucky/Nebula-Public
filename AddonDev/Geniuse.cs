@@ -6,15 +6,17 @@ using Nebula.Utilities;
 using Virial;
 using Virial.Assignable;
 using Virial.Attributes;
+using Virial.Configuration;
 using Virial.Events.Player;
 using Virial.Game;
+using Virial.Runtime;
 using Virial.Text;
 
 namespace AddonDev;
 
 public class Geniuse : DefinedAllocatableModifierTemplate, DefinedAllocatableModifier
 {
-    private Geniuse() : base("geniuse", "GEN", new Color(187, 255, 255))
+    private Geniuse() : base("geniuse", "GEN", new Color(187, 255, 255), [CanBeAwareAssignment])
     {
         NebulaAPI.RegisterTip(new WinConditionTip(geniuseWin, () => (MyRole as ISpawnable).IsSpawnable, 
             () => Language.Translate("document.tip.winCond.geniuse.title"), 
@@ -22,6 +24,8 @@ public class Geniuse : DefinedAllocatableModifierTemplate, DefinedAllocatableMod
     }
     
     private static CustomEndCondition geniuseWin = new(40, "geniuse", Palette.ImpostorRed, 32);
+    
+    public static BoolConfiguration CanBeAwareAssignment = NebulaAPI.Configurations.Configuration("options.role.geniuse.canBeAwareAssignment", true);
 
     public static Geniuse MyRole = new Geniuse();
     RuntimeModifier RuntimeAssignableGenerator<RuntimeModifier>.CreateInstance(Player player, int[] arguments) => new Instance(player);
@@ -29,7 +33,17 @@ public class Geniuse : DefinedAllocatableModifierTemplate, DefinedAllocatableMod
     public class Instance : RuntimeAssignableTemplate, RuntimeModifier
     {
         DefinedModifier RuntimeModifier.Modifier => MyRole;
-        
+        bool RuntimeAssignable.CanBeAwareAssignment
+        {
+            get
+            {
+                if (CanBeAwareAssignment)
+                    return true;
+                
+                return NebulaGameManager.Instance?.CanSeeAllInfo ?? false;
+            }
+        }
+
         public Instance(Player player) : base(player)
         {
         }
@@ -70,22 +84,36 @@ public class Geniuse : DefinedAllocatableModifierTemplate, DefinedAllocatableMod
                     && 
                     ev.GameEnd == NebulaGameEnd.ImpostorWin 
                     && 
-                    NebulaGameManager.Instance?.AllPlayerInfo.Count(p => !p.IsDead && p != MyPlayer && p.IsImpostor) != 0
+                    hasOtherImpostor()
                     )
                     return true;
 
+                return false;
+            }
+
+            bool hasOtherImpostor()
+            {
+                var players = NebulaGameManager.Instance?.AllPlayerInfo;
+                if (players == null) return false;
+                foreach (var player in players)
+                {
+                    if (player.IsDead) continue;
+                    if (player.PlayerId == MyPlayer.PlayerId) continue;
+                    if (player.Role.Role.Category == RoleCategory.ImpostorRole) return true;
+                }
+                
                 return false;
             }
         }
     }
 }
 
-[NebulaPreprocess(PreprocessPhase.PostLoadAddons)]
-public static class GeniusePreprocess
+[NebulaPreprocess(PreprocessPhase.PostRoles)]
+internal static class GeniusePreprocess
 {
-    public static void Preprocess()
+    private static void Preprocess(NebulaPreprocessor preprocessor)
     {
-        Harmony.CreateAndPatchAll(typeof(GeniusePatches), "addon.geniuse");
+        AddonLib.AddonHarmony.PatchAll(typeof(GeniusePatches));
     }
 }
 
@@ -98,6 +126,6 @@ public static class GeniusePatches
         var player = NebulaGameManager.Instance?.GetPlayer(init.networkedPlayer.PlayerId);
         if (player == null) return;
         if (player.Role.Role.Category != RoleCategory.NeutralRole && !player.TryGetModifier<Geniuse.Instance>(out _)) return;
-        __instance.ImpostorText.text = "你终究不是一名甜菜";
+        __instance.ImpostorText.text = Language.Translate("role.geniuse.exileText");
     }
 }

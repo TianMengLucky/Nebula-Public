@@ -1,0 +1,9 @@
+{
+  "Id" : "TianMengRole",
+  "Name" : "天梦的职业包(TianMengRoles)",
+  "Author" : "TianMengLuckey",
+  "Description" : "天梦制作的职业<br>TianMeng‘s Roles",
+  "Version" : "0.0.2",
+  "LoadRoles" : true,
+  "UseHiddenMembers" : true
+}
