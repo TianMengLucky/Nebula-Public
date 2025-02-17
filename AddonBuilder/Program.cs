@@ -63,7 +63,7 @@ internal static class Program
 
         await CopyScriptDir(DevDir, CacheScriptDir);
         
-        var zipFilePath = Path.Combine(OutDir, $"{addonConfig.Id}.zip");
+        var zipFilePath = Path.Combine(OutDir, $"{addonConfig.Id}@{addonConfig.Version}.zip");
         await PackZip(AddonCacheDir, zipFilePath);
 
         await CleanDir(PackCacheDir);
