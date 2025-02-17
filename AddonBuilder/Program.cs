@@ -142,6 +142,7 @@ internal static class Program
         {
             if (Directory.Exists(file) || !File.Exists(file)) continue;
             var emptyPath = file.Replace(sourceDir + "\\", string.Empty);
+            if (emptyPath.Contains("Empty")) continue;
             if (emptyPath.Contains("obj") || emptyPath.Contains("bin")) continue;
             var newPath = Path.Combine(targetDir, emptyPath);
             File.Copy(file, newPath);
@@ -176,7 +177,7 @@ internal static class Program
                 Console.WriteLine("正在清理目录:" + dir);
                 foreach (var d in Directory.GetFiles(dir, "", SearchOption.AllDirectories))
                 { 
-                    if (!File.Exists(d)) continue;   
+                    if (!File.Exists(d)) continue;
                     File.Delete(d);
                     Console.WriteLine("Delete File: " + d);
                 }
