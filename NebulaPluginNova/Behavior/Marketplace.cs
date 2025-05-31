@@ -17,7 +17,7 @@ public class DeveloperMarketplaceItem
 {
     static private readonly char[] alphabets = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".ToCharArray();
     static public char[] Alphabets => alphabets;
-    static public string GetRandomizedString(int length) => new(Enumerable.Repeat(Alphabets.Random, length).Select(f => f.Invoke()).ToArray());
+    static public string GetRandomizedString(int length) => new(Enumerable.Repeat(Alphabets.Random(), length).ToArray());
 
     public int EntryId = -1;
 

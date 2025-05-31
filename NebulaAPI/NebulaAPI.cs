@@ -16,6 +16,7 @@ using Virial.Text;
 
 [assembly: InternalsVisibleTo("AddonDev")]
 [assembly: InternalsVisibleTo("Nebula")]
+[assembly: InternalsVisibleTo("NebulaPluginNova")]
 
 namespace Virial;
 

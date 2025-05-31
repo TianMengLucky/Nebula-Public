@@ -30,6 +30,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using Nebula.Modules.CustomMap;
 using System.IO.Compression;
+using System.Runtime.CompilerServices;
 using Nebula.VisualProgramming;
 using Virial.VisualProgramming;
 using UnityEngine.ResourceManagement.Util;
@@ -37,7 +38,7 @@ using UnityEngine.Networking;
 using Hazel.Udp;
 using BepInEx.Configuration;
 
-[assembly: System.Reflection.AssemblyFileVersionAttribute(Nebula.NebulaPlugin.PluginEpochStr + "."  + Nebula.NebulaPlugin.PluginBuildNumStr)]
+[assembly: AssemblyFileVersionAttribute(Nebula.NebulaPlugin.PluginEpochStr + "."  + Nebula.NebulaPlugin.PluginBuildNumStr)]
 [assembly: InternalsVisibleTo("AddonDev")]
 
 namespace Nebula;

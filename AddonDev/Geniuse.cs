@@ -23,7 +23,7 @@ public class Geniuse : DefinedAllocatableModifierTemplate, DefinedAllocatableMod
             () => Language.Translate("document.tip.winCond.geniuse")));
     }
     
-    private static CustomEndCondition geniuseWin = new(40, "geniuse", Palette.ImpostorRed, 32);
+    private static GameEnd geniuseWin = new(40, "geniuse", Palette.ImpostorRed, 32);
     
     public static BoolConfiguration CanBeAwareAssignment = NebulaAPI.Configurations.Configuration("options.role.geniuse.canBeAwareAssignment", true);
 
@@ -62,7 +62,7 @@ public class Geniuse : DefinedAllocatableModifierTemplate, DefinedAllocatableMod
         [Local]
         void CheckWin(PlayerCheckExtraWinEvent ev)
         {
-            if (ev.Player.AmOwner && MyPlayer.Role.Role.Category == RoleCategory.CrewmateRole && ev.GameEnd == NebulaGameEnds.ImpostorGameEnd)
+            if (ev.Player.AmOwner && MyPlayer.Role.Role.Category == RoleCategory.CrewmateRole && ev.GameEnd == NebulaGameEnds.ImpostorGameEnd.Get())
                 ev.SetWin(true);
         }
         
@@ -76,7 +76,7 @@ public class Geniuse : DefinedAllocatableModifierTemplate, DefinedAllocatableMod
             {
                 if (MyPlayer.IsDead) return false;
                 
-                if (MyPlayer.Role.Role.Category == RoleCategory.CrewmateRole && ev.GameEnd == NebulaGameEnds.CrewmateGameEnd)
+                if (MyPlayer.Role.Role.Category == RoleCategory.CrewmateRole && ev.GameEnd == NebulaGameEnds.CrewmateGameEnd.Get())
                     return true;
 
                 if (
