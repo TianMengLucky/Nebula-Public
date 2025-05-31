@@ -26,6 +26,7 @@ public interface Game : IModuleContainer, ILifespan, IArchivedGame
     /// </summary>
     /// <returns>ゲーム中の全プレイヤー</returns>
     IEnumerable<Player> GetAllPlayers();
+    IReadOnlyList<Player> GetAllOrderedPlayers();
 
     KillButtonLikeHandler KillButtonLikeHandler { get; }
 
@@ -38,7 +39,7 @@ public interface Game : IModuleContainer, ILifespan, IArchivedGame
     /// <param name="gameEnd"></param>
     /// <param name="reason"></param>
     /// <param name="additionalWinners"></param>
-    void TriggerGameEnd(GameEnd gameEnd, Virial.Game.GameEndReason reason, BitMask<Virial.Game.Player>? additionalWinners = null);
+    void TriggerGameEnd(GameEnd gameEnd, Virial.Game.GameEndReason reason, EditableBitMask<Virial.Game.Player>? additionalWinners = null);
 
     /// <summary>
     /// ゲーム終了のトリガーをホストに依頼します。

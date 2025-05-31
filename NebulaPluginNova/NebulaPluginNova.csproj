@@ -6,7 +6,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<RootNamespace>Nebula</RootNamespace>
 		<AssemblyName>Nebula</AssemblyName>
-		<LangVersion>latest</LangVersion>
+		<LangVersion>preview</LangVersion>
 		<Nullable>enable</Nullable>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 		<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
@@ -14,8 +14,12 @@
 		<DebugSymbols>false</DebugSymbols>
 		<DebugType>none</DebugType>
 		<Platforms>AnyCPU;x86;x64</Platforms>
-		<NeutralLanguage>en-US</NeutralLanguage>
 		<GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+		<WarningLevel>4</WarningLevel>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<GenerateAssemblyInfo>True</GenerateAssemblyInfo>
+		<DebugType>embedded</DebugType>
 	</PropertyGroup>
 	
 	
@@ -23,48 +27,31 @@
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 		<WarningLevel>4</WarningLevel>
 		<DefineConstants>$(DefineConstants);STEAM</DefineConstants>
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<GenerateAssemblyInfo>True</GenerateAssemblyInfo>
 		<Optimize>False</Optimize>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-	  <WarningLevel>4</WarningLevel>
 	  <DefineConstants>$(DefineConstants);STEAM</DefineConstants>
-	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-	  <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
 	  <Optimize>False</Optimize>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
-	  <WarningLevel>4</WarningLevel>
 	  <DefineConstants>$(DefineConstants);STEAM</DefineConstants>
-	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-	  <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
 	  <Optimize>False</Optimize>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-		<WarningLevel>4</WarningLevel>
 		<DefineConstants>STEAM</DefineConstants>
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<GenerateAssemblyInfo>True</GenerateAssemblyInfo>
 		<Optimize>True</Optimize>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-		<WarningLevel>4</WarningLevel>
 		<DefineConstants>STEAM</DefineConstants>
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<GenerateAssemblyInfo>True</GenerateAssemblyInfo>
 		<Optimize>True</Optimize>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
-		<WarningLevel>4</WarningLevel>
 		<DefineConstants>STEAM</DefineConstants>
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<GenerateAssemblyInfo>True</GenerateAssemblyInfo>
 		<Optimize>True</Optimize>
 	</PropertyGroup>
 

@@ -1,5 +1,8 @@
-﻿using Il2CppInterop.Runtime.InteropTypes.Arrays;
-using Nebula.Behaviour;
+﻿using AmongUs.Data;
+using BepInEx.Unity.IL2CPP.Utils;
+using Hazel.Crypto;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
+using Nebula.Behavior;
 using Nebula.Modules.GUIWidget;
 using Rewired.UI.ControlMapper;
 using System.Diagnostics;
@@ -7,6 +10,9 @@ using TMPro;
 using Virial.Media;
 using Virial.Runtime;
 using Virial.Text;
+using static Il2CppSystem.Linq.Expressions.Interpreter.CastInstruction.CastInstructionNoT;
+using static Nebula.Modules.Cosmetics.TabEnablePatch;
+using static UnityEngine.GridBrushBase;
 
 namespace Nebula.Modules;
 
@@ -26,14 +32,31 @@ public class ClientOption
         ShowNoSLogoInLobby,
         ShowOnlySpawnableAssignableOnFilter,
         ShowVanillaColor,
+        AvoidingColorDuplication,
+        StampMenu,
+        SimpleNameplate,
+        MuteAmbienceOnMeeting,
     }
 
-    static private DataSaver ClientOptionSaver = new("ClientOption");
-    static public BooleanDataEntry UseSimpleConfigurationViewerEntry = new("useSimpleConfig", ClientOptionSaver, false);
-    static public BooleanDataEntry ShowSocialSettingsOnLobby = new("showSocialSettings", ClientOptionSaver, true);
-    static public BooleanDataEntry CanAppealInLobbyDefault = new("canAppealInLobbyDefault", ClientOptionSaver, true);
-    static public IntegerDataEntry AppealDuration = new("appealDuration", ClientOptionSaver, 0);
-    static public Dictionary<ClientOptionType,ClientOption> AllOptions = new();
+    /*
+    public enum ClientOptionCategory
+    {
+        Audio,
+        Accessibility,
+        Performance,
+    }
+    */
+
+    static private readonly DataSaver ClientOptionSaver = new("ClientOption");
+    static public readonly BooleanDataEntry UseSimpleConfigurationViewerEntry = new("useSimpleConfig", ClientOptionSaver, false);
+    static public readonly BooleanDataEntry ShowSocialSettingsOnLobby = new("showSocialSettings", ClientOptionSaver, true);
+    static public readonly BooleanDataEntry ShowStamps = new("showStamps", ClientOptionSaver, true);
+    static public readonly BooleanDataEntry ShowEmotes = new("showEmotes", ClientOptionSaver, false);
+    static public readonly BooleanDataEntry CanAppealInLobbyDefault = new("canAppealInLobbyDefault", ClientOptionSaver, true);
+    static public readonly IntegerDataEntry AppealDuration = new("appealDuration", ClientOptionSaver, 0);
+
+    static public readonly Dictionary<ClientOptionType,ClientOption> AllOptions = [];
+    static public int GetValue(ClientOptionType option) => AllOptions[option].Value;
     DataEntry<int> configEntry;
     string id;
     string[] selections;
@@ -101,7 +124,7 @@ public class ClientOption
 
     static public void ShowSocialSetting()
     {
-        var window = MetaScreen.GenerateWindow(new(3.8f, 2.4f), HudManager.InstanceExists ? HudManager.Instance.transform : null, Vector3.zero, true, true, withMask: true);
+        var window = MetaScreen.GenerateWindow(new(3.8f, 3.5f), HudManager.InstanceExists ? HudManager.Instance.transform : null, Vector3.zero, true, true, withMask: true);
 
         //アピール時間
         TextMeshPro appealText = null!;
@@ -114,14 +137,17 @@ public class ClientOption
             _ => "INVALID",
         };
 
-        //アピール設定の表示
-        string ShowAppealSettingsText() => Language.Translate(ShowSocialSettingsOnLobby.Value ? "options.switch.on" : "options.switch.off");
-        TextMeshPro showSocialText = null!;
-        var showSocialSettingsButton = new GUIButton(Virial.Media.GUIAlignment.Center, GUI.API.GetAttribute(Virial.Text.AttributeAsset.OptionsButtonMedium), new RawTextComponent(ShowAppealSettingsText()))
+        //アピール設定の表示等、二値の設定
+        string ShowBooleanSettingsText(BooleanDataEntry booleanEntry) => Language.Translate(booleanEntry.Value ? "options.switch.on" : "options.switch.off");
+        GUIButton ShowBooleanSetting(BooleanDataEntry booleanEntry)
         {
-            OnClick = button => { ShowSocialSettingsOnLobby.Value = !ShowSocialSettingsOnLobby.Value; showSocialText.text = ShowAppealSettingsText(); },
-            PostBuilder = text => showSocialText = text
-        };
+            TextMeshPro text = null!;
+            return new GUIButton(Virial.Media.GUIAlignment.Center, GUI.API.GetAttribute(Virial.Text.AttributeAsset.OptionsButtonMedium), new RawTextComponent(ShowBooleanSettingsText(booleanEntry)))
+            {
+                OnClick = button => { booleanEntry.Value = !booleanEntry.Value; text.text = ShowBooleanSettingsText(booleanEntry); },
+                PostBuilder = t => text = t
+            };
+        }
 
         Virial.Media.GUIWidget GetRow(string translationKey, params Virial.Media.GUIWidget[] contents) => GUI.API.HorizontalHolder(Virial.Media.GUIAlignment.Center,
             [
@@ -131,12 +157,13 @@ public class ClientOption
             ]
             );
 
-
         window.SetWidget(GUI.API.VerticalHolder(Virial.Media.GUIAlignment.Center,
             GUI.API.LocalizedText(Virial.Media.GUIAlignment.Center, GUI.API.GetAttribute(Virial.Text.AttributeAsset.DocumentTitle), "config.client.social"),
             GUI.API.VerticalMargin(0.1f),
-            GetRow("showAppealSettings", showSocialSettingsButton),
+            GetRow("showAppealSettings", ShowBooleanSetting(ShowSocialSettingsOnLobby)),
             GetRow("appealDuration", appealTextWidget, new GUISpinButton(Virial.Media.GUIAlignment.Center, (increase) => { AppealDuration.Value = (3 + AppealDuration.Value + (increase ? 1 : -1)) % 3; UpdateAppealText(); })),
+            GetRow("showStamps", ShowBooleanSetting(ShowStamps)),
+            GetRow("showEmotes", ShowBooleanSetting(ShowEmotes)),
             GUI.API.VerticalMargin(0.35f),
             GUI.API.Text(GUIAlignment.Center, GUI.API.GetAttribute(Virial.Text.AttributeAsset.DocumentStandard), GUI.API.TextComponent(Virial.Color.Gray, "config.client.social.note").Italic())
             ), new Vector2(0.5f, 1f), out _);
@@ -154,29 +181,33 @@ public class ClientOption
         AllOptions[type] = this;
     }
 
+    public string RawKey => id;
     public string DisplayName => Language.Translate("config.client." + id);
+    public string? DisplayDetail => Language.Find("config.client." + id + ".detail");
     public string DisplayValue => Language.Translate(selections[configEntry.Value]);
     public int Value => configEntry.Value;
     public Action? OnValueChanged;
     public bool ShowOnClientSetting { get; set; } = true;
-    public void Increament()
+    public void Increment()
     {
         configEntry.Value = (configEntry.Value + 1) % selections.Length;
         OnValueChanged?.Invoke();
     }
     static public void Preprocess(NebulaPreprocessor preprocessor)
     {
-        new ClientOption(ClientOptionType.OutputCosmicHash, "outputHash", new string[] { "options.switch.off", "options.switch.on" }, 0);
-        //new ClientOption(ClientOptionType.UseNoiseReduction, "noiseReduction", new string[] { "options.switch.off", "options.switch.on" }, 0);
-        new ClientOption(ClientOptionType.ProcessorAffinity, "processorAffinity", new string[] {
+        string[] simpleSwitch = ["options.switch.off", "options.switch.on"];
+
+        new ClientOption(ClientOptionType.OutputCosmicHash, "outputHash", simpleSwitch, 0);
+        //new ClientOption(ClientOptionType.UseNoiseReduction, "noiseReduction", simpleSwitch, 0);
+        new ClientOption(ClientOptionType.ProcessorAffinity, "processorAffinity", [
         "config.client.processorAffinity.dontCare",
         "config.client.processorAffinity.dualCoreHT",
         "config.client.processorAffinity.dualCore",
-        "config.client.processorAffinity.singleCore"}, 0)
+        "config.client.processorAffinity.singleCore"], 0)
         { OnValueChanged = ReflectProcessorAffinity };
-        new ClientOption(ClientOptionType.ForceSkeldMeetingSE, "forceSkeldMeetingSE", new string[] { "options.switch.off", "options.switch.on" }, 0);
-        new ClientOption(ClientOptionType.SpoilerAfterDeath, "spoilerAfterDeath", new string[] { "options.switch.off", "options.switch.on" }, 1);
-        new ClientOption(ClientOptionType.PlayLobbyMusic, "playLobbyMusic", new string[] { "options.switch.off", "options.switch.on" }, 1) { 
+        new ClientOption(ClientOptionType.ForceSkeldMeetingSE, "forceSkeldMeetingSE", simpleSwitch, 0);
+        new ClientOption(ClientOptionType.SpoilerAfterDeath, "spoilerAfterDeath", simpleSwitch, 1);
+        new ClientOption(ClientOptionType.PlayLobbyMusic, "playLobbyMusic", simpleSwitch, 1) { 
             OnValueChanged = () =>
             {
                 if (!LobbyBehaviour.Instance) return;
@@ -192,17 +223,83 @@ public class ClientOption
                 }
             }
         };
-        new ClientOption(ClientOptionType.ButtonArrangement, "buttonArrangement", new string[] {
+        new ClientOption(ClientOptionType.ButtonArrangement, "buttonArrangement", [
             "config.client.buttonArrangement.default", 
             "config.client.buttonArrangement.raiseOnlyLeft",
             "config.client.buttonArrangement.raiseBoth",
-        }, 0);
-        new ClientOption(ClientOptionType.ShowNoSLogoInLobby, "showNebulaLogoInLobby", new string[] { "options.switch.off", "options.switch.on" }, 1);
-        new ClientOption(ClientOptionType.ShowOnlySpawnableAssignableOnFilter, "showOnlySpawnableAssignableOnFilter", new string[] { "options.switch.off", "options.switch.on" }, 0) { ShowOnClientSetting = false };
-        new ClientOption(ClientOptionType.ShowVanillaColor, "externalModColor", new string[] { "options.switch.off", "options.switch.on" }, 0);
+        ], 0);
+        new ClientOption(ClientOptionType.ShowNoSLogoInLobby, "showNebulaLogoInLobby", simpleSwitch, 1);
+        new ClientOption(ClientOptionType.ShowOnlySpawnableAssignableOnFilter, "showOnlySpawnableAssignableOnFilter", simpleSwitch, 0) { ShowOnClientSetting = false };
+        new ClientOption(ClientOptionType.ShowVanillaColor, "externalModColor", simpleSwitch, 0);
+        new ClientOption(ClientOptionType.AvoidingColorDuplication, "avoidingColorDuplication", [
+            "config.client.avoidingColorDuplication.off",
+            "config.client.avoidingColorDuplication.soft",
+            "config.client.avoidingColorDuplication.strict",
+            ], 1);
+        new ClientOption(ClientOptionType.StampMenu, "stampMenu", [
+            "config.client.stampMenu.normal",
+            "config.client.stampMenu.center",
+            "config.client.stampMenu.cursor",
+            ], 1);
+        new ClientOption(ClientOptionType.SimpleNameplate, "simpleNameplate", simpleSwitch, 0)
+        {
+            OnValueChanged = () =>
+            {
+                if (MeetingHud.Instance)
+                {
+                    foreach(var area in MeetingHud.Instance.playerStates)
+                    {
+                        var p = GamePlayer.GetPlayer(area.TargetPlayerId);
+                        if (p != null) NameplateSetCosmeticsPatch.Postfix(area, p.VanillaPlayer.Data);
+                    }
+                }
+            }
+        };
+        new ClientOption(ClientOptionType.MuteAmbienceOnMeeting, "muteAmbienceOnMeeting", simpleSwitch, 0) { 
+            OnValueChanged = () => {
+                bool mute = AllOptions[ClientOptionType.MuteAmbienceOnMeeting].Value == 1;
+                if (MeetingHud.Instance) ChangeAmbientVolumeIfNecessary(mute, true);
+            }
+        };
         ReflectProcessorAffinity();
     }
 
+    static public IEnumerator CoChangeAmbientVolume(bool mute) {
+        float volume = DataManager.Settings.Audio.AmbienceVolume;
+        float fromVol = Mathf.Pow(10f, Mathf.Clamp(SoundManager.ambienceVolume / 20f, -4f, 0f));
+        float toVol = mute ? 0f : volume;
+        return ManagedEffects.Lerp(0.8f, p => {
+            float lastVal = 0f;
+            SoundManager.Instance.SetChannelVolume(Mathf.Lerp(fromVol, toVol, p), ref lastVal, "AmbienceVolume");
+            SoundManager.ambienceVolume = lastVal;
+        });
+    }
+
+    static private bool ShouldMuteAmbienceOnMeeting => AllOptions[ClientOption.ClientOptionType.MuteAmbienceOnMeeting].Value == 1;
+    static public void TryChangeAmbientVolumeImmediately()
+    {
+        if (MeetingHud.Instance)
+        {
+            var sfxVol = DataManager.Settings.Audio.SfxVolume;
+            var shouldMuteAmbienceOnMeeting = ShouldMuteAmbienceOnMeeting;
+            if (shouldMuteAmbienceOnMeeting && sfxVol > 0f)
+            {
+                float unused = 0f;
+                SoundManager.Instance.SetChannelVolume(0f, ref unused, "AmbienceVolume");
+            }
+            else if(!shouldMuteAmbienceOnMeeting && !(sfxVol > 0f))
+            {
+                Tutorial.ShowTutorial(new TutorialBuilder().AsSimpleTitledOnceTextWidget("ambienceOnMeeting").ShowEvenIfSomeUiOpen());
+            }
+            
+        }
+    }
+
+    static public void ChangeAmbientVolumeIfNecessary(bool mute, bool forcibly)
+    {
+        if (forcibly || ShouldMuteAmbienceOnMeeting) NebulaManager.Instance.StartCoroutine(CoChangeAmbientVolume(mute));
+    }
+    
     static public void ReflectProcessorAffinity()
     {
         try
@@ -229,11 +326,13 @@ public class ClientOption
             var process = System.Diagnostics.Process.GetCurrentProcess();
             string id = process.Id.ToString();
 
-            ProcessStartInfo processStartInfo = new ProcessStartInfo();
-            processStartInfo.FileName = "CPUAffinityEditor.exe";
-            processStartInfo.Arguments = id + " " + mode;
-            processStartInfo.CreateNoWindow = true;
-            processStartInfo.UseShellExecute = false;
+            ProcessStartInfo processStartInfo = new()
+            {
+                FileName = "CPUAffinityEditor.exe",
+                Arguments = id + " " + mode,
+                CreateNoWindow = true,
+                UseShellExecute = false
+            };
             Process.Start(processStartInfo);
         }
         catch
@@ -264,7 +363,7 @@ public static class StartOptionMenuPatch
 
         //設定項目を追加する
 
-        GameObject nebulaTab = new GameObject("NebulaTab");
+        GameObject nebulaTab = new("NebulaTab");
         nebulaTab.transform.SetParent(__instance.transform);
         nebulaTab.transform.localScale = new Vector3(1f, 1f, 1f);
         nebulaTab.SetActive(false);
@@ -276,16 +375,38 @@ public static class StartOptionMenuPatch
             var buttonAttr = new TextAttributeOld(TextAttributeOld.BoldAttr) { Size = new Vector2(2.05f, 0.22f) };
             MetaWidgetOld nebulaWidget = new();
             nebulaWidget.Append(ClientOption.AllOptions.Values.Where(o => o.ShowOnClientSetting), (option) => new MetaWidgetOld.Button(()=> {
-                option.Increament();
+                option.Increment();
                 SetNebulaWidget();
-            }, buttonAttr) { RawText = option.DisplayName + " : " + option.DisplayValue }, 2, -1, 0, 0.51f);
+            }, buttonAttr) { 
+                RawText = option.DisplayName + " : " + option.DisplayValue,
+                PostBuilder = (button, _, _) =>
+                {
+                    var detail = option.DisplayDetail;
+                    if(detail != null)
+                    {
+                        button.OnMouseOver.AddListener(() => NebulaManager.Instance.SetHelpWidget(button, detail));
+                        button.OnMouseOut.AddListener(() => NebulaManager.Instance.HideHelpWidgetIf(button));
+                    }
+                }
+            }, 2, -1, 0, 0.51f);
             nebulaWidget.Append(new MetaWidgetOld.VerticalMargin(0.2f));
 
             List<MetaWidgetOld.Button> bottomButtons = new();
             void AddBottomButton(string translationKey, Action action)
             {
                 bottomButtons.Add(new MetaWidgetOld.Button(action, buttonAttr)
-                { TranslationKey = "config.client." + translationKey, Alignment = IMetaWidgetOld.AlignmentOption.Center });
+                { 
+                    TranslationKey = "config.client." + translationKey, 
+                    Alignment = IMetaWidgetOld.AlignmentOption.Center , 
+                    PostBuilder = (button, _, _) =>
+                    {
+                        if (Language.TryTranslate("config.client." + translationKey + ".detail", out var detail))
+                        {
+                            button.OnMouseOver.AddListener(() => NebulaManager.Instance.SetHelpWidget(button, detail));
+                            button.OnMouseOut.AddListener(() => NebulaManager.Instance.HideHelpWidgetIf(button));
+                        }
+                    }
+                    });
             }
             
             if(NebulaGameManager.Instance?.VoiceChatManager != null)
@@ -329,8 +450,8 @@ public static class StartOptionMenuPatch
             {
                 currentAssignment = assignment;
                 SetKeyBindingWidget();
-            }, new(TextAttributeOld.NormalAttr) { Size = new Vector2(2.2f, 0.26f) })
-            { RawText = assignment.DisplayName + " : " + (currentAssignment == assignment ? Language.Translate("input.recording") : ButtonEffect.KeyCodeInfo.GetKeyDisplayName(assignment.KeyInput)), PostBuilder = (_, _, t) => text = t }, 2, -1, 0, 0.55f);
+            }, new(TextAttributeOld.NormalAttr) { Size = new Vector2(2.2f, 0.21f) })
+            { RawText = assignment.DisplayName + " : " + (currentAssignment == assignment ? Language.Translate("input.recording") : ButtonEffect.KeyCodeInfo.GetKeyDisplayName(assignment.KeyInput)), PostBuilder = (_, _, t) => text = t }, 2, -1, 0, 0.48f);
             keyBindingScreen.SetWidget(keyBindingWidget);
         }
 
@@ -358,8 +479,8 @@ public static class StartOptionMenuPatch
 
         //タブを追加する
 
-        tabs[tabs.Count - 1] = (GameObject.Instantiate(tabs[1], null));
-        var nebulaButton = tabs[tabs.Count - 1];
+        tabs[^1] = (GameObject.Instantiate(tabs[1], null));
+        var nebulaButton = tabs[^1];
         nebulaButton.gameObject.name = "NebulaButton";
         nebulaButton.transform.SetParent(tabs[0].transform.parent);
         nebulaButton.transform.localScale = new Vector3(1f, 1f, 1f);
@@ -369,7 +490,7 @@ public static class StartOptionMenuPatch
         textObj.GetComponent<TMPro.TMP_Text>().text = "NoS";
 
         tabs.Add((GameObject.Instantiate(tabs[1], null)));
-        var keyBindingTabButton = tabs[tabs.Count - 1];
+        var keyBindingTabButton = tabs[^1];
         keyBindingTabButton.gameObject.name = "KeyBindingButton";
         keyBindingTabButton.transform.SetParent(tabs[0].transform.parent);
         keyBindingTabButton.transform.localScale = new Vector3(1f, 1f, 1f);

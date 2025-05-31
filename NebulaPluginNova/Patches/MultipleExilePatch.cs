@@ -1,4 +1,5 @@
 ﻿using BepInEx.Unity.IL2CPP.Utils;
+using Nebula.Modules.Cosmetics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,15 +32,23 @@ file static class MultipleExileHelper
         return result;
     }
 
-    public static void SpawnMultiplePlayers(ExileController __instance, Action<PoolablePlayer, int> setup)
+    public static void SpawnMultiplePlayers(ExileController __instance, Action<PoolablePlayer, int> setup, Action<PoolablePlayer>? allPlayerPostfix = null)
     {
         int num = 0;
         foreach (var p in MeetingHudExtension.ExiledAll ?? [])
         {
-            if (p.PlayerId == (__instance.initData.networkedPlayer?.PlayerId ?? byte.MaxValue)) continue;
-            var display = MultipleExileHelper.SpawnMultiplePlayer(__instance, p);
-            setup.Invoke(display, num);
-            num++;
+            if (p.PlayerId != (__instance.initData.networkedPlayer?.PlayerId ?? byte.MaxValue))
+            {
+                var display = MultipleExileHelper.SpawnMultiplePlayer(__instance, p);
+                setup.Invoke(display, num);
+                num++;
+
+                allPlayerPostfix?.Invoke(display);
+            }
+            else
+            {
+                allPlayerPostfix?.Invoke(__instance.Player);
+            }
         }
     }
 
@@ -64,6 +73,13 @@ file static class MultipleExileHelper
         }
 
     }
+
+    public static void SetExiledStampShower(PoolablePlayer p, bool vertical, Vector2 diff)
+    {
+        var modPlayer = GamePlayer.GetPlayer((byte)p.ColorId);
+        if (modPlayer == null) return;
+        modPlayer.Unbox().SpecialStampShower = PopupStampShower.GetExiledShower(p, diff, null, vertical);
+    }
 }
 
 [HarmonyPatch(typeof(SkeldExileController), nameof(SkeldExileController.Animate))]
@@ -83,7 +99,7 @@ internal class SkeldMultipleExilePatch
         MultipleExileHelper.SpawnMultiplePlayers(__instance, (p, i) => {
 
             __instance.StartCoroutine(CoAnimate(p, i).WrapToIl2Cpp());
-        });
+        }, p => MultipleExileHelper.SetExiledStampShower(p, false, new(0.7f, 0.18f)));
     }
 }
 
@@ -104,7 +120,7 @@ internal class MiraMultipleExilePatch
         MultipleExileHelper.SpawnMultiplePlayers(__instance, (p, i) => {
 
             __instance.StartCoroutine(CoAnimate(p, i).WrapToIl2Cpp());
-        });
+        }, p => MultipleExileHelper.SetExiledStampShower(p, false, new(0.55f, 0.18f)));
     }
 }
 
@@ -138,7 +154,7 @@ internal class PbMultipleExilePatch
         MultipleExileHelper.SpawnMultiplePlayers(__instance, (p, i) => {
 
             __instance.StartCoroutine(CoAnimate(p, i).WrapToIl2Cpp());
-        });
+        }, p => MultipleExileHelper.SetExiledStampShower(p, true, new(0.1f, 0.5f)));
     }
 }
 
@@ -183,7 +199,7 @@ internal class AirshipMultipleExilePatch
         MultipleExileHelper.SpawnMultiplePlayers(__instance, (p, i) => {
 
             __instance.StartCoroutine(CoAnimate(p, i).WrapToIl2Cpp());
-        });
+        }, p => MultipleExileHelper.SetExiledStampShower(p, false, new(0.6f, 0.18f)));
     }
 }
 
@@ -196,7 +212,7 @@ internal class FungleMultipleExilePatch
         MultipleExileHelper.SpawnMultiplePlayers(__instance, (p, i) => {
             extraPlayers.Add(p);
             __instance.StartCoroutine(Effects.Sequence(Effects.Wait(1.7f), Effects.Action((Il2CppSystem.Action)(() => p.FadeBlackAll(1.5f)))));
-        });
+        }, p=>MultipleExileHelper.SetExiledStampShower(p,true, new(0.2f, 0.5f)));
 
         int i = 0;
         float left = extraPlayers.Count * 0.5f * -0.85f;

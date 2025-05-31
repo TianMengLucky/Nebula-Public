@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using Nebula.Patches;
+using System.Text;
 
 namespace Nebula;
 
@@ -10,7 +11,6 @@ public class NebulaLog
     private static string FileName = "NebulaLog";
     public NebulaLog()
     {
-
         int counter = 0;
         Stream? stream;
 
@@ -36,8 +36,7 @@ public class NebulaLog
             break;
         }
 
-        writer = new(stream, Encoding.UTF8);
-        writer.AutoFlush = true;
+        writer = new(stream, Encoding.UTF8) { AutoFlush = true };
 
         lock (writer)
         {
@@ -54,14 +53,14 @@ public class NebulaLog
             this.Category = category;
         }
 
-        static public LogCategory MoreCosmic = new("MoreCosmic");
-        static public LogCategory Language = new("Language");
-        static public LogCategory Addon = new("Addon");
-        static public LogCategory Document = new("Documentation");
-        static public LogCategory Preset = new("Preset");
-        static public LogCategory Scripting = new("Scripting");
-        static public LogCategory Role = new("Role");
-        static public LogCategory System = new("System");
+        static public readonly LogCategory MoreCosmic = new("MoreCosmic");
+        static public readonly LogCategory Language = new("Language");
+        static public readonly LogCategory Addon = new("Addon");
+        static public readonly LogCategory Document = new("Documentation");
+        static public readonly LogCategory Preset = new("Preset");
+        static public readonly LogCategory Scripting = new("Scripting");
+        static public readonly LogCategory Role = new("Role");
+        static public readonly LogCategory System = new("System");
     }
 
     public class LogLevel
@@ -74,12 +73,12 @@ public class NebulaLog
             this.LevelMask = mask;
         }
 
-        static public LogLevel Log = new("Log", 0x0001);
-        static public LogLevel Warning = new("Warning", 0x0002);
-        static public LogLevel Error = new("Error", 0x0004);
-        static public LogLevel FatalError = new("FatalError", 0x0008);
+        static public readonly LogLevel Log = new("Log", 0x0001);
+        static public readonly LogLevel Warning = new("Warning", 0x0002);
+        static public readonly LogLevel Error = new("Error", 0x0004);
+        static public readonly LogLevel FatalError = new("FatalError", 0x0008);
 
-        static public LogLevel AllLevel = new(null, 0xFFFF);
+        static public readonly LogLevel AllLevel = new(null, 0xFFFF);
 
         static public int ToMask(params LogLevel[] level)
         {
@@ -95,13 +94,14 @@ public class NebulaLog
     public void PrintWithBepInEx(LogLevel level, LogCategory? category, string message)
     {
         Print(level, category, message);
-        string rawMessage = "[NoS]" + ToRawMessage(level, category, message);
-        if (level == LogLevel.Log)
-            Debug.Log(rawMessage);
-        else if (level == LogLevel.Warning)
-            Debug.LogWarning(rawMessage);
-        else
-            Debug.LogError(rawMessage);
+        string header = "[NoS]";
+        if (level == LogLevel.Warning)
+            header = "[Warning | NoS]";
+        else if (level == LogLevel.Error)
+            header = "[Error | NoS]";
+        
+        string rawMessage = header + ToRawMessage(level, category, message);
+        LogUtils.WriteToConsole(rawMessage);
     }
 
     public void Print(LogLevel level, LogCategory? category, string message)
@@ -114,6 +114,8 @@ public class NebulaLog
         {
             writer.WriteLine("[" + header + "] " + message);
         }
+
+        MemoryLogger.AppendLog($"[NoS, {level.Level}, {category?.Category ?? "General"}] {message}");
     }
 
     string ToRawMessage(LogLevel level, LogCategory? category, string message)

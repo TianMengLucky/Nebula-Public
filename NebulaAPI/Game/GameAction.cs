@@ -32,6 +32,9 @@ public static class GameActionTypes
     static public GameActionType UbiquitousInvokeDroneAction { get; internal set; }
     static public GameActionType ClogInvokingGhostAction { get; internal set; }
     static public GameActionType HallucinationAction { get; internal set; }
+    static public GameActionType NightmarePlacementAction { get; internal set; }
+    static public GameActionType WhammyPlacementAction { get; internal set; }
+    static public GameActionType HookshotAction { get; internal set; }
 }
 
 public class GameActionType

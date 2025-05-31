@@ -11,7 +11,7 @@ using Virial.Events.Player;
 using Virial;
 using Virial.Game;
 using Il2CppInterop.Runtime.Injection;
-using Nebula.Behaviour;
+using Nebula.Behavior;
 using Nebula.Game.Statistics;
 using TMPro;
 using UnityEngine;
@@ -26,41 +26,46 @@ using Nebula.Roles.Crewmate;
 using Il2CppInterop.Runtime.Attributes;
 using Virial.Events.Game.Minimap;
 using Virial.Utilities;
+using Nebula.Modules.Cosmetics;
 
 namespace Nebula.Roles.Neutral;
 
 internal class Spectre : DefinedRoleTemplate, DefinedRole
 {
-    static public RoleTeam MyTeam = new Team("teams.spectre", new(185, 152, 197), TeamRevealType.OnlyMe);
+    static readonly public RoleTeam MyTeam = NebulaAPI.Preprocessor!.CreateTeam("teams.spectre", new(185, 152, 197), TeamRevealType.OnlyMe);
     static private bool alternateFlag = false;
+
     private Spectre() : base("spectre", MyTeam.Color, RoleCategory.NeutralRole, MyTeam, [VentConfiguration, ShowWhereKillersAreOption, ClairvoyanceOption,
         new GroupConfiguration("options.role.spectre.group.immoralist", [ImmoralistOption , SpectreFollowerChanceOption], MyTeam.Color.ToUnityColor().RGBMultiplied(0.65f)),
         new GroupConfiguration("options.role.spectre.group.dish", [NumOfDishesOption, SatietyRateOption, MaxSatietyOption, InitialSatietyOption, RequiredSatietyForWinningOption, ShowDishesOnMapOption, FriesReplenishmentCooldownOption], MyTeam.Color.ToUnityColor().RGBMultiplied(0.65f)),
         new GroupConfiguration("options.role.spectre.group.vanish", [VanishCostOption, VanishCooldownOption, VanishDurationOption], MyTeam.Color.ToUnityColor().RGBMultiplied(0.65f)),
         ],
         othersAssignments: () => {
-            switch (ImmoralistOption.GetValue())
+            return ImmoralistOption.GetValue() switch
             {
-                case 1:
-                    return [(_, playerId) => (SpectreFollower.MyRole, [playerId])];
-                case 2:
-                    return [(_, playerId) => (SpectreImmoralist.MyRole, [playerId])];
-                case 3:
-                    return [(_, playerId) => (Helpers.Prob(SpectreFollowerChanceOption / 100f) ? SpectreFollower.MyRole : SpectreImmoralist.MyRole, [playerId])];
-                case 4:
-                    return [(_, playerId) => {
+                1 => [new((_, playerId) => (SpectreFollower.MyRole, [playerId]), RoleCategory.NeutralRole)],
+                2 => [new((_, playerId) => (SpectreImmoralist.MyRole, [playerId]), RoleCategory.NeutralRole)],
+                3 => [new((_, playerId) => (Helpers.Prob(SpectreFollowerChanceOption / 100f) ? SpectreFollower.MyRole : SpectreImmoralist.MyRole, [playerId]), RoleCategory.NeutralRole)],
+                4 => [new((_, playerId) => {
                             alternateFlag = !alternateFlag;
                             return (alternateFlag ? SpectreImmoralist.MyRole : SpectreFollower.MyRole, [playerId]);
-                        }];
-                default:
-                    return [];
-            }
-            
+                        }, RoleCategory.NeutralRole)],
+                _ => [],
+            };
         })
     {
         ConfigurationHolder?.AddTags(ConfigurationTags.TagDifficult);
         ConfigurationHolder?.ScheduleAddRelated(() => [SpectreFollower.MyRole.ConfigurationHolder!, SpectreImmoralist.MyRole.ConfigurationHolder!]);
+        ConfigurationHolder!.Illustration = new NebulaSpriteLoader("Assets/NebulaAssets/Sprites/Configurations/Spectre.png");
     }
+
+    DefinedRole[] DefinedRole.AdditionalRoles => ImmoralistOption.GetValue() switch
+    {
+        0 => [],
+        1 => [SpectreFollower.MyRole],
+        2 => [SpectreImmoralist.MyRole],
+        <= 3 => [SpectreFollower.MyRole, SpectreImmoralist.MyRole],
+    };
 
     RuntimeRole RuntimeAssignableGenerator<RuntimeRole>.CreateInstance(GamePlayer player, int[] arguments) => new Instance(player, (byte)arguments.Get(0, player.PlayerId), (float)arguments.Get(1, (int)(InitialSatietyOption * SatietyRateOption)));
 
@@ -86,7 +91,7 @@ internal class Spectre : DefinedRoleTemplate, DefinedRole
     static private IVentConfiguration VentConfiguration = NebulaAPI.Configurations.NeutralVentConfiguration("role.spectre.vent", true);
 
 
-    static public Spectre MyRole = new Spectre();
+    static public Spectre MyRole = new();
     static private GameStatsEntry StatsVanish = NebulaAPI.CreateStatsEntry("stats.spectre.vanish", GameStatsCategory.Roles, MyRole);
     static private GameStatsEntry StatsEatFries = NebulaAPI.CreateStatsEntry("stats.spectre.eatFries", GameStatsCategory.Roles, MyRole);
 
@@ -157,7 +162,7 @@ internal class Spectre : DefinedRoleTemplate, DefinedRole
     public class FriesDishManager : AbstractModule<Virial.Game.Game>, IGameOperator
     {
         static FriesDishManager() => DIManager.Instance.RegisterModule(() => new FriesDishManager());
-        private List<Dish> allDishes = new();
+        private List<Dish> allDishes = [];
         public IEnumerable<Dish> AllDishes => allDishes;
         internal void RegisterDish(Dish dish) {
             dish.DishId = allDishes.Count;
@@ -234,7 +239,7 @@ internal class Spectre : DefinedRoleTemplate, DefinedRole
     }
 
     [NebulaRPCHolder]
-    public class FriesGuageViewer : ComponentHolder, IGameOperator
+    public class FriesGuageViewer : DependentLifespan, IGameOperator
     {
         private class GuageFries
         {
@@ -299,7 +304,7 @@ internal class Spectre : DefinedRoleTemplate, DefinedRole
                             if (currentFoodlevel > guageMin)
                             {
                                 float level = (currentFoodlevel - guageMin) * 4f;//0から1の値をとる
-                                bool active = true;
+                                bool active;
                                 if (level < 0.25f)
                                     active = Mathf.Repeat(Time.time, 0.52f) < 0.26f;
                                 else if (level < 0.65f)
@@ -342,35 +347,35 @@ internal class Spectre : DefinedRoleTemplate, DefinedRole
 
             this.leftAliveTime = leftAliveTime;
 
-            var guage = HudContent.InstantiateContent("SpectreGuage", true, true, false);
-            this.Bind(guage.gameObject);
+            var gauge = HudContent.InstantiateContent("SpectreGauge", true, true, false);
+            this.BindGameObject(gauge.gameObject);
 
             float friesScale = MaxSatietyOption > 5 ? 0.6f : 0.8f;
             float friesOffset = MaxSatietyOption > 5 ? 1f : 1.15f;
-            float guageWidth = 0.9f + friesScale * MaxSatietyOption;
-            float guageScale = 0.6f;
-            var center = UnityHelper.CreateObject("Adjuster", guage.transform, new(-0.04f + guageWidth * guageScale * 0.5f, -0.2f, -0.1f));
-            center.transform.localScale = new(guageScale, guageScale, 1f);
+            float gaugeWidth = 0.9f + friesScale * MaxSatietyOption;
+            float gaugeScale = 0.6f;
+            var center = UnityHelper.CreateObject("Adjuster", gauge.transform, new(-0.04f + gaugeWidth * gaugeScale * 0.5f, -0.2f, -0.1f));
+            center.transform.localScale = new(gaugeScale, gaugeScale, 1f);
 
-            var guageRenderer = UnityHelper.CreateObject<SpriteRenderer>("GuageSprite", center.transform, new(0f, 0f, 0f));
-            guageRenderer.sprite = guageBackgroundSprite.GetSprite();
-            guageRenderer.drawMode = SpriteDrawMode.Sliced;
-            guageRenderer.tileMode = SpriteTileMode.Continuous;
-            guageRenderer.size = new(guageWidth, 0.75f);
+            var gaugeRenderer = UnityHelper.CreateObject<SpriteRenderer>("GaugeSprite", center.transform, new(0f, 0f, 0f));
+            gaugeRenderer.sprite = guageBackgroundSprite.GetSprite();
+            gaugeRenderer.drawMode = SpriteDrawMode.Sliced;
+            gaugeRenderer.tileMode = SpriteTileMode.Continuous;
+            gaugeRenderer.size = new(gaugeWidth, 0.75f);
 
             List<GuageFries> guageFries = [];
             int index = 0;
             while ((float)index < MaxSatietyOption)
             {
-                guageFries.Add(new GuageFries(center.transform, new(-guageWidth * 0.5f + friesOffset + friesScale * (float)index, 0f, -0.1f), index, friesScale / 0.8f));
+                guageFries.Add(new GuageFries(center.transform, new(-gaugeWidth * 0.5f + friesOffset + friesScale * (float)index, 0f, -0.1f), index, friesScale / 0.8f));
                 index++;
             }
 
-            var foxRenderer = UnityHelper.CreateObject<SpriteRenderer>("Fox", center.transform, new(-guageWidth * 0.5f, 0.1f, -0.1f));
+            var foxRenderer = UnityHelper.CreateObject<SpriteRenderer>("Fox", center.transform, new(-gaugeWidth * 0.5f, 0.1f, -0.1f));
             foxRenderer.sprite = guageIconSprite.GetSprite(1);
 
-            GameOperatorManager.Instance?.Register<GameHudUpdateEvent>((ev) => {
-                guage.gameObject.SetActive(!player.IsDead);
+            GameOperatorManager.Instance?.Subscribe<GameHudUpdateEvent>((ev) => {
+                gauge.gameObject.SetActive(!player.IsDead);
                 float foodLevel = leftAliveTime.Value / SatietyRateOption;
                 if (center) guageFries.Do(g => g.Update(foodLevel));
                 foxRenderer.sprite = guageIconSprite.GetSprite(foodLevel < 1f ? 0 : 1);
@@ -395,20 +400,14 @@ internal class Spectre : DefinedRoleTemplate, DefinedRole
     }
 
     [NebulaRPCHolder]
-    public class Instance : RuntimeAssignableTemplate, RuntimeRole, ISpectreTeam
+    public class Instance : RuntimeVentRoleTemplate, RuntimeRole, ISpectreTeam
     {
-        DefinedRole RuntimeRole.Role => MyRole;
-        private GameTimer ventCoolDown = (new Timer(VentConfiguration.CoolDown).SetAsAbilityCoolDown().Start() as GameTimer).ResetsAtTaskPhase();
-        private GameTimer ventDuration = new Timer(VentConfiguration.Duration);
-        private bool canUseVent = VentConfiguration.CanUseVent;
-        GameTimer? RuntimeRole.VentCoolDown => ventCoolDown;
-        GameTimer? RuntimeRole.VentDuration => ventDuration;
-        bool RuntimeRole.CanUseVent => canUseVent;
+        public override DefinedRole Role => MyRole;
         public int SpectreId { get; private set; } = 0;
         public Spectre.Instance? MySpectre => this;
         int[] RuntimeAssignable.RoleArguments => [SpectreId, (int)LeftAliveTime];
         
-        public Instance(GamePlayer player, byte spectreId, float leftAliveTime) : base(player){
+        public Instance(GamePlayer player, byte spectreId, float leftAliveTime) : base(player, VentConfiguration){
             this.SpectreId = spectreId;
             this.leftAliveTime = leftAliveTime;
         }
@@ -422,8 +421,8 @@ internal class Spectre : DefinedRoleTemplate, DefinedRole
         }
         static private Image buttonSprite = SpriteLoader.FromResource("Nebula.Resources.Buttons.SpectreButton.png", 115f);
         
-        List<TrackingArrowAbility> killerArrows = new();
-        void RuntimeAssignable.OnActivated()
+        List<TrackingArrowAbility> killerArrows = [];
+        public override void OnActivated()
         {
             if (AmOwner)
             {
@@ -431,32 +430,23 @@ internal class Spectre : DefinedRoleTemplate, DefinedRole
                 float maxAliveTime = MaxSatietyOption * SatietyRateOption;
                 FunctionalGetter<float> leftAliveTimeProperty = new(()=>leftAliveTime);
 
-                var guage = Bind(new FriesGuageViewer(MyPlayer, leftAliveTimeProperty).Register(this));
+                var guage = new FriesGuageViewer(MyPlayer, leftAliveTimeProperty).Register(this);
 
-                var vanishButton = Bind(new Modules.ScriptComponents.ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability);
-                vanishButton.SetSprite(buttonSprite.GetSprite());
-                vanishButton.Availability = (button) => MyPlayer.CanMove && (VanishCostOption + 1f) < guage.LeftSatiety;
-                vanishButton.Visibility = (button) => !MyPlayer.IsDead;
-                vanishButton.OnClick = (button) => button.ActivateEffect();
+                var vanishButton = NebulaAPI.Modules.EffectButton(this, MyPlayer, Virial.Compat.VirtualKeyInput.Ability,
+                    VanishCooldownOption, VanishDurationOption, "vanish", buttonSprite,
+                    _ => (VanishCostOption + 1f) < guage.LeftSatiety);
                 vanishButton.OnEffectStart = (button) => {
                     AddSatiety(-VanishCostOption);
-                    PlayerModInfo.RpcAttrModulator.Invoke(new(MyPlayer.PlayerId, new AttributeModulator(PlayerAttributes.Invisible, VanishDurationOption, false, 100, "nebula::spectreVanish"), true));
+                    MyPlayer.GainAttribute(PlayerAttributes.Invisible, VanishCooldownOption, false, 100, "nebula::spectreVanish");
                     StatsVanish.Progress();
                 };
-                vanishButton.OnEffectEnd = (button) =>
-                {
-                    vanishButton.StartCoolDown();
-                };
-                vanishButton.CoolDownTimer = Bind(new Timer(0f, VanishCooldownOption).SetAsAbilityCoolDown().Start());
-                vanishButton.EffectTimer = Bind(new Timer(0f, VanishDurationOption));
-                vanishButton.SetLabel("vanish");
-
+                vanishButton.OnEffectEnd = (button) => vanishButton.StartCoolDown();
                 NebulaGameManager.Instance?.AllPlayerInfo.Do(CheckAndTrackKiller);
 
 
                 //やらかし称号
                 var acTokenAnother = AchievementTokens.FirstFailedAchievementToken("spectre.another1", MyPlayer, this);
-                GameOperatorManager.Instance?.Register<EatFriesEvent>(ev => {
+                GameOperatorManager.Instance?.Subscribe<EatFriesEvent>(ev => {
                     if (ev.Player.AmOwner) acTokenAnother.Value.triggered = true;
                 }, this);
             }
@@ -517,14 +507,14 @@ internal class Spectre : DefinedRoleTemplate, DefinedRole
 
         private void CheckAndTrackKiller(GamePlayer player)
         {
-            void RegisterArrow(GamePlayer player, Color color) => killerArrows.Add(Bind(new TrackingArrowAbility(player.Unbox(), 0f, color, false)).Register());
+            void RegisterArrow(GamePlayer player, Color color) => killerArrows.Add(new TrackingArrowAbility(player.Unbox(), 0f, color, false).Register(this));
 
-            killerArrows.RemoveAll(a => { if (a.MyPlayer == player) { a.ReleaseIt(); return true; } else return false; });
+            killerArrows.RemoveAll(a => { if (a.MyPlayer == player) { a.Release(); return true; } else return false; });
             if (player.AmOwner) return;
 
             if (player.IsImpostor) RegisterArrow(player, Palette.ImpostorRed);
             if (player.Role is Jackal.Instance) RegisterArrow(player, Jackal.MyRole.UnityColor);
-            if (player.Role is Crewmate.Sheriff.Instance) RegisterArrow(player, Color.white);
+            if (player.Role.Role is Sheriff) RegisterArrow(player, Color.white);
             if (player.Role is Avenger.Instance) RegisterArrow(player, Avenger.MyRole.UnityColor);
 
         }
@@ -538,7 +528,7 @@ internal class Spectre : DefinedRoleTemplate, DefinedRole
             if (mapLayer is null)
             {
                 mapLayer = UnityHelper.CreateObject<DishMapLayer>("DishLayer", MapBehaviour.Instance.transform, new(0, 0, -1f));
-                this.Bind(mapLayer.gameObject);
+                this.BindGameObject(mapLayer.gameObject);
             }
             mapLayer.gameObject.SetActive(true);
         }
@@ -634,28 +624,15 @@ internal class Spectre : DefinedRoleTemplate, DefinedRole
 
         public override void Begin(PlayerTask task)
         {
-            //base.begin
-            Minigame.Instance = this;
-            this.MyTask = task;
-            if (task && task.TryGetComponent<NormalPlayerTask>(out var normalTask)) this.MyNormTask = normalTask;
-            this.timeOpened = Time.realtimeSinceStartup;
-            if (PlayerControl.LocalPlayer)
-            {
-                if (MapBehaviour.Instance) MapBehaviour.Instance.Close();
-                PlayerControl.LocalPlayer.MyPhysics.SetNormalizedVelocity(Vector2.zero);
-            }
-            this.StartCoroutine(CoAnimateOpen());
-            this.CloseSound = ShipStatus.Instance.ShortTasks.First().MinigamePrefab.CloseSound;
-            this.TransType = TransitionType.SlideBottom;
-            //base.begin ここまで
+            this.BeginInternal(task);
 
             MetaScreen.InstantiateCloseButton(transform, new(-3f, 1f, -0.5f)).OnClick.AddListener(Close);
 
-            GameObject[] frieds = new GameObject[] { gameObject.transform.GetChild(2).gameObject, gameObject.transform.GetChild(3).gameObject, gameObject.transform.GetChild(4).gameObject };
+            GameObject[] fries = [gameObject.transform.GetChild(2).gameObject, gameObject.transform.GetChild(3).gameObject, gameObject.transform.GetChild(4).gameObject];
             int eaten = 0;
-            int eatenSubcounter = 0;
+            int eatenSubCounter = 0;
             
-            foreach (var f in frieds)
+            foreach (var f in fries)
             {
                 for (int i = 2; i >= 0; i--)
                 {
@@ -670,11 +647,11 @@ internal class Spectre : DefinedRoleTemplate, DefinedRole
                     if (amClosing == CloseState.Closing) return;
 
                     NebulaAsset.PlaySE(NebulaAudioClip.SpectreEat, true, pitch: 1.0f + (float)System.Random.Shared.NextDouble() * 0.3f);
-                    eatenSubcounter++;
+                    eatenSubCounter++;
 
-                    if (eatenSubcounter < 2) return;
+                    if (eatenSubCounter < 2) return;
 
-                    eatenSubcounter = 0;
+                    eatenSubCounter = 0;
                     t.gameObject.SetActive(false);
 
                     if (nextObj != null)
@@ -709,18 +686,7 @@ internal class Spectre : DefinedRoleTemplate, DefinedRole
 
         public override void Close()
         {
-            if (this.amClosing != Minigame.CloseState.Closing)
-            {
-                if (this.CloseSound && Constants.ShouldPlaySfx()) SoundManager.Instance.PlaySound(this.CloseSound, false, 1f, null);
-                if (PlayerControl.LocalPlayer) PlayerControl.HideCursorTemporarily();
-
-                this.amClosing = Minigame.CloseState.Closing;
-                base.StartCoroutine(this.CoDestroySelf());
-            }
-            else
-            {
-                GameObject.Destroy(base.gameObject);
-            }
+            this.CloseInternal();
         }
     }
 

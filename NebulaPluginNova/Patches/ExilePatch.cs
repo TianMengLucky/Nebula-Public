@@ -1,6 +1,7 @@
 ﻿using Epic.OnlineServices.Presence;
-using Nebula.Behaviour;
+using Nebula.Behavior;
 using Nebula.Game.Statistics;
+using Nebula.Modules.Cosmetics;
 using Virial;
 using Virial.Events.Game;
 using Virial.Events.Game.Meeting;
@@ -45,6 +46,7 @@ public static class NebulaExileWrapUp
                     {
                         exiled.Exiled();
                         exiled.Data.IsDead = true;
+                        PlayerExtension.ResetOnDying(exiled);
                     }
 
                     NebulaGameManager.Instance?.GameStatistics.RecordEvent(new GameStatistics.Event(GameStatistics.EventVariation.Exile, null, 1 << exiled.PlayerId, GameStatisticsGatherTag.Spawn) { RelatedTag = EventDetail.Exiled });
@@ -143,6 +145,32 @@ public static class AirshipExileWrapUpPatch
     }
 }
 
+[HarmonyPatch(typeof(AirshipExileController), nameof(AirshipExileController.Animate))]
+public static class AirshipExileWrapUpAnimatePatch
+{
+    static void Postfix(AirshipExileController __instance, ref Il2CppSystem.Collections.IEnumerator __result)
+    {
+        var orig = __result;
+        IEnumerator CoWrap()
+        {
+            while (orig.MoveNext())
+            {
+                var current = orig.Current;
+                if (current != null && current?.TryCast<AirshipExileController._WrapUpAndSpawn_d__11>() != null)
+                {
+                    yield return NebulaExileWrapUp.WrapUpAndSpawn(__instance).WrapToIl2Cpp();
+                }
+                else
+                {
+                    yield return current;
+                }
+            }
+        }
+
+        __result = CoWrap().WrapToIl2Cpp();
+    }
+}
+
 [HarmonyPatch(typeof(ExileController), nameof(ExileController.Begin))]
 class ExileControllerBeginPatch
 {
@@ -154,30 +182,53 @@ class ExileControllerBeginPatch
         init.outfit = first?.GetModInfo()!.DefaultOutfit.outfit;
         init.isImpostor = first?.GetModInfo()!.IsImpostor ?? false;
 
-        Debug.Log("Rewrite Exiled: " + (init.networkedPlayer?.PlayerName ?? "None"));
+        StampHelpers.SetStampShowerToUnderHud(HudManager.Instance.transform, -505f, () => ExileController.Instance);
     }
 
     public static void Postfix(ExileController __instance, [HarmonyArgument(0)] ref ExileController.InitProperties init)
     {
-        if (init.networkedPlayer == null) return;
+        GameOperatorManager.Instance?.Run(new ExileSceneStartEvent(MeetingHudExtension.ExiledAllModCache!));
 
-        if (MeetingHudExtension.IsObvious)
+        if (init.networkedPlayer != null)
         {
-            __instance.completeString = Language.Translate("game.meeting.obvious");
-        }
-        else if((MeetingHudExtension.ExiledAll?.Length ?? 0) > 1)
-        {
-            __instance.completeString = Language.Translate("game.meeting.multiple");
-        }
-        else if (GeneralConfigurations.ShowRoleOfExiled && GameOptionsManager.Instance.currentNormalGameOptions.ConfirmImpostor)
-        {
-            var role = NebulaGameManager.Instance.GetPlayer(init.networkedPlayer.PlayerId)?.Role;
-            if (role != null)
+
+            if (MeetingHudExtension.IsObvious)
             {
-                __instance.completeString = Language.Translate("game.meeting.roleText").Replace("%PLAYER%", init.networkedPlayer.PlayerName).Replace("%ROLE%", role.Role.DisplayName);
-                if (role.Role == Roles.Neutral.Jester.MyRole) 
-                    __instance.ImpostorText.text = Language.Translate("game.meeting.roleJesterText");
+                __instance.completeString = Language.Translate("game.meeting.obvious");
+            }
+            else if ((MeetingHudExtension.ExiledAll?.Length ?? 0) > 1)
+            {
+                __instance.completeString = Language.Translate("game.meeting.multiple");
+            }
+            else if (GeneralConfigurations.ShowRoleOfExiled && GameOptionsManager.Instance.currentNormalGameOptions.ConfirmImpostor)
+            {
+                var role = NebulaGameManager.Instance.GetPlayer(init.networkedPlayer.PlayerId)?.Role;
+                if (role != null)
+                {
+                    __instance.completeString = Language.Translate("game.meeting.roleText").Replace("%PLAYER%", init.networkedPlayer.PlayerName).Replace("%ROLE%", role.Role.DisplayName);
+                    if (role.Role == Roles.Neutral.Jester.MyRole) __instance.ImpostorText.text = Language.Translate("game.meeting.roleJesterText");
+                }
             }
         }
+
+        var texts = GameOperatorManager.Instance?.Run(new FixExileTextEvent(MeetingHudExtension.ExiledAllModCache!)).GetTexts();
+        
+        __instance.ImpostorText.rectTransform.pivot = new(0.5f, 1f);
+        __instance.ImpostorText.rectTransform.sizeDelta = new(11.555f, 2f);
+        __instance.ImpostorText.alignment = TMPro.TextAlignmentOptions.Top;
+        if (texts != null && texts.Count > 0)
+        {
+            __instance.ImpostorText.rectTransform.anchoredPosition3D += new Vector3(0f, 0.1f, 0f);
+
+            var text = __instance.ImpostorText.text;
+            text = "<line-height=90%>" + text;
+            texts.Do(str => text += "<br>" + str);
+            __instance.ImpostorText.text = text;
+        }
+        else
+        {
+            __instance.ImpostorText.rectTransform.anchoredPosition3D += new Vector3(0f, 0.19f, 0f);
+        }
+        
     }
 }

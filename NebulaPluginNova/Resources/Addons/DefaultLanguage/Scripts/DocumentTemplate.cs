@@ -10,6 +10,7 @@ using Nebula.Utilities;
 using System.Linq;
 using Nebula.Player;
 using Nebula.Configuration;
+using Nebula;
 
 namespace DefaultLang.Documents;
 
@@ -27,15 +28,15 @@ static public class RoleDocumentHelper
         var title = gui.Text(Virial.Media.GUIAlignment.Left, RoleNameAttribute, gui.RawTextComponent(assignable?.DisplayColoredName ?? "ERROR"));
 
         GUIWidget citationWidget = gui.EmptyWidget;
-        if(assignable is HasCitation citation && citation.Citaion != null)
+        if(assignable is HasCitation citation && citation.Citation != null)
         {
-            GUIClickableAction? onClick = citation.Citaion.RelatedUrl != null ? _ => UnityEngine.Application.OpenURL(citation.Citaion.RelatedUrl) : null;
-            var overlay = (citation.Citaion.RelatedUrl != null) ? gui.LocalizedText(GUIAlignment.Left, gui.GetAttribute(Virial.Text.AttributeAsset.OverlayContent), "ui.citation.openUrl") : null;
+            GUIClickableAction? onClick = citation.Citation.RelatedUrl != null ? _ => UnityEngine.Application.OpenURL(citation.Citation.RelatedUrl) : null;
+            var overlay = (citation.Citation.RelatedUrl != null) ? gui.LocalizedText(GUIAlignment.Left, gui.GetAttribute(Virial.Text.AttributeAsset.OverlayContent), "ui.citation.openUrl") : null;
 
-            if (citation?.Citaion.LogoImage != null) citationWidget = gui.Image(GUIAlignment.Bottom, citation.Citaion.LogoImage, new(1.5f, 0.37f), onClick, overlay);
+            if (citation?.Citation.LogoImage != null) citationWidget = gui.Image(GUIAlignment.Bottom, citation.Citation.LogoImage, new(1.5f, 0.37f), onClick, overlay);
             else
             {
-                citationWidget = new NoSGUIText(GUIAlignment.Bottom, gui.GetAttribute(Virial.Text.AttributeAsset.DocumentTitle), citation!.Citaion.Name)
+                citationWidget = new NoSGUIText(GUIAlignment.Bottom, gui.GetAttribute(Virial.Text.AttributeAsset.DocumentTitle), citation!.Citation.Name)
                 {
                     OverlayWidget = overlay,
                     OnClickText = onClick != null ? (() => onClick?.Invoke(null!), false) : null
@@ -89,7 +90,14 @@ static public class RoleDocumentHelper
                 NebulaAPI.GUI.VerticalMargin(0.12f),
                 new NoSGUIText(GUIAlignment.Left, headerAttr, a.GetHeaderComponent()),
                 NebulaAPI.GUI.VerticalMargin(-0.12f),
-                new NoSGUIText(GUIAlignment.Left, attr, a.GetTitleComponent(INebulaAchievement.HiddenComponent)) { OverlayWidget = a.GetOverlayWidget(true, false, false, false, a.IsCleared) }
+                new NoSGUIText(GUIAlignment.Left, attr, a.GetTitleComponent(INebulaAchievement.HiddenComponent)) { 
+                    OverlayWidget = a.GetOverlayWidget(true, false, true, false, a.IsCleared),
+                    OnClickText = a.IsCleared ? (() =>
+                    {
+                        NebulaAchievementManager.SetOrToggleTitle(a);
+                        VanillaAsset.PlaySelectSE();
+                    }, true) : null
+                }
                 ));
 
         var achievements = Nebula.Modules.NebulaAchievementManager.AllAchievements.Where(a => assignable.AchievementGroups.Any(role => a.RelatedRole.Contains(role)) && !a.IsHidden).ToArray();

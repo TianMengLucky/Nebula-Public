@@ -12,7 +12,7 @@ global using System.Collections;
 global using HarmonyLib;
 global using Virial.Attributes;
 global using Virial.Helpers;
-global using Timer = Nebula.Modules.ScriptComponents.Timer;
+global using Timer = Nebula.Modules.ScriptComponents.TimerImpl;
 global using Color = UnityEngine.Color;
 global using GUIWidget = Virial.Media.GUIWidget;
 global using GUI = Nebula.Modules.GUIWidget.NebulaGUIWidgetEngine;
@@ -30,7 +30,12 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using Nebula.Modules.CustomMap;
 using System.IO.Compression;
-using System.Runtime.CompilerServices;
+using Nebula.VisualProgramming;
+using Virial.VisualProgramming;
+using UnityEngine.ResourceManagement.Util;
+using UnityEngine.Networking;
+using Hazel.Udp;
+using BepInEx.Configuration;
 
 [assembly: System.Reflection.AssemblyFileVersionAttribute(Nebula.NebulaPlugin.PluginEpochStr + "."  + Nebula.NebulaPlugin.PluginBuildNumStr)]
 [assembly: InternalsVisibleTo("AddonDev")]
@@ -42,17 +47,27 @@ public class NebulaPlugin
     public const string AmongUsVersion = "2023.7.12";
     public const string PluginGuid = "jp.dreamingpig.amongus.nebula";
     public const string PluginName = "NebulaOnTheShip";
-    public const string PluginVersion = "2.15.3.4";
+    public const string PluginVersion = "2.21.0.10";
 
-    public const string VisualVersion = "v2.15.3.4";
-    //public const string VisualVersion = "Snapshot 25.02.01a";
+    public const string VisualVersion = "v2.21.0.10";
+    //public const string VisualVersion = "Snapshot 25.05.18b";
     //public const string VisualVersion = "Costume Animation DEMO 2";
 
-    public const string PluginEpochStr = "105";
-    public const string PluginBuildNumStr = "1310";
+    public const string PluginEpochStr = "107";
+    public const string PluginBuildNumStr = "1388";
     public static readonly int PluginEpoch = int.Parse(PluginEpochStr);
     public static readonly int PluginBuildNum = int.Parse(PluginBuildNumStr);
     public const bool GuardVanillaLangData = false;
+
+    private static Dictionary<string, ConfigEntryBase> loaderConfigurations = [];
+    internal static ConfigEntry<T>? GetLoaderConfig<T>(string name)
+    {
+        if (loaderConfigurations.TryGetValue(name, out var entry)) return entry as ConfigEntry<T>;
+        ConfigEntryBase? entryBase = typeof(NebulaLoader.NebulaLoader).GetProperty(name, BindingFlags.Static | BindingFlags.Public | BindingFlags.DeclaredOnly)?.GetValue(null) as ConfigEntryBase;
+        if (entryBase != null) loaderConfigurations[name] = entryBase;
+        return entryBase as ConfigEntry<T>;
+    }
+    internal static bool AllowHttpCommunication => NebulaPlugin.GetLoaderConfig<bool>(nameof(NebulaLoader.NebulaLoader.AllowHttpCommunication))?.Value ?? true;
 
     static public HttpClient HttpClient
     {
@@ -83,6 +98,7 @@ public class NebulaPlugin
     public bool IsPreferential => Log.IsPreferential;
     public static NebulaPlugin MyPlugin { get; private set; } = null!;
     public static BasePlugin LoaderPlugin = null!;
+
     static public void Load()
     {
         Assembly.Load(StreamHelper.OpenFromResource("Nebula.Resources.API.NAudio.Core.dll")!.ReadBytes());
@@ -90,14 +106,24 @@ public class NebulaPlugin
         Assembly.Load(StreamHelper.OpenFromResource("Nebula.Resources.API.NAudio.WinMM.dll")!.ReadBytes());
         Assembly.Load(StreamHelper.OpenFromResource("Nebula.Resources.API.OpusDotNet.dll")!.ReadBytes());
         Assembly.Load(StreamHelper.OpenFromResource("Nebula.Resources.API.NebulaAPI.dll")!.ReadBytes());
-        
+
         Harmony.PatchAll();
+
+        //パッチが当たったメソッドの情報を表示
+        /*
+        foreach(var m in Harmony.GetPatchedMethods())
+        {
+            LogUtils.WriteToConsole(m.Name);
+        }
+        */
 
         SceneManager.sceneLoaded += (UnityEngine.Events.UnityAction<Scene, LoadSceneMode>)((scene, loadMode) =>
         {
             new GameObject("NebulaManager").AddComponent<NebulaManager>();
         });
         SetUpNebulaImpl();
+
+        
     }
 
     static private void SetUpNebulaImpl()
@@ -120,16 +146,26 @@ public static class AmongUsClientAwakePatch
         Language.OnChangeLanguage((uint)AmongUs.Data.DataManager.Settings.Language.CurrentLanguage);
 
         __instance.StartCoroutine(VanillaAsset.CoLoadAssetOnTitle().WrapToIl2Cpp());
-
-
     }
 }
 
+/*
 [HarmonyPatch(typeof(StatsManager), nameof(StatsManager.AmBanned), MethodType.Getter)]
 public static class AmBannedPatch
 {
     public static void Postfix(out bool __result)
     {
         __result = false;
+    }
+}
+*/
+
+[HarmonyPatch(typeof(AprilFoolsMode), nameof(AprilFoolsMode.ShouldFlipSkeld))]
+public static class AmBannedPatch
+{
+    public static bool Prefix(out bool __result)
+    {
+        __result = false;
+        return false;
     }
 }

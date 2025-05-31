@@ -1,5 +1,6 @@
 ﻿using Hazel;
 using InnerNet;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Nebula.Modules.GUIWidget;
 using Steamworks;
 using System.Runtime.InteropServices;
@@ -39,6 +40,7 @@ public class Reference<T>
 
 public static class Helpers
 {
+    static public float FlipIf(this float value, bool flip) => flip ? -value : value;
     private static Func<string, string>? urlConverter = null;
     static public string ConvertUrl(string url)
     {
@@ -214,6 +216,8 @@ public static class Helpers
         return array.OrderBy(i => Guid.NewGuid()).ToArray();
     }
 
+    public static T[] Shuffle<T>(this IReadOnlyList<T> array) => GetRandomArray(array.Count).Select(i => array[i]).ToArray();
+    public static T[] Shuffle<T>(this IEnumerable<T> enumerable) => Shuffle(enumerable.ToArray());
 
     public static string GetClipboardString()
     {
@@ -295,6 +299,9 @@ public static class Helpers
         return defaultValue;
     }
 
+    static public bool GetAsBool(this int[] array, int index, bool defaultValue) => Get(array, index, defaultValue ? 1 : 0) == 1;
+    static public bool GetAsBool(this int[] array, int index) => Get(array, index, 0) == 1;
+    static public int AsInt(this bool value) => value ? 1 : 0;
     /// <summary>
     /// リストの範囲内ならリストの値を返します。
     /// 範囲外ならデフォルト値を返します。例外は発しません。
@@ -364,6 +371,7 @@ public static class Helpers
     }
 
     static public bool IsEmpty<T>(this IEnumerable<T> enumerable) => !enumerable.Any(_ => true);
+    static public bool IsEmpty<T>(this IReadOnlyList<T> list) => list.Count == 0;
 
     static public void DoIf<T>(this T? nullableObj, Action<T> action)
     {
@@ -381,6 +389,7 @@ public static class Helpers
         return null!;
     }
 
+    /*
     static public void SyncSingleNetObject(InnerNetObject obj)
     {
         MessageWriter messageWriter = MessageWriter.Get(obj.sendMode);
@@ -404,6 +413,7 @@ public static class Helpers
             messageWriter.CancelMessage();
         }
     }
+    */
 
     static public void PlayKillStingerSE()
     {
@@ -417,21 +427,21 @@ public static class Helpers
         GC.Collect();
     }
 
-    static public TMPro.TextMeshPro TextHudContent(string name, ComponentHolder binder, Action<TMPro.TextMeshPro> updater)
+    static public TMPro.TextMeshPro TextHudContent(string name, ILifespan lifespan, Action<TMPro.TextMeshPro> updater)
     {
         var TextHolder = HudContent.InstantiateContent(name, true, true, false, false);
-        binder.Bind(TextHolder.gameObject);
+        lifespan.BindGameObject(TextHolder.gameObject);
 
         TextMeshPro tmPro = null!;
         var text = new NoSGUIText(Virial.Media.GUIAlignment.Left, new(GUI.API.GetAttribute(Virial.Text.AttributeParams.StandardBaredBoldLeftNonFlexible)) { Alignment = Virial.Text.TextAlignment.BottomLeft, FontSize = new(1.6f), Size = new(3f, 1f) }, new RawTextComponent("")) { PostBuilder = t => { tmPro = t; tmPro.sortingOrder = 0; } };
         text.Instantiate(new Virial.Media.Anchor(new(0f, 0f), new(-0.5f, -0.5f, 0f)), new(20f, 20f), out _)!.transform.SetParent(TextHolder.transform, false);
 
-        GameOperatorManager.Instance?.Register<GameUpdateEvent>(ev => {
+        GameOperatorManager.Instance?.Subscribe<GameUpdateEvent>(ev => {
             if (tmPro)
             {
                 updater.Invoke(tmPro);
             }
-        }, binder);
+        }, lifespan);
 
         return tmPro;
     }
@@ -449,4 +459,48 @@ public static class Helpers
         material.SetColor(PlayerMaterial.BodyColor, color.MainColor.ToUnityColor());
         material.SetColor(PlayerMaterial.VisorColor, color.VisorColor.ToUnityColor());
     }
+
+    public static int Round(int number, int round)
+    {
+        int num = number + (round / 2);
+        return num - (num % round);
+    }
+
+    public static void ToLab(this UnityEngine.Color color, out float L, out float a, out float b)
+    {
+        const float xr = 0.4124f;
+        const float xg = 0.3576f;
+        const float xb = 0.1805f;
+        const float yr = 0.2126f;
+        const float yg = 0.7152f;
+        const float yb = 0.0722f;
+        const float zr = 0.0193f;
+        const float zg = 0.1192f;
+        const float zb = 0.9505f;
+
+        const float Xn = xr + xg + xb;
+        const float Yn = yr + yg + yb;
+        const float Zn = zr + zg + zb;
+
+        const float t = 6f / 29f;
+        const float t2 = t * t;
+        const float t3 = t * t * t;
+        var X = xr * color.r + xg * color.g + xb * color.b;
+        var Y = yr * color.r + yg * color.g + yb * color.b;
+        var Z = zr * color.r + zg * color.g + zb * color.b;
+
+        var tx = X / Xn;
+        var ty = Y / Yn;
+        var tz = Z / Zn;
+        
+        float fx = tx > t3 ? Mathf.Pow(tx, 0.333f) : tx / 3f / t2 + 4f / 29f;
+        float fy = ty > t3 ? Mathf.Pow(ty, 0.333f) : ty / 3f / t2 + 4f / 29f;
+        float fz = tz > t3 ? Mathf.Pow(tz, 0.333f) : tz / 3f / t2 + 4f / 29f;
+
+        L = 116 * fy - 16;
+        a = 500 * (fx - fy);
+        b = 200 * (fy - fz);
+    }
+
+    public static IEnumerable<T> NotNull<T>(this IEnumerable<T?> enumerable) => enumerable.Where(val => val != null)!;
 }

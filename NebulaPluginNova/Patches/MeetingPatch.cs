@@ -1,10 +1,12 @@
 ﻿using UnityEngine.Rendering;
-using Nebula.Behaviour;
+using Nebula.Behavior;
 using static MeetingHud;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Virial.Events.Game.Meeting;
 using Virial.Events.Player;
 using UnityEngine;
+using BepInEx.Unity.IL2CPP.Utils;
+using Nebula.Modules.Cosmetics;
 
 namespace Nebula.Patches;
 
@@ -69,9 +71,6 @@ public static class MeetingModRpc
             MeetingHudExtension.CanSkip = message.canSkip;
             MeetingHudExtension.ExileEvenIfTie = message.exileEvenIfTie;
 
-            MeetingHud.Instance.state = VoteStates.NotVoted;
-            MeetingHud.Instance.ResetPlayerState();
-
             if (message.sort)
             {
                 MeetingHud.Instance.SortVotingArea(p =>
@@ -82,7 +81,8 @@ public static class MeetingModRpc
                 });
             }
 
-            MeetingHudExtension.ReflectVotingMask();
+            MeetingHud.Instance.state = VoteStates.NotVoted;
+            MeetingHud.Instance.ResetPlayerState();
 
             MeetingHudExtension.VotingTimer = message.votingTime;
             MeetingHud.Instance.lastSecond = Mathf.Min(11, (int)message.votingTime);
@@ -151,6 +151,7 @@ public static class MeetingModRpc
         meetingHud.exiledPlayer = Helpers.GetPlayer(exiled)?.Data;
         meetingHud.wasTie = tie;
         MeetingHudExtension.ExiledAll = exiledAll.Select(p => Helpers.GetPlayer(p)!).ToArray();
+        MeetingHudExtension.ExiledAllModCache = MeetingHudExtension.ExiledAll.Select(p => p.GetModInfo()).Where(p => p != null).ToArray()!;
         MeetingHudExtension.WasTie = tie;
         MeetingHudExtension.IsObvious = isObvious;
 
@@ -247,7 +248,7 @@ class MeetingCanBeHighlightedPatch
 {
     public static void Postfix(PlayerVoteArea __instance,ref bool __result)
     {
-        __result = __result && (MeetingHudExtension.VotingMask & (1 << __instance.TargetPlayerId)) != 0;
+        __result = __result && MeetingHudExtension.CanVoteFor(__instance.TargetPlayerId);
     }
 }
 
@@ -260,9 +261,34 @@ class MeetingIntroStartPatch
             Effects.Action((Il2CppSystem.Action)(() =>
             {
                 NebulaGameManager.Instance?.OnMeetingStart();
+                if (MeetingHud.Instance) MeetingHudExtension.LastReporter = GamePlayer.GetPlayer(MeetingHud.Instance.reporterId);
             })),
             __result            
             );
+    }
+}
+
+
+[HarmonyPatch(typeof(MeetingHud), nameof(MeetingHud.CoIntro))]
+class MeetingIntroPatch
+{
+    public static void Postfix(MeetingHud __instance, ref Il2CppSystem.Collections.IEnumerator __result)
+    {
+        var orig = __result;
+        IEnumerator CoIntro()
+        {
+            while (orig.MoveNext())
+            {
+                var current = orig.Current;
+                yield return current;
+                if (current != null && current.TryCast<MeetingIntroAnimation._CoRun_d__17>() != null)
+                {
+                    NebulaGameManager.Instance?.OnMeetingStart();
+                    if (MeetingHud.Instance) MeetingHudExtension.LastReporter = GamePlayer.GetPlayer(MeetingHud.Instance.reporterId);
+                }
+            }
+        }
+        __result = CoIntro().WrapToIl2Cpp();
     }
 }
 
@@ -273,8 +299,11 @@ class MeetingStartPatch
     static private Image LightColorSprite = SpriteLoader.FromResource("Nebula.Resources.ColorLight.png", 100f);
     static private Image DarkColorSprite = SpriteLoader.FromResource("Nebula.Resources.ColorDark.png", 100f);
 
+    static private bool CanVote => MeetingHud.Instance && MeetingHudExtension.VotingTimer > 0f && MeetingHud.Instance.state == VoteStates.NotVoted;
     static void Postfix(MeetingHud __instance)
     {
+        ClientOption.ChangeAmbientVolumeIfNecessary(true, false);
+
         MeetingHudExtension.LeftContents.Clear();
         MeetingHudExtension.Reset();
         MeetingHudExtension.InitMeetingTimer();
@@ -288,17 +317,41 @@ class MeetingStartPatch
             if (role != Roles.Crewmate.Crewmate.MyRole && role != Roles.Impostor.Impostor.MyRole)
             {
                 Tutorial.WaitAndShowTutorial(() => !MeetingHud.Instance || MeetingHud.Instance.state == VoteStates.Animating,
-                            new TutorialBuilder(() => HudManager.Instance.transform.position + new Vector3(0f, 4f), true)
+                            new TutorialBuilder()
                             .BindHistory("helpKey")
                             .ShowWhile(() => MeetingHud.Instance)
-                            .AsSimpleTitledTextWidget(Language.Translate("tutorial.variations.helpInGame.title"), Language.Translate("tutorial.variations.helpInGame.caption").Replace("%KEY%", ButtonEffect.KeyCodeInfo.GetKeyDisplayName(NebulaInput.GetInput(Virial.Compat.VirtualKeyInput.Help).TypicalKey))));
+                            .AsSimpleTitledTextWidget(Language.Translate("tutorial.variations.helpInGame.title"), Language.Translate("tutorial.variations.helpInGame.caption").ReplaceKeyCode("%KEY%", Virial.Compat.VirtualKeyInput.Help)));
             }
         }
+
+        GamePlayer.AllPlayers.Do(p =>
+        {
+            p.Unbox().SpecialStampShower = PopupStampShower.GetHudShower(p.PlayerId, MeetingHud.Instance.transform, -100f, null);
+        });
+        NebulaManager.Instance.StartCoroutine(ManagedEffects.Wait(() => __instance.state == VoteStates.Animating, () =>
+        {
+            GamePlayer.AllPlayers.Do(p =>
+            {
+                var unbox = p.Unbox();
+                var shower = unbox.SpecialStampShower;
+                var area = __instance.playerStates.FirstOrDefault(area => area.TargetPlayerId == p.PlayerId);
+                unbox.SpecialStampShower = new ConditionalStampShower(
+                    PopupStampShower.GetMeetingShower(area),
+                    shower,
+                    () => area.gameObject.active
+                    );
+            });
+        }));
 
         //色の明暗を表示
         foreach (var player in __instance.playerStates)
         {
-            bool isLightColor = DynamicPalette.IsLightColor(Palette.PlayerColors[player.TargetPlayerId]);
+            player.NameText.rectTransform.sizeDelta = new(2.0942f, 0.3879f);
+            player.NameText.fontSizeMax = 2f;
+            player.NameText.fontSizeMin = 1.5f;
+            player.NameText.enableAutoSizing = true;
+
+            bool isLightColor = DynamicPalette.IsLightColor(DynamicPalette.PlayerColors[player.TargetPlayerId]);
 
             SpriteRenderer renderer = UnityHelper.CreateObject<SpriteRenderer>("Color", player.transform, new Vector3(1.2f, -0.18f, -1f));
             renderer.sprite = isLightColor ? LightColorSprite.GetSprite() : DarkColorSprite.GetSprite();
@@ -321,27 +374,39 @@ class MeetingStartPatch
             player.Flag.gameObject.SetActive(GeneralConfigurations.ShowVoteStateOption || player.TargetPlayerId == PlayerControl.LocalPlayer.PlayerId);
 
             var button = player.PlayerButton.Cast<PassiveButton>();
-            button.OnClick = new UnityEngine.UI.Button.ButtonClickedEvent();
-            button.OnMouseOver = new UnityEngine.Events.UnityEvent();
+            button.OnClick = new();
+            button.OnMouseOver = new();
+            button.OnMouseOut = new();
             button.OnClick.AddListener(() =>
             {
-                if (player.canBeHighlighted()) player.Select();
+                if (player.canBeHighlighted() && CanVote)
+                {
+                    if (MeetingHudExtension.CanVote)
+                        player.Select();
+                    else
+                        GameOperatorManager.Instance?.Run(new InvokeVoteAlternateEvent(player, GamePlayer.GetPlayer(player.TargetPlayerId)!));
+                }
             });
+            var modPlayer = GamePlayer.GetPlayer(player.TargetPlayerId)?.Unbox();
             button.OnMouseOver.AddListener(() =>
             {
                 if (player.canBeHighlighted()) player.SetHighlighted(true);
+            });
+            button.OnMouseOut.AddListener(() =>
+            {
+                player.SetHighlighted(false);
             });
 
             var script = player.gameObject.AddComponent<ScriptBehaviour>();
             var cosmetics = player.PlayerIcon.cosmetics;
             var nebulaCosmetics = cosmetics.GetComponent<NebulaCosmeticsLayer>();
             var nameText = player.NameText;
-            var modPlayer = NebulaGameManager.Instance!.GetPlayer(player.TargetPlayerId)!.Unbox();
+
             script.UpdateHandler += () => {
                 try
                 {
                     if (nameText) modPlayer.UpdateNameText(nameText, true);
-                    if (roleText) modPlayer.UpdateRoleText(roleText);
+                    if (roleText) modPlayer.UpdateRoleText(roleText, true);
                 }
                 catch
                 {
@@ -427,16 +492,17 @@ class MeetingHudUpdatePatch
                         MeetingModRpc.RpcSyncMeetingTimer.Invoke(MeetingHudExtension.VotingTimer - 0.05f);
                     }
                 }
-                else if(AmongUsClient.Instance.AmHost)
-                {
-                    //結果開示へ (ForceSkipAll)
-                    __instance.playerStates.Do(state => { if(!state.DidVote) state.VotedFor = 254; });
-                    __instance.SetDirtyBit(1U);
-                    __instance.CheckForEndVoting();
-                }
                 else
                 {
                     __instance.TimerText.text = Language.Translate("options.meeting.waitingForHost");
+
+                    if (AmongUsClient.Instance.AmHost)
+                    {
+                        //結果開示へ (ForceSkipAll)
+                        __instance.playerStates.Do(state => { if (!state.DidVote) state.VotedFor = 254; });
+                        __instance.SetDirtyBit(1U);
+                        __instance.CheckForEndVoting();
+                    }
                 }
                 break;
             case MeetingHud.VoteStates.Results:
@@ -462,9 +528,11 @@ class MeetingClosePatch
         VentilationSystem? ventilationSystem = ShipStatus.Instance.Systems[SystemTypes.Ventilation].TryCast<VentilationSystem>();
         if (ventilationSystem != null) ventilationSystem.PlayersInsideVents.Clear();
 
-        GameOperatorManager.Instance?.Run(new ExileSceneStartEvent());
+        GameOperatorManager.Instance?.Run(new ExileScenePreStartEvent(MeetingHudExtension.ExiledAllModCache!));
 
         NebulaManager.Instance.CloseAllUI();
+
+        ClientOption.ChangeAmbientVolumeIfNecessary(false, true);
     }
 }
 
@@ -477,36 +545,39 @@ class VoteMaskPatch
     }
 }
 
-[HarmonyPatch(typeof(PlayerVoteArea), nameof(PlayerVoteArea.SetTargetPlayerId))]
+[HarmonyPatch(typeof(MeetingHud), nameof(MeetingHud.PopulateButtons))]
 class VoteAreaVCPatch
 {
     private static SpriteLoader VCFrameSprite = SpriteLoader.FromResource("Nebula.Resources.MeetingVCFrame.png", 119f);
-    public static void Postfix(PlayerVoteArea __instance)
+    public static void Postfix(MeetingHud __instance)
     {
         try
         {
             if (GeneralConfigurations.UseVoiceChatOption)
             {
-                var frame = UnityHelper.CreateObject<SpriteRenderer>("VCFrame", __instance.transform, new Vector3(0, 0, -0.5f));
-                frame.sprite = VCFrameSprite.GetSprite();
-                frame.color = Color.clear;
-                var col = Palette.PlayerColors[__instance.TargetPlayerId];
-                if(Mathf.Max((int)col.r, (int)col.g, (int)col.b) < 100) col = Color.Lerp(col, Color.white, 0.4f);
-                
-                var client = NebulaGameManager.Instance?.VoiceChatManager?.GetClient(__instance.TargetPlayerId);
-                float alpha = 0f;
-                if (client != null)
+                foreach (var pva in __instance.playerStates)
                 {
-                    var script = frame.gameObject.AddComponent<ScriptBehaviour>();
-                    script.UpdateHandler += () =>
+                    var frame = UnityHelper.CreateObject<SpriteRenderer>("VCFrame", pva.transform, new Vector3(0, 0, -0.5f));
+                    frame.sprite = VCFrameSprite.GetSprite();
+                    frame.color = Color.clear;
+                    var col = DynamicPalette.PlayerColors[pva.TargetPlayerId];
+                    if (Mathf.Max((int)col.r, (int)col.g, (int)col.b) < 100) col = Color.Lerp(col, Color.white, 0.4f);
+
+                    var client = NebulaGameManager.Instance?.VoiceChatManager?.GetClient(pva.TargetPlayerId);
+                    float alpha = 0f;
+                    if (client != null)
                     {
-                        if (client.IsSpeaking)
-                            alpha = Mathf.Clamp(alpha + Time.deltaTime * 4f, 0f, 1f);
-                        else
-                            alpha = Mathf.Clamp(alpha - Time.deltaTime * 4f, 0f, 1f);
-                        col.a = (byte)(alpha * 255f);
-                        frame.color = col;
-                    };
+                        var script = frame.gameObject.AddComponent<ScriptBehaviour>();
+                        script.UpdateHandler += () =>
+                        {
+                            if (client.IsSpeaking)
+                                alpha = Mathf.Clamp(alpha + Time.deltaTime * 8f, 0f, 1f);
+                            else
+                                alpha = Mathf.Clamp(alpha - Time.deltaTime * 8f, 0f, 1f);
+                            col.a = alpha;
+                            frame.color = col;
+                        };
+                    }
                 }
             }
         }
@@ -521,8 +592,8 @@ class VoteAreaPatch
     {
         if (!MeetingHud.Instance) return;
 
-        try
-        {
+        if(__instance.MaskArea != null) { 
+        
             var maskParent = UnityHelper.CreateObject<SortingGroup>("MaskedObjects", __instance.transform, new Vector3(0, 0, -0.1f));
             __instance.MaskArea.transform.SetParent(maskParent.transform);
             __instance.PlayerIcon.transform.SetParent(maskParent.transform);
@@ -554,7 +625,6 @@ class VoteAreaPatch
                 r.maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
             });
         }
-        catch { }
     }
 }
 
@@ -691,7 +761,7 @@ static class CheckForEndVotingPatch
                     voteForMap[state.TargetPlayerId] = NebulaGameManager.Instance?.GetPlayer(state.VotedFor);
                 }
 
-                foreach (var target in GameOperatorManager.Instance?.Run(new MeetingTieVoteEvent(voteForMap))?.ExtraVotes ?? [])
+                foreach (var target in GameOperatorManager.Instance?.Run(new MeetingTieVoteHostEvent(voteForMap))?.ExtraVotes ?? [])
                 {
                     dictionary.AddValue(target?.PlayerId ?? 253, 1);
                     extraVotes.Add(target?.PlayerId ?? 253);
@@ -777,7 +847,7 @@ class PopulateResultPatch
     private static void ModBloopAVoteIcon(MeetingHud __instance,NetworkedPlayerInfo? voterPlayer, int index, Transform parent,bool isExtra)
     {
         SpriteRenderer spriteRenderer = GameObject.Instantiate<SpriteRenderer>(__instance.PlayerVotePrefab);
-        if (GameManager.Instance.LogicOptions.GetAnonymousVotes() || voterPlayer == null)
+        if ((GameManager.Instance.LogicOptions.GetAnonymousVotes() && !(NebulaGameManager.Instance?.CanSeeAllInfo ?? false)) || voterPlayer == null)
             PlayerMaterial.SetColors(Palette.DisabledGrey, spriteRenderer);
         else
             PlayerMaterial.SetColors(voterPlayer.DefaultOutfit.ColorId, spriteRenderer);
@@ -867,5 +937,14 @@ class MeetingDeserializePatch
     {
         if (__instance.CurrentState is VoteStates.Animating or VoteStates.Discussion) return;
         __instance.UpdatePlayerState();
+    }
+}
+
+[HarmonyPatch(typeof(MeetingHud), nameof(MeetingHud.OnDestroy))]
+class MeetingDestroyPatch
+{
+    public static void Postfix(MeetingHud __instance)
+    {
+        ClientOption.ChangeAmbientVolumeIfNecessary(false, true);
     }
 }

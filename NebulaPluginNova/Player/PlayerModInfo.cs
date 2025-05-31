@@ -1,11 +1,13 @@
 ﻿using AmongUs.GameOptions;
 using Il2CppSystem.Text.Json;
 using NAudio.CoreAudioApi;
-using Nebula.Behaviour;
-
+using Nebula.Behavior;
+using Nebula.Game.Achievements;
 using Nebula.Game.Statistics;
+using Nebula.Modules.Cosmetics;
 using Nebula.Roles;
 using Nebula.Roles.Complex;
+using Nebula.Roles.Crewmate;
 using Nebula.Roles.Impostor;
 using System.Diagnostics.CodeAnalysis;
 using UnityEngine.Rendering;
@@ -17,6 +19,7 @@ using Virial.Events.Game;
 using Virial.Events.Player;
 using Virial.Game;
 using Virial.Text;
+using static Nebula.Roles.Crewmate.Investigator;
 using static UnityEngine.GraphicsBuffer;
 
 namespace Nebula.Player;
@@ -52,8 +55,10 @@ public static class PlayerState
     public static TranslatableTag Bubbled = new("state.bubbled");
     public static TranslatableTag Meteor = new("state.meteor");
     public static TranslatableTag Starved = new("state.starved");
+    public static TranslatableTag Balloon = new("state.balloon");
+    public static TranslatableTag Lost = new("state.lost");
     public static TranslatableTag Disconnected = new("state.disconnected") { Color = Color.gray };
-    public static TranslatableTag[] AllDeadStates = [Dead, Exiled, Guessed, Misguessed, Embroiled, Suicide, Trapped, Pseudocide, Deranged, Cursed, Crushed, Frenzied, Gassed, Bubbled, Meteor, Starved];
+    public static TranslatableTag[] AllDeadStates = [Dead, Exiled, Guessed, Misguessed, Embroiled, Suicide, Trapped, Pseudocide, Deranged, Cursed, Crushed, Frenzied, Gassed, Bubbled, Meteor, Starved, Balloon, Lost];
     static PlayerState()
     {
         Virial.Text.PlayerStates.Alive = Alive;
@@ -71,6 +76,8 @@ public static class PlayerState
         Virial.Text.PlayerStates.Gassed = Gassed;
         Virial.Text.PlayerStates.Bubbled = Bubbled;
         Virial.Text.PlayerStates.Meteor = Meteor;
+        Virial.Text.PlayerStates.Balloon = Balloon;
+        Virial.Text.PlayerStates.Lost = Lost;
     }
 }
 
@@ -112,6 +119,7 @@ public class PlayerAttributeImpl : IPlayerAttribute
         PlayerAttributes.Invisible = new PlayerAttributeImpl(2, "invisible", "invisible");
         PlayerAttributes.InvisibleElseImpostor = new PlayerAttributeImpl(2, "$invisible") { Cognizable = p => p.IsImpostor, IdenticalAttribute = PlayerAttributes.Invisible };
         PlayerAttributes.CurseOfBloody = new PlayerAttributeImpl(3, "curseOfBloody", "curseOfBloody");
+        PlayerAttributes.Footprint = new PlayerAttributeImpl(3, "footprint", "footprint") { Cognizable = _ => false };
         PlayerAttributes.Isolation = new PlayerAttributeImpl(4, "$isolation", "isolation") { Cognizable = p => p.IsImpostor };
         PlayerAttributes.BuskerEffect = new PlayerAttributeImpl(4, "busker", "busker") { Cognizable = _ => false };
 
@@ -124,6 +132,7 @@ public class PlayerAttributeImpl : IPlayerAttribute
         PlayerAttributes.Roughening = new PlayerAttributeImpl(10, "$rough", "rough");
 
         PlayerAttributes.Thurifer = new PlayerAttributeImpl(11, "$thurifer", "thurifer");
+        PlayerAttributes.CooldownSpeed = new PlayerAttributeImpl(12, "cooldown", "cooldown");
     }
 }
 
@@ -172,6 +181,7 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
 
     public FakeSabotageStatus FakeSabotage { get; private set; } = new();
     public Vector2? GoalPos = null;
+    public void ResetDeadBodyGoalPos() => GoalPos = null;
 
     public bool WillDie { get; set; } = false;
 
@@ -211,8 +221,25 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
     public VariablePermissionHolder PermissionHolder = new([]);
     bool IPermissionHolder.Test(Virial.Common.Permission permission) => PermissionHolder.Test(permission);
 
+    public IStampShower? SpecialStampShower = null;
+    public IStampShower DefaultStampShower = null!;
+    public IStampShower StampShower => (SpecialStampShower?.IsValid ?? false) ? SpecialStampShower : DefaultStampShower;
+
+    private readonly List<SpriteRenderer> playerAdditionalRenderers = [];
+    public void AddPlayerColorRenderers(params SpriteRenderer[] renderers)
+    {
+        playerAdditionalRenderers.RemoveAll(r => !r);
+        playerAdditionalRenderers.AddRange(renderers);
+    }
+    public void RemovePlayerColorRenderer(SpriteRenderer renderer)
+    {
+        int instanceId = renderer.GetInstanceID();
+        playerAdditionalRenderers.RemoveAll(r => r.GetInstanceID() == instanceId);
+    }
+
     //各種収集データ
     public GamePlayer? MyKiller = null;
+    public GamePlayer.ExtraDeadInfo? PlayerStateExtraInfo { get; set; }
     public float? DeathTimeStamp = null;
     public CommunicableTextTag? MyState = PlayerState.Alive;
 
@@ -268,15 +295,13 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
         DefaultOutfit = new(outfit, "", -100, true);    
 
         roleText = GameObject.Instantiate(myPlayer.cosmetics.nameText, myPlayer.cosmetics.nameText.transform);
-        roleText.transform.localPosition = new Vector3(0, 0.185f, -0.01f);
+        roleText.transform.localPosition = new Vector3(0, 0.185f, 0f);
         roleText.fontSize = 1.7f;
         roleText.text = "Unassigned";
 
-        PlayerScaler = UnityHelper.CreateObject("Scaler", myPlayer.transform, myPlayer.Collider.offset).transform;
-        PlayerScaler.gameObject.AddComponent<SortingGroup>();
-        myPlayer.cosmetics.transform.SetParent(PlayerScaler, true);
-        myPlayer.transform.FindChild("BodyForms").SetParent(PlayerScaler, true);
-        myPlayer.cosmetics.GetComponent<NebulaCosmeticsLayer>().SetSortingProperty(true, 100f / MyControl.cosmetics.zIndexSpacing, 0);
+        PlayerScaler = myPlayer.transform.FindChild("Scaler");
+
+        DefaultStampShower = new ArrowStampShower(this);
 
         //PlayerScaler.gameObject.AddComponent<SortingGroup>();
         //PlayerScaler.gameObject.GetComponentsInChildren<SpriteRenderer>(true).Do(r => r.sortingOrder = 10);
@@ -284,7 +309,7 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
         if (myPlayer.AmOwner)
         {
             float lastUpdated = 0f;
-            GameOperatorManager.Instance?.Register<GameUpdateEvent>(ev =>
+            GameOperatorManager.Instance?.Subscribe<GameUpdateEvent>(ev =>
             {
                 if (NebulaGameManager.Instance!.CurrentTime - lastUpdated > 0.8f)
                 {
@@ -293,10 +318,20 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
                 }
             }, NebulaGameManager.Instance);
         }
+
+        if (!AmOwner)
+        {
+            var footStep = myPlayer.FootSteps;
+            footStep.volume = 0.7f;
+            footStep.minDistance = 0.5f;
+            footStep.maxDistance = GeneralConfigurations.OthersFootstepRangeOption;
+            footStep.rolloffMode = AudioRolloffMode.Linear;
+            footStep.spatialBlend = 1f;
+        }
     }
 
     public string DefaultName => DefaultOutfit.Outfit.outfit.PlayerName;
-    public string ColoredDefaultName => DefaultName.Color(Color.Lerp(Palette.PlayerColors[PlayerId], Color.white, 0.3f));
+    public string ColoredDefaultName => DefaultName.Color(Color.Lerp(DynamicPalette.PlayerColors[PlayerId], Color.white, 0.3f));
     public OutfitCandidate DefaultOutfit { get; private set; }
     public OutfitCandidate CurrentOutfit => outfits.Count > 0 ? outfits[0] : DefaultOutfit;
     public OutfitTag[] DefaultOutfitTags => DefaultOutfit.Outfit.OutfitTags;
@@ -323,6 +358,8 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
             MyControl.RawSetPet(newOutfit.PetId, newOutfit.ColorId);
             MyControl.RawSetColor(newOutfit.ColorId);
 
+            foreach(var r in playerAdditionalRenderers) if(r) r.material = MyControl.cosmetics.currentBodySprite.BodySprite.sharedMaterial;
+            /*
             if (MyControl.MyPhysics.Animations.IsPlayingRunAnimation())
             {
                 MyControl.MyPhysics.ResetAnimState();
@@ -332,6 +369,7 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
             {
                 MyControl.cosmetics.FixVisibility();
             }
+            */
 
             GameOperatorManager.Instance?.Run(new PlayerOutfitChangeEvent(this, newOutfitCand));
         }
@@ -355,7 +393,7 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
         if (lastColor != currentColor)
         {
             //色が変化したとき
-            if (AmOwner && Helpers.CurrentMonth == 4 && ColorHelper.IsLightGreen(Palette.PlayerColors[lastColor]) && ColorHelper.IsPink(Palette.PlayerColors[currentColor]))
+            if (AmOwner && Helpers.CurrentMonth == 4 && ColorHelper.IsLightGreen(DynamicPalette.PlayerColors[lastColor]) && ColorHelper.IsPink(DynamicPalette.PlayerColors[currentColor]))
             {
                 Debug.Log("sakura");
                 new StaticAchievementToken("sakura");
@@ -416,7 +454,7 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
 
     static public readonly Color FakeTaskColor = new Color(0x86 / 255f, 0x86 / 255f, 0x86 / 255f);
     static public readonly Color CrewTaskColor = new Color(0xFA / 255f, 0xD9 / 255f, 0x34 / 255f);
-    public void UpdateRoleText(TMPro.TextMeshPro roleText) {
+    public void UpdateRoleText(TMPro.TextMeshPro roleText, bool inMeeting) {
 
         string text = "";
 
@@ -435,10 +473,15 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
 
         if (canSeeRole)
         {
-            string? roleName = ((RuntimeAssignable?)(IsDead ? myGhostRole : myRole) ?? myRole).DisplayColoredName;
+            var assignable = ((RuntimeAssignable?)(IsDead ? myGhostRole : myRole) ?? myRole);
+            string? roleName = assignable.DisplayColoredName;
             text += roleName ?? "Undefined";
 
             AssignableAction(r => { var newName = r.OverrideRoleName(text, false); if (newName != null) text = newName; });
+        }
+        else
+        {
+            text = GameOperatorManager.Instance?.Run(new PlayerSetFakeRoleNameEvent(this, inMeeting)).Text ?? "";
         }
 
         if (canSeeTask) { 
@@ -460,6 +503,7 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
     private void SetRole(DefinedRole role, int[] arguments)
     {
         myRole?.Inactivate();
+        GameOperatorManager.Instance?.WrapUpDeadLifespans();
 
         var isDead = MyControl.Data.IsDead;
 
@@ -483,6 +527,7 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
     private void SetGhostRole(DefinedGhostRole role, int[] arguments)
     {
         myGhostRole?.Inactivate();
+        GameOperatorManager.Instance?.WrapUpDeadLifespans();
 
         myGhostRole = role.CreateInstance(this, arguments);
 
@@ -518,6 +563,8 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
             if (predicate.Invoke(m))
             {
                 m.Inactivate();
+                GameOperatorManager.Instance?.WrapUpDeadLifespans();
+
                 GameOperatorManager.Instance?.Run(new PlayerModifierRemoveEvent(this, m));
 
                 NebulaGameManager.Instance?.RoleHistory.Add(new(NebulaGameManager.Instance.CurrentTime, PlayerId, m, false, IsDead));
@@ -630,12 +677,17 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
         foreach (var r in holdingDeadBodyCache!.bodyRenderers) r.enabled = !MyControl.inVent;
 
         var targetPosition = MyControl.transform.position + new Vector3(-0.1f, -0.1f);
+        var lastPosition = holdingDeadBodyCache!.transform.position;
 
         if (MyControl.transform.position.Distance(holdingDeadBodyCache!.transform.position) < 1.8f)
             holdingDeadBodyCache!.transform.position += (targetPosition - holdingDeadBodyCache!.transform.position) * 0.15f;
         else
             holdingDeadBodyCache!.transform.position = targetPosition;
 
+        {
+            var diffSingle = holdingDeadBodyCache!.transform.position.Distance(lastPosition);
+            if (AmOwner && MyControl.CanMove) ModSingleton<AchievementManagerModule>.Instance.CorpseToken.Value += diffSingle;
+        }
 
         Vector3 playerPos = MyControl.GetTruePosition();
         Vector3 deadBodyPos = holdingDeadBodyCache!.TruePosition;
@@ -715,15 +767,27 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
         }
     }
 
+    private float lastSentAngle = 0f;
     private void UpdateMouseAngle()
     {
-        if (!requiredUpdateMouseAngle) return;
+        if (!AmOwner) return;
 
         float currentAngle = LocalMouseInfo.angle;
 
-        if (Mathf.Repeat(currentAngle - MouseAngle, Mathf.PI * 2f) > 0.02f) RpcUpdateAngle.Invoke((PlayerId, currentAngle));
-
-        requiredUpdateMouseAngle = false;
+        if (requiredUpdateMouseAngle)
+        {
+            if (Mathf.Repeat(currentAngle - lastSentAngle, Mathf.PI * 2f) > 0.02f)
+            {
+                RpcUpdateAngle.Invoke((PlayerId, currentAngle));
+                lastSentAngle = currentAngle;
+            }
+            requiredUpdateMouseAngle = false;
+        }
+        else
+        {
+            MouseAngle = currentAngle;
+        }
+        
     }
 
 
@@ -798,35 +862,34 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
         }
     }
 
+    static private TimelimitedCache<bool> canSeeFootprint = new(() => GameOperatorManager.Instance!.Run(new UpdateFootprintVisibilityEvent(NebulaGameManager.Instance!)).Visible, 0.05f);
     public void OnSetAttribute(IPlayerAttribute attribute)
     {
-        if (attribute == PlayerAttributes.CurseOfBloody)
+        IEnumerator CoFootprintUpdate(Func<Color> color, Func<bool>? predicate, float duration)
         {
-            IEnumerator CoCurseUpdate()
+            bool isLeft = false;
+
+            while (true)
             {
-                bool isLeft = false;
+                yield return new WaitForSeconds(0.24f);
+                if (!HasAttribute(attribute)) yield break;
 
-                while (true)
+                if (predicate?.Invoke() ?? true)
                 {
-                    yield return new WaitForSeconds(0.24f);
-                    if (!HasAttribute(attribute)) yield break;
-
-                    if (!MyControl.inVent && !MyControl.Data.IsDead)
-                    {
-                        if (MyControl.MyPhysics.Velocity.magnitude > 0)
-                        {
-                            var vec = MyControl.MyPhysics.Velocity.normalized * 0.08f * (isLeft ? 1f : -1f);
-                            AmongUsUtil.GenerateFootprint(MyControl.transform.position + new Vector3(-vec.y, vec.x - 0.22f), Roles.Modifier.Bloody.MyRole.UnityColor, 5f);
-                            isLeft = !isLeft;
-                        }
-                        else
-                        {
-                            AmongUsUtil.GenerateFootprint(MyControl.transform.position + new Vector3(0f, -0.22f), Roles.Modifier.Bloody.MyRole.UnityColor, 5f);
-                        }
-                    }
+                    var pos = FootprintHelpers.GetFootprintPosition(MyControl, isLeft);
+                    isLeft = !isLeft;
+                    if (pos.HasValue) AmongUsUtil.GenerateFootprint(pos.Value, color.Invoke(), duration, () => canSeeFootprint.Value);
                 }
             }
-            NebulaManager.Instance.StartCoroutine(CoCurseUpdate().WrapToIl2Cpp());
+        }
+
+        if (attribute == PlayerAttributes.CurseOfBloody)
+        {
+            NebulaManager.Instance.StartCoroutine(CoFootprintUpdate(() => Roles.Modifier.Bloody.MyRole.UnityColor, null, 5f).WrapToIl2Cpp());
+        }
+        if (attribute == PlayerAttributes.Footprint)
+        {
+            NebulaManager.Instance.StartCoroutine(CoFootprintUpdate(() => DynamicPalette.PlayerColors[CurrentOutfit.Outfit.outfit.ColorId], ()=>!HasAttribute(PlayerAttributes.CurseOfBloody), 3f).WrapToIl2Cpp());
         }
     }
 
@@ -1003,6 +1066,15 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
         ];
     public void UpdateVisibility(bool update, bool ignoreShadow = false, bool showNameText = true)
     {
+        UpdateVisibilityInner(update, ignoreShadow, showNameText, out var a, out var aIgnoresWall);
+        GameOperatorManager.Instance?.Run(new PlayerAlphaUpdateEvent(this, a, aIgnoresWall));
+        
+    }
+
+    private void UpdateVisibilityInner(bool update, bool ignoreShadow, bool showNameText, out float alpha, out float alphaIgnoresWall) 
+    {
+        alpha = 1f;
+        alphaIgnoresWall = 1f;
         try
         {
             if (update)
@@ -1051,8 +1123,10 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
                     foreach (var rend in MyControl.cosmetics.currentPet.shadows) rend.color = Color.clear;
                 }
 
-                MyControl.cosmetics.GetComponent<NebulaCosmeticsLayer>().AdditionalRenderers().Do(r => r.color = new(1f, 1f, 1f, 0.5f));
-
+                Color c = new(1f, 1f, 1f, 0.5f);
+                MyControl.cosmetics.GetComponent<NebulaCosmeticsLayer>().AdditionalRenderers().Do(r => r.color = c);
+                foreach (var r in playerAdditionalRenderers) if (r) r.color = c;
+                alpha = alphaIgnoresWall = 0.5f;
                 return;
             }
 
@@ -1090,10 +1164,13 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
                 IsInShadowCache = isInShadow;
             }
 
-            if (!ignoreShadow && IsInShadowCache) MyControl.cosmetics.nameText.transform.parent.gameObject.SetActive(false);
+            var shadowHidesPlayer =  !ignoreShadow && IsInShadowCache;
+            if (shadowHidesPlayer) MyControl.cosmetics.nameText.transform.parent.gameObject.SetActive(false);
 
-            var color = new Color(1f, 1f, 1f, (!ignoreShadow && IsInShadowCache) ? 0f : VisibilityAlpha);
-
+            alpha = shadowHidesPlayer ? 0f : VisibilityAlpha;
+            alphaIgnoresWall = VisibilityAlpha;
+            var color = new Color(1f, 1f, 1f, alpha);
+            
 
             if (MyControl.cosmetics.currentBodySprite.BodySprite != null) MyControl.cosmetics.currentBodySprite.BodySprite.color = color;
 
@@ -1136,13 +1213,14 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
         if (IsDead && ModSingleton<ShowUp>.Instance.ShowedUp(this)) MyControl.Visible = true;
 
         UpdateNameText(MyControl.cosmetics.nameText, false, NebulaGameManager.Instance?.CanSeeAllInfo ?? false);
-        UpdateRoleText(roleText);
+        UpdateRoleText(roleText, false);
 
         var viewerScale = NebulaGameManager.Instance!.WideCamera.ViewerTransform.localScale;
         var textScale = new Vector3(viewerScale.x < 0f ? -1f : 1f, viewerScale.y < 0f ? -1f : 1f, 1f);
         var textAngle = -NebulaGameManager.Instance!.WideCamera.ViewerTransform.localEulerAngles * (textScale.x * textScale.y);
         MyControl.cosmetics.nameText.transform.parent.localEulerAngles = textAngle;
         MyControl.cosmetics.nameText.transform.parent.localScale = textScale;
+        if(AmOwner) MyControl.cosmetics.nameText.transform.parent.SetWorldZ(-15f);
 
         UpdateMouseAngle();
         UpdateModulators();
@@ -1177,6 +1255,8 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
         foreach (var m in SpeedModulators) m.OnMeetingStart();
 
         FakeSabotage.OnMeetingStart();
+
+        ResetDeadBodyGoalPos();
     }
 
     //////////////////////////////////////////
@@ -1215,7 +1295,7 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
     //Virial::PlayerAPI
 
     string GamePlayer.Name => DefaultName;
-    Virial.Compat.Vector2 GamePlayer.Position => new(MyControl.transform.position);
+    Virial.Compat.Vector2 IGameObject.Position => new(MyControl.transform.position);
     Virial.Compat.Vector2 GamePlayer.TruePosition => new(MyControl.GetTruePosition());
     bool GamePlayer.CanMove => MyControl.CanMove;
     bool GamePlayer.IsDisconnected => IsDisconnected;
@@ -1229,12 +1309,22 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
         if (attribute == PlayerAttributes.Accel || attribute == PlayerAttributes.Decel) return;
         RpcAttrModulator.Invoke(new(PlayerId, new AttributeModulator(attribute, duration, canPassMeeting, priority, duplicateTag), false));
     }
-    void GamePlayer.GainAttribute(float speedRate, float duration, bool canPassMeeting, int priority, string? duplicateTag) => RpcAttrModulator.Invoke(new(PlayerId, new SpeedModulator(speedRate, Vector2.one, true, duration, canPassMeeting, priority, duplicateTag ?? ""), false));
+    void GamePlayer.GainAttribute(IPlayerAttribute attribute, float duration, float ratio, bool canPassMeeting, int priority, string? duplicateTag)
+    {
+        if (attribute == PlayerAttributes.Accel || attribute == PlayerAttributes.Decel) return;
+        RpcAttrModulator.Invoke(new(PlayerId, new FloatModulator(attribute, duration, ratio, canPassMeeting, priority, duplicateTag), false));
+    }
+    void GamePlayer.GainSizeAttribute(Virial.Compat.Vector2 size, float duration, bool canPassMeeting, int priority, string? duplicateTag)
+    {
+        RpcAttrModulator.Invoke(new(PlayerId, new SizeModulator(size, duration, canPassMeeting, priority, duplicateTag), false));
+    }
+    void GamePlayer.GainSpeedAttribute(float speedRate, float duration, bool canPassMeeting, int priority, string? duplicateTag) => RpcAttrModulator.Invoke(new(PlayerId, new SpeedModulator(speedRate, Vector2.one, true, duration, canPassMeeting, priority, duplicateTag ?? ""), false));
     IEnumerable<(IPlayerAttribute attribute, float percentage)> GamePlayer.GetAttributes() => GetValidAttributes();
 
     // Virial::OutfitAPI
 
     Virial.Game.OutfitDefinition GamePlayer.GetOutfit(int maxPriority) => GetOutfit(maxPriority).Outfit;
+
     Virial.Game.OutfitDefinition GamePlayer.CurrentOutfit => CurrentOutfit.Outfit;
     Virial.Game.OutfitDefinition GamePlayer.DefaultOutfit => DefaultOutfit.Outfit;
 
@@ -1243,4 +1333,9 @@ internal class PlayerModInfo : AbstractModuleContainer, IRuntimePropertyHolder, 
     PlayerControl GamePlayer.VanillaPlayer => MyControl;
     DeadBody? GamePlayer.RelatedDeadBody { get { if (!relatedDeadBodyCache) relatedDeadBodyCache = null; return relatedDeadBodyCache; } }
     internal DeadBody? relatedDeadBodyCache;
+
+    // Virial::PlayerlikeAPI
+
+    GamePlayer IPlayerlike.RealPlayer => this;
+    GamePlayer IPlayerlike.VisualPlayer => this;
 }

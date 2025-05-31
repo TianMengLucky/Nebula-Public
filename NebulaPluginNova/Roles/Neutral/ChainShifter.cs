@@ -13,11 +13,11 @@ namespace Nebula.Roles.Neutral;
 [NebulaRPCHolder]
 public class ChainShifter : DefinedRoleTemplate, HasCitation, DefinedRole
 {
-    static public RoleTeam MyTeam = new Team("teams.chainShifter", new(115, 115, 115), TeamRevealType.OnlyMe);
+    static readonly public RoleTeam MyTeam = NebulaAPI.Preprocessor!.CreateTeam("teams.chainShifter", new(115, 115, 115), TeamRevealType.OnlyMe);
 
     private ChainShifter() : base("chainShifter", MyTeam.Color, RoleCategory.NeutralRole, MyTeam, [VentConfiguration, ShiftCoolDown, CanCallEmergencyMeetingOption]) { }
 
-    Citation? HasCitation.Citaion => Citations.TheOtherRolesGM;
+    Citation? HasCitation.Citation => Citations.TheOtherRolesGM;
     RuntimeRole RuntimeAssignableGenerator<RuntimeRole>.CreateInstance(GamePlayer player, int[] arguments) => new Instance(player);
 
     static private IVentConfiguration VentConfiguration = NebulaAPI.Configurations.NeutralVentConfiguration("role.chainShifter.vent", true);
@@ -30,53 +30,42 @@ public class ChainShifter : DefinedRoleTemplate, HasCitation, DefinedRole
     bool IGuessed.CanBeGuessDefault => false;
 
 
-    public class Instance : RuntimeAssignableTemplate, RuntimeRole
+    public class Instance : RuntimeVentRoleTemplate, RuntimeRole
     {
-        DefinedRole RuntimeRole.Role => MyRole;
+        public override DefinedRole Role => MyRole;
 
-        private Modules.ScriptComponents.ModAbilityButton? chainShiftButton = null;
+        private Modules.ScriptComponents.ModAbilityButtonImpl? chainShiftButton = null;
 
         static private Image buttonSprite = SpriteLoader.FromResource("Nebula.Resources.Buttons.ChainShiftButton.png", 115f);
-
-
-        private GameTimer ventCoolDown = (new Timer(VentConfiguration.CoolDown).SetAsAbilityCoolDown().Start() as GameTimer).ResetsAtTaskPhase();
-        private GameTimer ventDuration = new Timer(VentConfiguration.Duration);
-        private bool canUseVent = VentConfiguration.CanUseVent;
-        GameTimer? RuntimeRole.VentCoolDown => ventCoolDown;
-        GameTimer? RuntimeRole.VentDuration => ventDuration;
-        bool RuntimeRole.CanUseVent => canUseVent;
         
-        public Instance(GamePlayer player) : base(player)
+        public Instance(GamePlayer player) : base(player, VentConfiguration)
         {
         }
 
         private GamePlayer? shiftTarget = null;
         private bool canExecuteShift = false;
 
-        void RuntimeAssignable.OnActivated()
+        public override void OnActivated()
         {
             if (AmOwner)
             {
                 PoolablePlayer? shiftIcon = null;
 
-                var playerTracker = Bind(ObjectTrackers.ForPlayer(null, MyPlayer, ObjectTrackers.StandardPredicate));
+                var playerTracker = ObjectTrackers.ForPlayer(null, MyPlayer, ObjectTrackers.StandardPredicate).Register(this);
 
-                chainShiftButton = Bind(new Modules.ScriptComponents.ModAbilityButton()).KeyBind(Virial.Compat.VirtualKeyInput.Ability);
-                chainShiftButton.SetSprite(buttonSprite.GetSprite());
-                chainShiftButton.Availability = (button) => playerTracker.CurrentTarget != null && MyPlayer.CanMove && shiftTarget == null;
-                chainShiftButton.Visibility = (button) => !MyPlayer.IsDead;
+                var chainShiftButton =NebulaAPI.Modules.AbilityButton(this, MyPlayer, Virial.Compat.VirtualKeyInput.Ability,
+                    ShiftCoolDown, "shift", buttonSprite,
+                    _ => playerTracker.CurrentTarget != null && shiftTarget == null);
                 chainShiftButton.OnClick = (button) => {
                     shiftTarget = playerTracker.CurrentTarget;
-                    shiftIcon = chainShiftButton.GeneratePlayerIcon(shiftTarget);
+                    shiftIcon = (chainShiftButton as ModAbilityButtonImpl)?.GeneratePlayerIcon(shiftTarget);
                     RpcCheckShift.Invoke((MyPlayer, shiftTarget!));
                 };
-                chainShiftButton.OnMeeting = (button) =>
+                GameOperatorManager.Instance?.Subscribe<MeetingStartEvent>(ev =>
                 {
                     if (shiftIcon) GameObject.Destroy(shiftIcon!.gameObject);
                     shiftIcon = null;
-                };
-                chainShiftButton.CoolDownTimer = Bind(new Timer(ShiftCoolDown).SetAsAbilityCoolDown().Start());
-                chainShiftButton.SetLabel("shift");
+                }, this);
             }
         }
 
@@ -109,7 +98,13 @@ public class ChainShifter : DefinedRoleTemplate, HasCitation, DefinedRole
                 yield return player.CoGetRoleArgument((args) => targetArgument = args);
                 yield return player.CoGetLeftGuess((guess) => targetGuess = guess);
 
-                int myGuess = MyPlayer.Unbox().TryGetModifier<GuesserModifier.Instance>(out var guesser) ? guesser.LeftGuess : -1;
+                int myGuess = MyPlayer.TryGetModifier<GuesserModifier.Instance>(out var guesser) ? guesser.LeftGuess : -1;
+
+                bool targetMJailer = player.TryGetModifier<Impostor.JailerModifier.Instance>(out _);
+                bool myMJailer = MyPlayer.TryGetModifier<Impostor.JailerModifier.Instance>(out _);
+
+                bool targetMadmate = player.TryGetModifier<Modifier.Madmate.Instance>(out _);
+                bool myMadmate = MyPlayer.TryGetModifier<Modifier.Madmate.Instance>(out _);
 
                 using (RPCRouter.CreateSection("ChainShift"))
                 {
@@ -152,6 +147,34 @@ public class ChainShifter : DefinedRoleTemplate, HasCitation, DefinedRole
 
                     if (myGuess != -1) player.RpcInvokerSetModifier(GuesserModifier.MyRole, new int[] { myGuess }).InvokeSingle();
                     if (targetGuess != -1) MyPlayer.Unbox().RpcInvokerSetModifier(GuesserModifier.MyRole, new int[] { targetGuess }).InvokeSingle();
+
+                    if(myMJailer != targetMJailer)
+                    {
+                        if (myMJailer)
+                        {
+                            MyPlayer.Unbox().RpcInvokerUnsetModifier(Impostor.JailerModifier.MyRole).InvokeSingle();
+                            player.RpcInvokerSetModifier(Impostor.JailerModifier.MyRole, []).InvokeSingle();
+                        }
+                        else
+                        {
+                            MyPlayer.Unbox().RpcInvokerSetModifier(Impostor.JailerModifier.MyRole, []).InvokeSingle();
+                            player.RpcInvokerUnsetModifier(Impostor.JailerModifier.MyRole).InvokeSingle();
+                        }
+                    }
+
+                    if (myMadmate != targetMadmate)
+                    {
+                        if (myMadmate)
+                        {
+                            MyPlayer.Unbox().RpcInvokerUnsetModifier(Modifier.Madmate.MyRole).InvokeSingle();
+                            player.RpcInvokerSetModifier(Modifier.Madmate.MyRole, []).InvokeSingle();
+                        }
+                        else
+                        {
+                            MyPlayer.Unbox().RpcInvokerSetModifier(Modifier.Madmate.MyRole, []).InvokeSingle();
+                            player.RpcInvokerUnsetModifier(Modifier.Madmate.MyRole).InvokeSingle();
+                        }
+                    }
 
                     new NebulaRPCInvoker(() => MyPlayer.Unbox().UpdateTaskState()).InvokeSingle();
                 }

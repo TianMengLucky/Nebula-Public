@@ -1,6 +1,6 @@
 ﻿using Cpp2IL.Core.Extensions;
 using Hazel;
-using Nebula.Behaviour;
+using Nebula.Behavior;
 using Nebula.Utilities;
 using System.Reflection;
 using UnityEngine.Audio;
@@ -35,6 +35,17 @@ public enum NebulaAudioClip {
     ExplosionNear,
     MeteorAlert,
     SpectreEat,
+    BalloonBounce,
+    BalloonFailed,
+    BalloonPop,
+    BalloonKill,
+    BalloonRock,
+    Climber1,
+    Climber2,
+    Slingshot,
+    ButtonBreaking,
+    SnatcherSuccess,
+    SnatcherFailed,
 }
 
 public static class SoundManagerHelper
@@ -76,13 +87,15 @@ public static class NebulaAsset
     private static T Load<T>(string path) where T : UnityEngine.Object => AssetBundle.LoadAsset<T>(path).MarkDontUnload();
     public static IEnumerator Preprocess(NebulaPreprocessor preprocessor)
     {
-        yield return preprocessor.SetLoadingText("Loading Map Expansions");
+        yield return preprocessor.SetLoadingText("Loading Assets");
 
         var resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Nebula.Resources.Assets.nebula_asset");
         AssetBundle = AssetBundle.LoadFromMemory(resourceStream!.ReadBytes());
-        
+
+        MultiplyShader = Load<Shader>("Sprites-Multiply");
         MultiplyBackShader = Load<Shader>("Sprites-MultiplyBackground");
         StoreBackShader = Load<Shader>("Sprites-StoreBackground");
+        CustomShadowShader = Load<Shader>("Sprites-CustomShadow");
         GuageShader = Load<Shader>("Sprites-Guage");
         WhiteShader = Load<Shader>("Sprites-White");
         ProgressShader = Load<Shader>("Sprites-Progress");
@@ -90,6 +103,7 @@ public static class NebulaAsset
         HSVNAShader = Load<Shader>("Sprites-HSV-NoAlpha");
         MeshRendererShader = Load<Shader>("Sprites-ForMeshRenderer");
         MeshRendererMaskedShader = Load<Shader>("Sprites-ForMeshRendererMasked");
+        RingMenuShader = Load<Shader>("Sprites-RingMenu");
 
         DivMap[0] = Load<GameObject>("SkeldDivMap");
         DivMap[1] = Load<GameObject>("MIRADivMap");
@@ -122,9 +136,22 @@ public static class NebulaAsset
         audioMap[NebulaAudioClip.ExplosionNear] = Load<AudioClip>("ExplosionNear.mp3");
         audioMap[NebulaAudioClip.MeteorAlert] = Load<AudioClip>("MeteorAlert.mp3");
         audioMap[NebulaAudioClip.SpectreEat] = Load<AudioClip>("SpectreFriedSE.ogg");
+        audioMap[NebulaAudioClip.BalloonBounce] = Load<AudioClip>("BalloonBounce.ogg");
+        audioMap[NebulaAudioClip.BalloonFailed] = Load<AudioClip>("BalloonFailed.ogg");
+        audioMap[NebulaAudioClip.BalloonPop] = Load<AudioClip>("BalloonPop.mp3");
+        audioMap[NebulaAudioClip.BalloonKill] = Load<AudioClip>("BalloonKill.ogg");
+        audioMap[NebulaAudioClip.BalloonRock] = Load<AudioClip>("BalloonRock.ogg");
+        audioMap[NebulaAudioClip.Climber1] = Load<AudioClip>("Climber1.mp3");
+        audioMap[NebulaAudioClip.Climber2] = Load<AudioClip>("Climber2.mp3");
+        audioMap[NebulaAudioClip.Slingshot] = Load<AudioClip>("Slingshot.ogg");
+        audioMap[NebulaAudioClip.ButtonBreaking] = Load<AudioClip>("ButtonBreaking.mp3");
+        audioMap[NebulaAudioClip.SnatcherSuccess] = Load<AudioClip>("SnatcherSuccess.mp3");
+        audioMap[NebulaAudioClip.SnatcherFailed] = Load<AudioClip>("SnatcherFailed.mp3");
+        BrokenShaderMat = Load<Material>("BrokenShaderMat");
 
         PaparazzoShot = Load<GameObject>("PhotoObject");
         FriesMinigame = Load<GameObject>("SpectreFriedMinigame");
+        SlingshotInMinigame = Load<GameObject>("Slingshot");
 
         JusticeFont = new FontAssetNoS(JsonStructure.Deserialize<FontAssetNoSInfo>(StreamHelper.OpenFromResource("Nebula.Resources.JusticeFont.json")!)!, new ResourceTextureLoader("Nebula.Resources.JusticeFont.png"));
     }
@@ -143,7 +170,7 @@ public static class NebulaAsset
     {
         GameObject prefab = DivMap[mapId];
         if (prefab == null) return null!;
-        if (size == null) size = prefab.transform.GetChild(0).GetChild(0).GetComponent<SpriteRenderer>().sprite.bounds.size * 100f;
+        if (size == null) size = prefab.transform.GetChild(0).GetComponent<SpriteRenderer>().sprite.bounds.size * 100f;
         var obj = GameObject.Instantiate(prefab);
         Camera cam = obj.AddComponent<Camera>();
         cam.orthographic = true;
@@ -160,8 +187,8 @@ public static class NebulaAsset
             for (int i = 0; i < children; i++)
             {
                 var c = obj.transform.GetChild(i);
-                c.GetChild(0).gameObject.SetActive((mask & 1) == 0);
-                c.GetChild(1).gameObject.SetActive((mask & 1) == 1);
+                bool enable = (mask & 1) == 1;
+                c.GetComponent<Renderer>().material.SetFloat("_Coeff", enable ? 1f : 0.35f);
                 c.transform.localPosition += new Vector3(0, 0, 1);
                 mask >>= 1;
             }
@@ -191,8 +218,10 @@ public static class NebulaAsset
     }
 
     static public FontAssetNoS JusticeFont { get; private set; } = null!;
+    static public Shader MultiplyShader { get; private set; } = null!;
     static public Shader MultiplyBackShader { get; private set; } = null!;
     static public Shader StoreBackShader { get; private set; } = null!;
+    static public Shader CustomShadowShader { get; private set; } = null!;
     static public Shader GuageShader { get; private set; } = null!;
     static public Shader WhiteShader { get; private set; } = null!;
     static public Shader ProgressShader { get; private set; } = null!;
@@ -200,10 +229,13 @@ public static class NebulaAsset
     static public Shader HSVNAShader { get; private set; } = null!;
     static public Shader MeshRendererShader { get; private set; } = null!;
     static public Shader MeshRendererMaskedShader { get; private set; } = null!;
+    static public Shader RingMenuShader { get; private set; } = null!;
 
     static public ResourceExpandableSpriteLoader SharpWindowBackgroundSprite = new("Nebula.Resources.StatisticsBackground.png", 100f,5,5);
+    static public Material BrokenShaderMat { get; private set; } = null!;
     static public GameObject PaparazzoShot { get; private set; } = null!;
     static public GameObject FriesMinigame { get; private set; } = null!;
+    static public GameObject SlingshotInMinigame { get; private set; } = null!;
 
     static public SpriteRenderer CreateSharpBackground(Vector2 size, Color color, Transform transform)
     {
@@ -222,7 +254,16 @@ public static class NebulaAsset
     }
 
     public static GameObject[] DivMap { get; private set; } = new GameObject[6];
-    private static Dictionary<NebulaAudioClip, AudioClip> audioMap = new();
+    private static Dictionary<NebulaAudioClip, AudioClip> audioMap = [];
+
+    public static void PlayNamedLoopSE(NebulaAudioClip clip, string name, float volume = 0.8f, float pitch = 1.0f)
+    {
+        var source = SoundManager.Instance.PlayNamedSound(name, audioMap[clip], true, SoundManager.Instance.SfxChannel);
+        source.volume = volume;
+        source.pitch = pitch;
+    }
+
+    public static void StopNamedSE(string name) => SoundManager.Instance.StopNamedSound(name);
 
     public static void PlaySE(NebulaAudioClip clip, bool oneshot = false, float volume = 0.8f, float pitch = 1.0f)
     {

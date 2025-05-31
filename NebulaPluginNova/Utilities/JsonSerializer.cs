@@ -63,8 +63,12 @@ public static class JsonStructure
 
         if (type.Equals(typeof(int)))
             return int.TryParse(trimmed, out var num) ? num : 0;
+        if (type.Equals(typeof(ushort)))
+            return ushort.TryParse(trimmed, out var num) ? num : (ushort)0;
         if (type.Equals(typeof(long)))
             return long.TryParse(trimmed, out var num) ? num : 0L;
+        if (type.Equals(typeof(ulong)))
+            return ulong.TryParse(trimmed, out var num) ? num : 0UL;
         if (type.Equals(typeof(char)))
         {
             if (json.Length >= 2 && json.StartsWith("%"))
@@ -340,8 +344,12 @@ public static class JsonStructure
             return "null";
         }
 
-        if (obj is int or byte or float or double or bool or long)
+        if (obj is int or byte or bool or long)
             return obj.ToString() ?? "null";
+        if (obj is float fNum)
+            return fNum.ToString(CultureInfo.InvariantCulture);
+        if (obj is double dNum)
+            return dNum.ToString(CultureInfo.InvariantCulture);
         if (obj is string)
             return "\"" + obj + "\"";
         if (obj is IDictionary dic && dic.GetType().GenericTypeArguments[0] == typeof(string))

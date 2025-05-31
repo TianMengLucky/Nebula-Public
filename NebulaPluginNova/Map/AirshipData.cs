@@ -4,8 +4,7 @@ namespace Nebula.Map;
 
 public class AirshipData : MapData
 {
-    static private Vector2[] MapPositions = new Vector2[]
-        { 
+    static private readonly Vector2[] MapPositions = [ 
         //金庫
         new(-9f, 12.8f), new(-8.7f, 4.9f), new(-12.8f, 8.7f), new(-4.8f, 8.7f), new(-7.1f, 6.8f), new(-10.4f, 6.9f), new(-7f, 10.2f),
         //宿舎前
@@ -56,9 +55,20 @@ public class AirshipData : MapData
         new(3.8f, 8.8f),
         //ミーティング
         new(6.5f, 15.3f), new(11.8f, 14.1f), new(11.8f, 16f), new(16.3f, 15.2f),
-        };
+        ];
 
-    static private MapObjectPoint[] mapObjectPoints = [
+    static private readonly (AdditionalRoomArea area, string key, bool detailRoom)[] additionalRooms = [
+        (new(-12.50f, -1.01f, 4.36f, 1.61f), "commHall", false)
+        ];
+    static private readonly (SystemTypes room, AdditionalRoomArea area, string key)[] overrideRooms = [
+        (SystemTypes.Security, new(8.04f, -15.64f, 3.45f, 2.11f), "securityDeck"),
+        (SystemTypes.Engine, new(-1.08f, 4.78f, 1.99f, 3.34f), "engineUpper"),
+        (SystemTypes.Showers, new(22.52f, 2.85f, 2.59f, 1.09f), "showerInner"),
+        (SystemTypes.CargoBay, new(37.83f, -3.12f, 2.36f, 1.41f), "cargoSafe"),
+        (SystemTypes.MeetingRoom, new(16.56f, 15.66f, 1.84f, 1.84f), "meetingRight")
+        ];
+
+    static private readonly MapObjectPoint[] mapObjectPoints = [
         new(-9.9f, 12.0f, MapObjectType.SmallInCorner | MapObjectType.Reachable | MapObjectType.SmallOrTabletopOutOfSight), //金庫上
         new(-5.8f, 5.5f, MapObjectType.SmallInCorner | MapObjectType.Reachable), //金庫右下
         new(-8.7f, 4.9f, MapObjectType.SmallOrTabletopOutOfSight), //金庫下
@@ -127,13 +137,19 @@ public class AirshipData : MapData
     public override MapObjectPoint[] MapObjectPoints => mapObjectPoints;
     protected override Vector2[] MapArea => MapPositions;
     protected override Vector2[] NonMapArea => [];
+    protected override (AdditionalRoomArea area, string key, bool detailRoom)[] AdditionalRooms => additionalRooms;
+    protected override (SystemTypes room, AdditionalRoomArea area, string key)[] OverrideRooms => overrideRooms;
 
-    protected override SystemTypes[] SabotageTypes => new SystemTypes[] { SystemTypes.HeliSabotage, SystemTypes.Comms, SystemTypes.Electrical };
+    protected override SystemTypes[] SabotageTypes => [SystemTypes.HeliSabotage, SystemTypes.Comms, SystemTypes.Electrical];
     override public Vector2[][] RaiderIgnoreArea { get => [
         [new(9.87f,9.78f),new(9.87f,7.8f), new(5.81f,7.8f),new(5.81f,9.78f)],//昇降機上
         [new(10.64f,6.39f), new(10.64f, 5.49f), new(10.1f, 5.49f), new(10.1f, 6.39f)],//昇降機下
         [new(26.66f,1.16f),new(28.17f,1.16f),new(28.17f,-2.5f),new(26.66f,-2.5f)],//通気口
         [new(3.92f,14.25f),new(5.13f,14.25f), new(5.13f, 13.85f),new(3.92f,13.85f)],//ミーティング
+        [new(9.8f, -14.5f), new(9.8f, -17.5f), new(4.2f, -17.5f), new(4.2f, -14.5f)],//セキュ下展望
+        [new(5.5f, -14.5f), new(5.5f, -17.5f), new(4.8f, -17.5f), new(4.8f, -14.5f)],//セキュ下展望左端
+        [new(-11.7f, -14f), new(-11.7f, -18f), new(-13.7f, -18f), new(-13.7f, -14f)],//左展望
+
         ]; }
 
     protected override IDividedSpriteLoader SealedVentSprite => SkeldData.SealedVentSpriteSkeld;
@@ -147,4 +163,12 @@ public class AirshipData : MapData
     internal static IDividedSpriteLoader SealedDoorSpriteAirshipV = DividedSpriteLoader.FromResource("Nebula.Resources.Sealed.SealedDoorAirshipV.png", 100f, 8, 2);
     protected override IDividedSpriteLoader GetSealedDoorSprite(bool isVert) => isVert ? SealedDoorSpriteAirshipV : SealedDoorSpriteAirshipH;
     override public Vector3 GetDoorSealingPos(OpenableDoor door, bool isVert) => door.name == "door_vault" ? new(-0.082f, 0.56f, -0.01f) : isVert ? new(-0.005f, 0.56f, -0.01f) : new(0f, -0.1f, -0.01f);
+
+    public override WindType GetWindType(Vector2 position)
+    {
+        if (position.y < -14.08f) return WindType.AirshipOutside;
+        if (25.26f < position.x && position.x < 29.66f && -3.7f < position.y && position.y < 2.4f) return WindType.AirshipVentilation;
+        if (2.9f < position.x && position.x < 16.1f && 5.7f < position.y && position.y < 11.9f) return WindType.AirshipGapRoom;
+        return WindType.NoWind;
+    }
 }

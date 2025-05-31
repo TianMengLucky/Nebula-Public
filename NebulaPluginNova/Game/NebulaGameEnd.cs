@@ -1,4 +1,4 @@
-﻿using Nebula.Behaviour;
+﻿using Nebula.Behavior;
 using Virial.Game;
 using Nebula.Roles.Modifier;
 using Virial;
@@ -11,86 +11,34 @@ using UnityEngine.Rendering;
 
 namespace Nebula.Game;
 
-public class CustomEndCondition : Virial.Game.GameEnd
-{
-    static private HashSet<CustomEndCondition> allEndConditions= new();
-    static internal IEnumerable<CustomEndCondition> AllEndConditions => allEndConditions;
-    static public CustomEndCondition? GetEndCondition(byte id) => allEndConditions.FirstOrDefault(end => end.Id == id);
-    
-    public byte Id { get; init; }
-    public string LocalizedName { get; init; }
-    public string DisplayText => Language.Translate("end." + LocalizedName);
-    public Color Color { get; init; }
-    public int Priority { get; init; }
-    public bool AllowWin { get; set; }
-
-    //優先度が高いほど他の勝利を無視して勝利する
-    public CustomEndCondition(byte id,string localizedName,Color color,int priority)
-    {
-        Id = id;
-        LocalizedName = localizedName;
-        Color = color;
-        Priority = priority;
-        AllowWin = true;
-
-        allEndConditions.Add(this);
-    }
-}
-
-public class CustomExtraWin : ExtraWin
-{
-    static private HashSet<CustomExtraWin> allExtraWin = new();
-    static public CustomExtraWin? GetEndCondition(byte id) => allExtraWin.FirstOrDefault(end => end.Id == id);
-    static public IEnumerable<CustomExtraWin> AllExtraWins => allExtraWin;
-    public byte Id { get; private set; }
-    public ulong ExtraWinMask => 1ul << Id;
-    public string LocalizedName { get; init; }
-    public string DisplayText => Language.Translate("end.extra." + LocalizedName).Color(Color);
-    public Color Color { get; init; }
-
-    public CustomExtraWin(byte id,string localizedName,Color color)
-    {
-        Id = id;
-        LocalizedName = localizedName;
-        Color = color;
-
-        allExtraWin.Add(this);
-    }
-}
-
 [NebulaRPCHolder]
 [NebulaPreprocess(PreprocessPhase.PostRoles)]
 public class NebulaGameEnd
 {
     static private Color InvalidColor = new Color(72f / 255f, 78f / 255f, 84f / 255f);
-    static public CustomEndCondition CrewmateWin = new(16, "crewmate", Palette.CrewmateBlue, 16);
-    static public CustomEndCondition ImpostorWin = new(17, "impostor", Palette.ImpostorRed, 16);
-    static public CustomEndCondition JackalWin = new(26, "jackal", Roles.Neutral.Jackal.MyRole.UnityColor, 18);
-    static public CustomEndCondition VultureWin = new(24, "vulture", Roles.Neutral.Vulture.MyRole.UnityColor, 32);
-    static public CustomEndCondition JesterWin = new(25, "jester", Roles.Neutral.Jester.MyRole.UnityColor, 32);
-    static public CustomEndCondition ArsonistWin = new(27, "arsonist", Roles.Neutral.Arsonist.MyRole.UnityColor, 32);
-    static public CustomEndCondition LoversWin = new(28, "lover", Roles.Modifier.Lover.MyRole.UnityColor, 19);
-    static public CustomEndCondition PaparazzoWin = new(29, "paparazzo", Roles.Neutral.Paparazzo.MyRole.UnityColor, 31);
-    static public CustomEndCondition AvengerWin = new(30, "avenger", Roles.Neutral.Avenger.MyRole.UnityColor, 62);
-    static public CustomEndCondition DancerWin = new(31, "dancer", Roles.Neutral.Dancer.MyRole.UnityColor, 32);
-    static public CustomEndCondition ScarletWin = new(32, "scarlet", Roles.Neutral.Scarlet.MyRole.UnityColor, 64);
-    static public CustomEndCondition SpectreWin = new(33, "spectre", Roles.Neutral.Spectre.MyRole.UnityColor, 63);
-    static public CustomEndCondition NoGame = new(128, "nogame", InvalidColor, 128) { AllowWin = false };
+    static public readonly GameEnd CrewmateWin = new(16, "crewmate", Palette.CrewmateBlue, 16);
+    static public readonly GameEnd ImpostorWin = new(17, "impostor", Palette.ImpostorRed, 16);
+    static public readonly GameEnd JackalWin = new(26, "jackal", Roles.Neutral.Jackal.MyRole.UnityColor, 18);
+    static public readonly GameEnd VultureWin = new(24, "vulture", Roles.Neutral.Vulture.MyRole.UnityColor, 32);
+    static public readonly GameEnd JesterWin = new(25, "jester", Roles.Neutral.Jester.MyRole.UnityColor, 32);
+    static public readonly GameEnd ArsonistWin = new(27, "arsonist", Roles.Neutral.Arsonist.MyRole.UnityColor, 32);
+    static public readonly GameEnd LoversWin = new(28, "lover", Roles.Modifier.Lover.MyRole.UnityColor, 19);
+    static public readonly GameEnd PaparazzoWin = new(29, "paparazzo", Roles.Neutral.Paparazzo.MyRole.UnityColor, 31);
+    static public readonly GameEnd AvengerWin = new(30, "avenger", Roles.Neutral.Avenger.MyRole.UnityColor, 62);
+    static public readonly GameEnd DancerWin = new(31, "dancer", Roles.Neutral.Dancer.MyRole.UnityColor, 32);
+    static public readonly GameEnd ScarletWin = new(32, "scarlet", Roles.Neutral.Scarlet.MyRole.UnityColor, 64);
+    static public readonly GameEnd SpectreWin = new(33, "spectre", Roles.Neutral.Spectre.MyRole.UnityColor, 63);
+    static public readonly GameEnd TrilemmaWin = new(34, "trilemma", Roles.Modifier.Trilemma.MyRole.UnityColor, 61);
+    static public readonly GameEnd GamblerWin = new(35, "gambler", Roles.Neutral.Gambler.MyRole.UnityColor, 30);
+    static public readonly GameEnd NoGame = new(63, "nogame", InvalidColor, 128) { AllowWin = false };
 
-    static public CustomExtraWin ExtraLoversWin = new(0, "lover", Roles.Modifier.Lover.MyRole.UnityColor);
-    static public CustomExtraWin ExtraObsessionalWin = new(1, "obsessional", Roles.Modifier.Obsessional.MyRole.UnityColor);
-    static public CustomExtraWin ExtraGrudgeWin = new(2, "grudge", Roles.Ghost.Neutral.Grudge.MyRole.UnityColor);
+    static public readonly ExtraWin ExtraLoversWin = new(0, "lover", (Roles.Modifier.Lover.MyRole as DefinedAssignable).Color);
+    static public readonly ExtraWin ExtraObsessionalWin = new(1, "obsessional", (Roles.Modifier.Obsessional.MyRole as DefinedAssignable).Color);
+    static public readonly ExtraWin ExtraGrudgeWin = new(2, "grudge", (Roles.Ghost.Neutral.Grudge.MyRole as DefinedAssignable).Color);
+    static public readonly ExtraWin ExtraTrilemmaWin = new(3, "trilemma", (Roles.Modifier.Trilemma.MyRole as DefinedAssignable).Color);
 
     static void Preprocess(NebulaPreprocessor preprocessor)
     {
-        Virial.Game.NebulaGameEnds.CrewmateGameEnd = CrewmateWin;
-        Virial.Game.NebulaGameEnds.ImpostorGameEnd = ImpostorWin;
-        Virial.Game.NebulaGameEnds.VultureGameEnd = VultureWin;
-        Virial.Game.NebulaGameEnds.JesterGameEnd = JesterWin;
-        Virial.Game.NebulaGameEnds.JackalGameEnd = JackalWin;
-        Virial.Game.NebulaGameEnds.ArsonistGameEnd = ArsonistWin;
-        Virial.Game.NebulaGameEnds.PaparazzoGameEnd = PaparazzoWin;
-
         //Tipsの追加
         string ImpostorTeam(string text) => text.Replace("%IMPOSTOR%", Language.Translate("document.tip.winCond.teams.impostor").Color(Roles.Impostor.Impostor.MyTeam.UnityColor));
         string JackalTeam(string text) => text.Replace("%JACKAL%", Language.Translate("document.tip.winCond.teams.jackal").Color(Roles.Neutral.Jackal.MyTeam.UnityColor));
@@ -98,11 +46,12 @@ public class NebulaGameEnd
         RegisterWinCondTip(CrewmateWin, () => true, "crewmate.task");
         RegisterWinCondTip(CrewmateWin, () => true, "crewmate.exile", text => ImpostorTeam(JackalTeam(text)));
         RegisterWinCondTip(ImpostorWin, () => true, "impostor.kill", text => ImpostorTeam(JackalTeam(LoverTeam(text))));
-        RegisterWinCondTip(ImpostorWin, () => true, "impostor.extinction", text => LoverTeam(text));
+        //RegisterWinCondTip(ImpostorWin, () => true, "impostor.extinction", text => LoverTeam(text));
         RegisterWinCondTip(ImpostorWin, () => true, "impostor.sabotage");
         RegisterWinCondTip(JackalWin, () => (Roles.Neutral.Jackal.MyRole as ISpawnable).IsSpawnable, "jackal.kill", text => ImpostorTeam(JackalTeam(LoverTeam(text))));
         RegisterWinCondTip(JackalWin, () => (Roles.Neutral.Jackal.MyRole as ISpawnable).IsSpawnable, "jackal.extinction", text => LoverTeam(text));
         RegisterWinCondTip(JesterWin, () => (Roles.Neutral.Jester.MyRole as ISpawnable).IsSpawnable, "jester");
+        RegisterWinCondTip(GamblerWin, () => (Roles.Neutral.Gambler.MyRole as ISpawnable).IsSpawnable, "gambler", text => text.Replace("%NUM%", Roles.Neutral.Gambler.GoalChipsOption.GetValue().ToString()));
         RegisterWinCondTip(VultureWin, () => GeneralConfigurations.NeutralSpawnable && (Roles.Neutral.Vulture.MyRole as ISpawnable).IsSpawnable, "vulture");
         RegisterWinCondTip(ArsonistWin, () => GeneralConfigurations.NeutralSpawnable && (Roles.Neutral.Arsonist.MyRole as ISpawnable).IsSpawnable, "arsonist");
         RegisterWinCondTip(PaparazzoWin, () => GeneralConfigurations.NeutralSpawnable && (Roles.Neutral.Paparazzo.MyRole as ISpawnable).IsSpawnable, "paparazzo");
@@ -112,6 +61,7 @@ public class NebulaGameEnd
         RegisterWinCondTip(AvengerWin, () => (Roles.Modifier.Lover.MyRole as ISpawnable).IsSpawnable && Roles.Modifier.Lover.AvengerModeOption, "avenger");
         RegisterWinCondTip(DancerWin, () => GeneralConfigurations.NeutralSpawnable && (Roles.Neutral.Dancer.MyRole as ISpawnable).IsSpawnable, "dancer");
         RegisterWinCondTip(SpectreWin, () => (Roles.Neutral.Spectre.MyRole as ISpawnable).IsSpawnable, "spectre");
+        RegisterWinCondTip(TrilemmaWin, () => (Roles.Modifier.Trilemma.MyRole as ISpawnable).IsSpawnable && Roles.Modifier.Trilemma.WinConditionOption.GetValue() == 2, "trilemma");
     }
 
     private static void RegisterWinCondTip(GameEnd gameEnd, Func<bool> predicate, string name, Func<string,string>? decorator = null)
@@ -129,11 +79,11 @@ public class NebulaGameEnd
        {
            if (NebulaGameManager.Instance != null)
            {
-               var end = CustomEndCondition.GetEndCondition(message.conditionId) ?? NebulaGameEnd.NoGame;
-               var originalEnd = CustomEndCondition.GetEndCondition(message.originalConditionId) ?? NebulaGameEnd.NoGame;
+               var end = GameEnd.TryGet(message.conditionId, out var e1) ? e1 : NebulaGameEnd.NoGame;
+               var originalEnd = GameEnd.TryGet(message.originalConditionId, out var e2) ? e2 : NebulaGameEnd.NoGame;
                var winners = BitMasks.AsPlayer((uint)message.winnersMask);
                EditableBitMask<ExtraWin> extraWin = new HashSetMask<ExtraWin>();
-               foreach(var exW in CustomExtraWin.AllExtraWins) if((exW.ExtraWinMask & message.extraWinMask) != 0) extraWin.Add(exW);
+               foreach(var exW in ExtraWin.AllExtraWins) if((exW.ExtraWinMask & message.extraWinMask) != 0) extraWin.Add(exW);
 
                NebulaGameManager.Instance.EndState ??= new EndState(winners, end, message.endReason, originalEnd, message.originalEndReason, extraWin);
                NebulaGameManager.Instance.OnGameEnd();
@@ -190,7 +140,7 @@ public class LastGameHistory
         RenderTexture.active = cam.targetTexture;
         Texture2D texture2D = new Texture2D(rt.width, rt.height, TextureFormat.ARGB32, false, false);
         texture2D.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
-        texture2D.Apply();
+        texture2D.Apply(false, false);
 
         RenderTexture.active = null;
         cam.targetTexture = null;
@@ -241,10 +191,12 @@ public class EndGameManagerSetUpPatch
     {
         try
         {
-            using MultipartFormDataContent content = new();
-            //content.Add(new FormUrlEncodedContent([new("content", "テスト")]));
-            content.Add(new ByteArrayContent(pngImage), "file", "image.png");
-            var awaiter = NebulaPlugin.HttpClient.PostAsync(ClientOption.WebhookOption.url, content).GetAwaiter();
+            using MultipartFormDataContent content = new()
+            {
+                // { new FormUrlEncodedContent([new("content", "テスト")]) },
+                { new ByteArrayContent(pngImage), "file", "image.png" }
+            };
+            var awaiter = NebulaPlugin.HttpClient.PostAsync(Helpers.ConvertUrl(ClientOption.WebhookOption.url), content).GetAwaiter();
             awaiter.GetResult();
             return true;
         }catch(Exception e)
@@ -261,26 +213,30 @@ public class EndGameManagerSetUpPatch
     private static IMetaWidgetOld GetRoleContent(TMPro.TMP_FontAsset font)
     {
         MetaWidgetOld widget = new();
-        string text = "";
 
         NebulaGameManager.Instance?.ChangeToSpectator();
-
+        List<(string name, string state, string task, string role)> players = [];
         foreach (var p in NebulaGameManager.Instance!.AllPlayerInfo)
         {
             //Name Text
             string nameText = p.Name.Color(NebulaGameManager.Instance.EndState!.Winners.Test(p) ? Color.yellow : Color.white);
             if (p.TryGetModifier<ExtraMission.Instance>(out var mission)) nameText += (" <size=60%>(" + (mission.target?.Name ?? "ERROR") + ")</size>").Color(ExtraMission.MyRole.UnityColor);
+            if (p.TryGetModifier<Obsessional.Instance>(out var obsessional)) nameText += (" <size=60%>(" + (obsessional.Obsession?.Name ?? "ERROR") + ")</size>").Color(Obsessional.MyRole.UnityColor);
 
             string stateText = p.PlayerState.Text;
-            if (p.IsDead && p.MyKiller != null) stateText += "<color=#FF6666><size=75%> by " + (p.MyKiller?.Name ?? "ERROR") + "</size></color>";
-            string taskText = (!p.IsDisconnected && p.Tasks.Quota > 0) ? $" ({p.Tasks.Unbox().ToString(true)})".Color(p.Tasks.IsCrewmateTask ? PlayerModInfo.CrewTaskColor : PlayerModInfo.FakeTaskColor) : "";
+            string stateExText = "";
+            if (p.PlayerStateExtraInfo != null && p.PlayerStateExtraInfo.State == p.PlayerState) stateExText = p.PlayerStateExtraInfo.ToStateText();
+            else if (p.IsDead && p.MyKiller != null) stateExText = "by " + (p.MyKiller?.Name ?? "ERROR");
+            if(stateExText.Length > 0) stateText += "<color=#FF6666><size=75%> " + stateExText + "</size></color>";
+            
+            string taskText = (!p.IsDisconnected && p.Tasks.Quota > 0) ? $"({p.Tasks.Unbox().ToString(true)})".Color(p.Tasks.IsCrewmateTask ? PlayerModInfo.CrewTaskColor : PlayerModInfo.FakeTaskColor) : "";
 
             //Role Text
             string roleText = "";
             var entries = NebulaGameManager.Instance.RoleHistory.EachMoment(history => history.PlayerId == p.PlayerId,
                 (role, ghostRole, modifiers) => (RoleHistoryHelper.ConvertToRoleName(role, ghostRole, modifiers, true), RoleHistoryHelper.ConvertToRoleName(role, ghostRole, modifiers, false))).ToArray();
 
-            if (entries.Length < 8)
+            if (entries.Length < 5)
             {
                 for (int i = 0; i < entries.Length - 1; i++)
                 {
@@ -294,13 +250,44 @@ public class EndGameManagerSetUpPatch
             }
 
             if (roleText.Length > 0) roleText += " → ";
-            roleText += entries[entries.Length - 1].Item2;
+            roleText += entries[^1].Item2;
 
-            text += $"{nameText}<indent=20px>{taskText}</indent><indent=29px>{stateText}</indent><indent=47px>{roleText}</indent>\n";
+            players.Add((nameText, stateText, taskText, roleText));
         }
 
-        widget.Append(new MetaWidgetOld.VariableText(new TextAttributeOld(TextAttributeOld.BoldAttr) { Font = font, Size = new(6f, 4.2f), Alignment = TMPro.TextAlignmentOptions.Left }.EditFontSize(1.4f, 1f, 1.4f))
-        { Alignment = IMetaWidgetOld.AlignmentOption.Left, RawText = text });
+        widget.Append(new MetaWidgetOld.VariableText(new TextAttributeOld(TextAttributeOld.BoldAttr) { Font = font, Size = new(8f, 5f), Alignment = TMPro.TextAlignmentOptions.Left }.EditFontSize(1.1f, 1.1f, 1.1f))
+        { Alignment = IMetaWidgetOld.AlignmentOption.Left,
+        PreResizeBuilder = t =>
+        {
+            
+            (float nameMax, float stateMax, float taskMax, float roleMax) = (0f, 0f, 0f, 0f);
+
+            LogUtils.WriteToConsole("FontSize: " + t.fontSize);
+            LogUtils.WriteToConsole("PointSize: " + t.font.faceInfo.pointSize);
+            LogUtils.WriteToConsole("Scale: " + t.font.faceInfo.scale);
+            float coeff = t.fontSize / t.font.faceInfo.pointSize * t.font.faceInfo.scale * 10f;
+            foreach (var p in players)
+            {
+                nameMax = Math.Max(t.GetPreferredValues(p.name).x / coeff, nameMax);
+                stateMax = Math.Max(t.GetPreferredValues(p.state).x / coeff, stateMax);
+                taskMax = Math.Max(t.GetPreferredValues(p.task).x / coeff, taskMax);
+                roleMax = Math.Max(t.GetPreferredValues(p.role).x / coeff, roleMax);
+            }
+
+            float indent = 0;
+            indent += (float)(nameMax) + 5.5f;
+            string afterNameIndent = $"<indent={indent:F3}em>";
+            indent += (float)(taskMax) + 2.3f;
+            string afterTaskIndent = $"<indent={indent:F3}em>";
+            indent += (float)(stateMax) + 6f;
+            string afterStateIndent = $"<indent={indent:F3}em>";
+
+            t.fontSizeMax = 1.4f;
+            t.fontSize = 1.4f;
+            t.text = string.Join("\n", players.Select(p => $"{p.name}{afterNameIndent}{p.task}</indent>{afterTaskIndent}{p.state}</indent>{afterStateIndent}{p.role}</indent>"));
+            //text += $"{nameText}<indent=20px>{taskText}</indent><indent=29px>{stateText}</indent><indent=47px>{roleText}</indent>\n";
+        }
+        });
 
         return widget;
     }
@@ -325,7 +312,7 @@ public class EndGameManagerSetUpPatch
 
 
         //勝利メンバーを載せる
-        List<byte> winners = new List<byte>();
+        List<byte> winners = [];
         bool amWin = false;
         foreach(var p in NebulaGameManager.Instance.AllPlayerInfo)
         {
@@ -385,16 +372,16 @@ public class EndGameManagerSetUpPatch
 
         string extraText = "";
         var wins = NebulaGameManager.Instance.EndState!.ExtraWins;
-        CustomExtraWin.AllExtraWins.Where(e => wins.Test(e)).Do(e => extraText += e.DisplayText);
-        textRenderer.text = endCondition?.Unbox().DisplayText.Replace("%EXTRA%", extraText) ?? "Error";
-        textRenderer.color = endCondition?.Unbox().Color ?? Color.white;
+        ExtraWin.AllExtraWins.Where(e => wins.Test(e)).Do(e => extraText += e.DisplayText);
+        textRenderer.text = endCondition?.DisplayText.GetString().Replace("%EXTRA%", extraText) ?? "Error";
+        textRenderer.color = endCondition?.Color ?? Color.white;
 
-        __instance.BackgroundBar.material.SetColor("_Color", endCondition?.Unbox().Color ?? new Color(1f, 1f, 1f));
+        __instance.BackgroundBar.material.SetColor("_Color", endCondition?.Color ?? new Color(1f, 1f, 1f));
 
         __instance.WinText.text = DestroyableSingleton<TranslationController>.Instance.GetString(amWin ? StringNames.Victory : StringNames.Defeat);
         __instance.WinText.color = amWin ? new Color(0f, 0.549f, 1f, 1f) : Color.red;
 
-        LastGameHistory.SetHistory(__instance.WinText.font, GetRoleContent(__instance.WinText.font), textRenderer.text.Color(endCondition?.Unbox().Color ?? Color.white));
+        LastGameHistory.SetHistory(__instance.WinText.font, GetRoleContent(__instance.WinText.font), textRenderer.text.Color(endCondition?.Color ?? Color.white));
 
         GameStatisticsViewer? viewer;
 
@@ -414,25 +401,29 @@ public class EndGameManagerSetUpPatch
         button.gameObject.AddComponent<BoxCollider2D>().size = new(0.3f, 0.3f);
 
 
-        if (!AmongUsClient.Instance.AmHost || ClientOption.WebhookOption.urlEntry.Value.Length == 0 || !ClientOption.WebhookOption.autoSendEntry.Value)
+        if (NebulaPlugin.AllowHttpCommunication)
         {
-            var discordButtonRenderer = UnityHelper.CreateObject<SpriteRenderer>("WebhookButton", __instance.transform, new Vector3(-3.4f, 2.5f, -50f), LayerExpansion.GetUILayer());
-            discordButtonRenderer.sprite = DiscordButtonSprite.GetSprite();
-            var discordButton = discordButtonRenderer.gameObject.SetUpButton(true, discordButtonRenderer);
-            discordButton.OnClick.AddListener(() =>
+            if (!AmongUsClient.Instance.AmHost || ClientOption.WebhookOption.urlEntry.Value.Length == 0 || !ClientOption.WebhookOption.autoSendEntry.Value)
             {
-                var data = LastGameHistory.GenerateTexture().EncodeToPNG();
-                if (ClientOption.WebhookOption.urlEntry.Value.Length == 0 || !SendDiscordWebhook(data))
-                    ClientOption.ShowWebhookSetting(() => SendDiscordWebhook(data));
-            });
-            discordButton.gameObject.AddComponent<ExtraPassiveBehaviour>().OnRightClicked = () => ClientOption.ShowWebhookSetting(() => SendDiscordWebhook(LastGameHistory.GenerateTexture().EncodeToPNG()));
-            discordButton.gameObject.AddComponent<BoxCollider2D>().size = new(0.3f, 0.3f);
-        }
-        else
-        {
-            SendDiscordWebhook(LastGameHistory.GenerateTexture().EncodeToPNG());
-        }
+                var discordButtonRenderer = UnityHelper.CreateObject<SpriteRenderer>("WebhookButton", __instance.transform, new Vector3(-3.4f, 2.5f, -50f), LayerExpansion.GetUILayer());
+                discordButtonRenderer.sprite = DiscordButtonSprite.GetSprite();
+                var discordButton = discordButtonRenderer.gameObject.SetUpButton(true, discordButtonRenderer);
+                discordButton.OnClick.AddListener(() =>
+                {
+                    var data = LastGameHistory.GenerateTexture().EncodeToPNG();
+                    if (ClientOption.WebhookOption.urlEntry.Value.Length == 0 || !SendDiscordWebhook(data))
+                        ClientOption.ShowWebhookSetting(() => SendDiscordWebhook(data));
+                });
+                discordButton.gameObject.AddComponent<ExtraPassiveBehaviour>().OnRightClicked = () => ClientOption.ShowWebhookSetting(() => SendDiscordWebhook(LastGameHistory.GenerateTexture().EncodeToPNG()));
+                discordButton.gameObject.AddComponent<BoxCollider2D>().size = new(0.3f, 0.3f);
+            }
+            else
+            {
+                SendDiscordWebhook(LastGameHistory.GenerateTexture().EncodeToPNG());
+            }
 ;
+        }
+
         //Achievements
         NebulaAchievementManager.ClearHistory();
         //標準ゲームモードで廃村でない、かつOP権限が誰にも付与されていないゲームの場合

@@ -1,5 +1,5 @@
 ﻿using Il2CppInterop.Runtime.Injection;
-using Nebula.Behaviour;
+using Nebula.Behavior;
 using Nebula.Modules.GUIWidget;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -8,6 +8,13 @@ using static Nebula.Modules.IMetaWidgetOld;
 using static UnityEngine.GraphicsBuffer;
 
 namespace Nebula.Modules;
+
+public enum BackgroundSetting
+{
+    Off,
+    Old,
+    Modern,
+}
 
 public interface IMetaWidgetOld
 {
@@ -309,6 +316,7 @@ public class MetaWidgetOld : IMetaWidgetOld, IMetaParallelPlacableOld
         public string RawText { set { MyText = new RawTextComponent(value); } }
         public string TranslationKey { set { MyText = new TranslateTextComponent(value); } }
         public Action<TMPro.TextMeshPro>? PostBuilder { get; set; } = null;
+        public Action<TMPro.TextMeshPro>? PreResizeBuilder { get; set; } = null;
 
         public VariableText(TextAttributeOld attribute)
         {
@@ -324,6 +332,8 @@ public class MetaWidgetOld : IMetaWidgetOld, IMetaParallelPlacableOld
             text.sortingOrder = 10;
 
             text.ForceMeshUpdate();
+
+            PreResizeBuilder?.Invoke(text);
             text.rectTransform.sizeDelta = new(text.preferredWidth, text.preferredHeight);
 
             text.ForceMeshUpdate();
@@ -344,6 +354,7 @@ public class MetaWidgetOld : IMetaWidgetOld, IMetaParallelPlacableOld
             text.sortingOrder = 10;
 
             text.ForceMeshUpdate();
+            PreResizeBuilder?.Invoke(text);
             text.rectTransform.sizeDelta = new(text.preferredWidth, text.preferredHeight);
 
             text.ForceMeshUpdate();
@@ -1173,10 +1184,17 @@ public class MetaScreen : MonoBehaviour, GUIScreen
         return button;
     }
 
-    static public MetaScreen GenerateScreen(Vector2 size,Transform? parent,Vector3 localPos,bool withBackground,bool withBlackScreen,bool withClickGuard)
+    static readonly private Image backFrameSprite = new ResourceExpandableSpriteLoader("Nebula.Resources.GUI.Background_Frame.png", 150f, 60, 60);
+    static readonly private Image backInnerSprite = new ResourceExpandableSpriteLoader("Nebula.Resources.GUI.Background_Inner.png", 150f, 60, 60);
+    static public Image BackFrameImage => backFrameSprite;
+    static public Image BackInnerImage => backInnerSprite;
+    static private MultiImage closeButtonSprite = DividedSpriteLoader.FromResource("Nebula.Resources.GUI.CloseButton.png", 100f, 2, 1);
+    static public MetaScreen GenerateScreen(Vector2 size, Transform? parent, Vector3 localPos, bool withBackground, bool withBlackScreen, bool withClickGuard)
+        => GenerateScreen(size, parent, localPos, withBackground ? BackgroundSetting.Old : BackgroundSetting.Off, withBlackScreen, withClickGuard);
+    static public MetaScreen GenerateScreen(Vector2 size,Transform? parent,Vector3 localPos,BackgroundSetting backgroundSetting,bool withBlackScreen,bool withClickGuard)
     {
         var window = UnityHelper.CreateObject("MetaWindow", parent, localPos);
-        if (withBackground)
+        if (backgroundSetting == BackgroundSetting.Old)
         {
             var renderer = UnityHelper.CreateObject<SpriteRenderer>("Background", window.transform, new Vector3(0, 0, 0.1f));
             renderer.sprite = VanillaAsset.PopUpBackSprite;
@@ -1184,7 +1202,24 @@ public class MetaScreen : MonoBehaviour, GUIScreen
             renderer.tileMode = SpriteTileMode.Continuous;
             renderer.size = size + new Vector2(0.45f, 0.35f);
             renderer.gameObject.layer = LayerExpansion.GetUILayer();
+        }else if(backgroundSetting == BackgroundSetting.Modern)
+        {
+            var inner = UnityHelper.CreateObject<SpriteRenderer>("Inner", window.transform, new Vector3(0, 0, 0.1f));
+            inner.sprite = backInnerSprite.GetSprite();
+            inner.drawMode = SpriteDrawMode.Sliced;
+            inner.tileMode = SpriteTileMode.Continuous;
+            inner.size = size + new Vector2(0.75f, 0.75f);
+            inner.gameObject.layer = LayerExpansion.GetUILayer();
+            inner.color = Color.white.RGBMultiplied(0.55f);
+
+            var frame = UnityHelper.CreateObject<SpriteRenderer>("Frame", window.transform, new Vector3(0, 0, -0.01f));
+            frame.sprite = backFrameSprite.GetSprite();
+            frame.drawMode = SpriteDrawMode.Sliced;
+            frame.tileMode = SpriteTileMode.Continuous;
+            frame.size = size + new Vector2(0.75f, 0.75f);
+            frame.gameObject.layer = LayerExpansion.GetUILayer();
         }
+
         if (withBlackScreen)
         {
             var renderer = UnityHelper.CreateObject<SpriteRenderer>("BlackScreen", window.transform, new Vector3(0, 0, 0.2f));
@@ -1227,14 +1262,35 @@ public class MetaScreen : MonoBehaviour, GUIScreen
         return screen;
     }
 
-    static public MetaScreen GenerateWindow(Vector2 size, Transform? parent, Vector3 localPos, bool withBlackScreen,bool closeOnClickOutside, bool withMask = false, bool withBackground = true)
+    static public MetaScreen GenerateWindow(Vector2 size, Transform? parent, Vector3 localPos, bool withBlackScreen, bool closeOnClickOutside, bool withMask, bool withBackground)
+        => GenerateWindow(size, parent, localPos, withBlackScreen, closeOnClickOutside, withMask, withBackground ? BackgroundSetting.Old : BackgroundSetting.Off);
+    static public MetaScreen GenerateWindow(Vector2 size, Transform? parent, Vector3 localPos, bool withBlackScreen,bool closeOnClickOutside, bool withMask = false, BackgroundSetting background = BackgroundSetting.Old)
     {
-        var screen = GenerateScreen(size, parent, localPos, withBackground, withBlackScreen, true);
+        var screen = GenerateScreen(size, parent, localPos, background, withBlackScreen, true);
         
         var obj = screen.transform.parent.gameObject;
 
-        var button = InstantiateCloseButton(screen, new Vector3(-size.x / 2f - 0.6f, size.y / 2f + 0.25f, 0f));
-        NebulaManager.Instance.RegisterUI(obj, button);
+        if (background == BackgroundSetting.Modern)
+        {
+            var collider = UnityHelper.CreateObject<BoxCollider2D>("CloseButton", obj.transform, new Vector3(-size.x / 2f - 0.3f, size.y / 2f + 0.2f, -1f));
+            collider.transform.localScale = new(0.57f, 0.57f, 1f);
+            collider.isTrigger = true;
+            collider.gameObject.layer = LayerExpansion.GetUILayer();
+            collider.size = new(0.85f, 0.85f);
+            SpriteRenderer? renderer = null;
+            renderer = collider.gameObject.AddComponent<SpriteRenderer>();
+            renderer.sprite = closeButtonSprite.GetSprite(0);
+            var button = collider.gameObject.SetUpButton(true);
+            button.OnClick.AddListener(() => GameObject.Destroy(obj));
+            button.OnMouseOver.AddListener(() => renderer.sprite = closeButtonSprite.GetSprite(1));
+            button.OnMouseOut.AddListener(() => renderer.sprite = closeButtonSprite.GetSprite(0));
+            NebulaManager.Instance.RegisterUI(obj, button);
+        }
+        else
+        {
+            var button = InstantiateCloseButton(screen, new Vector3(-size.x / 2f - 0.6f, size.y / 2f + 0.25f, 0f));
+            NebulaManager.Instance.RegisterUI(obj, button);
+        }
 
         if (closeOnClickOutside)
         {
@@ -1283,9 +1339,9 @@ public class MetaScreen : MonoBehaviour, GUIScreen
     }
 
     //既存のコンテンツを削除せずに背景画像を追加します。
-    public void SetBackImage(Image? image, float brightness = 0.15f)
+    public void SetBackImage(Image? image, float brightness = 0.25f)
     {
-        SetBackImage(image, brightness, 1f, new Vector3(border.x, -border.y) * 0.27f, new Vector2(border.x * 0.974f + 0.45f, border.y * 0.96f + 0.35f), 1f);
+        SetBackImage(image, brightness, 0.6f, new Vector3(border.x, -border.y) * 0.27f, new Vector2(border.x * 0.974f + 0.45f, border.y * 0.96f + 0.35f), 1f);
     }
 
     public void ClearBackImage()
@@ -1300,11 +1356,11 @@ public class MetaScreen : MonoBehaviour, GUIScreen
         }
     }
 
-    public void SetBackImage(Image? image, float brightness, float alpha, Vector2 imagePosition, Vector2 maskScale, float imageScale)
+    public void SetBackImage(Image? image, float brightness, float alpha, Vector2 imagePosition, Vector2 maskScale, float imageScale, bool grayout = false)
     {
         if (image?.GetSprite() == null) return;
 
-        var group = UnityHelper.CreateObject<SortingGroup>("BackImage", this.transform, new(0f, 0f, 0.05f));
+        var group = UnityHelper.CreateObject<SortingGroup>("BackImage", this.transform, new(0f, 0f, 0.06f));
         group.sortingOrder = -10;
         var mask = UnityHelper.CreateObject<SpriteMask>("Mask", group.transform, Vector3.zero);
         mask.sprite = VanillaAsset.FullScreenSprite;
@@ -1315,12 +1371,13 @@ public class MetaScreen : MonoBehaviour, GUIScreen
         renderer.transform.localScale = new(imageScale, imageScale);
         renderer.maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
         renderer.color = new(brightness, brightness, brightness, alpha);
+        if (grayout) renderer.material.shader = NebulaAsset.WhiteShader;
     }
 }
 
 public static class MetaUI
 {
-    static public void ShowConfirmDialog(Transform? transform, Virial.Text.TextComponent text)
+    static public MetaScreen ShowConfirmDialog(Transform? transform, Virial.Text.TextComponent text)
     {
         MetaScreen screen = MetaScreen.GenerateWindow(new(3.5f, 1.35f), transform, Vector3.zero, true, true);
 
@@ -1329,6 +1386,8 @@ public static class MetaUI
         widget.Append(new MetaWidgetOld.Text(new(TextAttributeOld.ContentAttr) { Size = new(3.3f, 0.8f) }) { MyText = text, Alignment = AlignmentOption.Center });
         widget.Append(new MetaWidgetOld.Button(screen.CloseScreen, TextAttributeOld.BoldAttr) { TranslationKey = "ui.dialog.ok", Alignment = AlignmentOption.Center });
         screen.SetWidget(widget);
+
+        return screen;
     }
 
     static public void ShowYesOrNoDialog(Transform? transform, Action yesAction, Action noAction,string text, bool canCancelClickOutside = false)

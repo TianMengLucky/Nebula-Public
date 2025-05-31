@@ -1,4 +1,5 @@
-﻿using Nebula.Roles.Impostor;
+﻿using MS.Internal.Xml.XPath;
+using Nebula.Roles.Impostor;
 using Virial;
 using Virial.DI;
 using Virial.Game;
@@ -31,7 +32,7 @@ internal class MapObjectSpawner : AbstractModule<Virial.Game.Game>, IMapObjectSp
     static MapObjectSpawner() => DIManager.Instance.RegisterModule(() => new MapObjectSpawner());
 
     List<MapObjectPoint>? unusedPoints;
-    Dictionary<string, List<Virial.Compat.Vector2>> usedPoints = new();
+    Dictionary<string, List<Virial.Compat.Vector2>> usedPoints = [];
 
     bool TryGetPoint(string tag, string? objectTag, float distance, MapObjectType type, out Virial.Compat.Vector2 point, out NebulaSyncObjectReference? reference, MapObjectCondition[] conditions)
     {
@@ -45,7 +46,7 @@ internal class MapObjectSpawner : AbstractModule<Virial.Game.Game>, IMapObjectSp
 
         if (!usedPoints.TryGetValue(tag, out var used))
         {
-            used = new();
+            used = [];
             usedPoints[tag] = used;
         }
 
@@ -128,7 +129,7 @@ internal class MapObjectSpawner : AbstractModule<Virial.Game.Game>, IMapObjectSp
 
             if (!usedPoints.TryGetValue(reason, out var used))
             {
-                used = new();
+                used = [];
                 usedPoints[reason] = used;
             }
 
@@ -136,16 +137,32 @@ internal class MapObjectSpawner : AbstractModule<Virial.Game.Game>, IMapObjectSp
         }
     }
 
-    static RemoteProcess<(int id, string reason)> RpcSpawn = new("SpawnMapObject", (message, calledByMe) =>
+    static private readonly RemoteProcess<(int id, string reason)> RpcSpawn = new("SpawnMapObject", (message, calledByMe) =>
     {
         if(!calledByMe) NebulaAPI.CurrentGame?.GetModule<IMapObjectSpawner>()?.Spawn(message.id, message.reason);
     });
 }
 
+public enum WindType
+{
+    NoWind,
+    AirshipOutside,
+    AirshipVentilation,
+    AirshipGapRoom,
+    FungleBeach,
+    FungleHighlands,
+}
 public abstract class MapData
 {
+    public record AdditionalRoomArea(float CenterX, float CenterY, float SizeX, float SizeY)
+    {
+        public bool Overlaps(UnityEngine.Vector2 position) => Mathf.Abs(position.x - CenterX) < SizeX && Mathf.Abs(position.y - CenterY) < SizeY;
+    }
+
     abstract protected Vector2[] MapArea { get; }
     abstract protected Vector2[] NonMapArea { get; }
+    abstract protected (AdditionalRoomArea area, string key, bool detailRoom)[] AdditionalRooms { get; }
+    abstract protected (SystemTypes room, AdditionalRoomArea area, string key)[] OverrideRooms { get; }
     virtual public Vector2[][] RaiderIgnoreArea { get => []; }
     abstract protected SystemTypes[] SabotageTypes { get; }
     abstract public MapObjectPoint[] MapObjectPoints { get; }
@@ -167,11 +184,11 @@ public abstract class MapData
     virtual public Vector3 GetDoorSealingPos(OpenableDoor door, bool isVert) => isVert ? new(-0.024f,0.52f,-0.01f) : new(0f, -0.1f, -0.01f);
     virtual public bool IsSealableDoor(OpenableDoor door) => true;
     public SystemTypes[] GetSabotageSystemTypes() => SabotageTypes;
-    public bool CheckMapArea(Vector2 position, float radious = 0.1f)
+    public bool CheckMapArea(Vector2 position, float radius = 0.1f)
     {
-        if (radious > 0f)
+        if (radius > 0f)
         {
-            int num = Physics2D.OverlapCircleNonAlloc(position, radious, PhysicsHelpers.colliderHits, Constants.ShipAndAllObjectsMask);
+            int num = Physics2D.OverlapCircleNonAlloc(position, radius, PhysicsHelpers.colliderHits, Constants.ShipAndAllObjectsMask);
             if (num > 0) for (int i = 0; i < num; i++) if (!PhysicsHelpers.colliderHits[i].isTrigger) return false;
         }
 
@@ -231,7 +248,7 @@ public abstract class MapData
         return count;
     }
 
-    private static Texture2D CreateReadabeTexture(Texture texture, int margin = 0)
+    private static Texture2D CreateReadableTexture(Texture texture, int margin = 0)
     {
         RenderTexture renderTexture = RenderTexture.GetTemporary(
                     texture.width,
@@ -243,13 +260,13 @@ public abstract class MapData
         Graphics.Blit(texture, renderTexture);
         RenderTexture previous = RenderTexture.active;
         RenderTexture.active = renderTexture;
-        Texture2D readableTextur2D = new Texture2D(texture.width + margin * 2, texture.height + margin * 2);
-        readableTextur2D.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), margin, margin);
-        readableTextur2D.Apply();
+        Texture2D readableTexture2D = new Texture2D(texture.width + margin * 2, texture.height + margin * 2);
+        readableTexture2D.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), margin, margin);
+        readableTexture2D.Apply();
         RenderTexture.active = previous;
         RenderTexture.ReleaseTemporary(renderTexture);
 
-        return readableTextur2D;
+        return readableTexture2D;
     } 
     public Texture2D OutputMap(Vector2 center, Vector2 size, float resolution = 10f)
     {
@@ -287,11 +304,59 @@ public abstract class MapData
             }
         }
 
-        texture.Apply();
+        texture.Apply(false, false);
 
-        return CreateReadabeTexture(texture);
+        return CreateReadableTexture(texture);
     }
 
-    static private MapData[] AllMapData = new MapData[] { new SkeldData(), new MiraData(), new PolusData(), null!, new AirshipData(), new FungleData() };
+    static private readonly MapData[] AllMapData = [new SkeldData(), new MiraData(), new PolusData(), null!, new AirshipData(), new FungleData()];
     static public MapData GetCurrentMapData() => AllMapData[AmongUsUtil.CurrentMapId];
+
+    public string? GetOverrideMapRooms(SystemTypes room, UnityEngine.Vector2 pos)
+    {
+        foreach(var overrideRoom in OverrideRooms)
+        {
+            if (overrideRoom.room != room) continue;
+            if (overrideRoom.area.Overlaps(pos)) return overrideRoom.key;
+        }
+        return null;
+    }
+
+    public string? GetAdditionalMapRooms(UnityEngine.Vector2 pos, bool detail)
+    {
+        foreach (var room in AdditionalRooms)
+        {
+            if (!detail && room.detailRoom) continue;
+            if (room.area.Overlaps(pos)) return room.key;
+        }
+        return null;
+    }
+
+    public virtual WindType GetWindType(Vector2 position) => WindType.NoWind;
+
+    static public Vector2 CalcWind(Vector2 position, WindType wind, float time)
+    {
+        switch (wind)
+        {
+            case WindType.AirshipOutside:
+                return new Vector2(6f + (float)Math.Cos(time * 5f) * 0.7f, (float)Math.Cos(time * 17f) * 1.5f);
+            case WindType.AirshipVentilation:
+                if(position.x < 27.5f)
+                    return new Vector2(4f + (float)Math.Cos(time * 11f) * 0.7f, 3f + (float)Math.Cos(time * 24.3f) * 2.1f);
+                else
+                    return new Vector2(-4f + (float)Math.Cos(time * 11f) * 0.7f, 3f + (float)Math.Cos(time * 24.3f) * 2.1f);
+            case WindType.AirshipGapRoom:
+                position.x -= 7.8f; position.y -= 4.3f;
+                var mag = Math.Max(0f, 4.2f - Mathf.Abs(position.x));
+                return position.normalized * mag * (1.4f + (float)Math.Cos(time * 21f) * 1.2f);
+
+            case WindType.FungleBeach:
+                return new Vector2(2.6f + (float)Math.Cos(time * 6.1f) * 1.1f, 1f + (float)Math.Cos(time * 15.3f) * 0.8f);
+            case WindType.FungleHighlands:
+                bool high = position.y > 8f;
+                return new Vector2((high ? 11f : 5f) + (float)Math.Cos(time * 5f) * 0.7f, (float)Math.Cos(time * 17f) * (high ? 3.5f : 1.5f));
+            default:
+                return Vector2.zero;
+        }
+    }
 }
