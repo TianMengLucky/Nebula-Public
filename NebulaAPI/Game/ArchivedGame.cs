@@ -45,7 +45,7 @@ public interface IArchivedEvent
     public CommunicableTextTag? RelatedTag { get; }
 }
 
-internal record RoleHistory
+public record RoleHistory
 {
     public float Time;
     public byte PlayerId;

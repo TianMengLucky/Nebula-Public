@@ -2,6 +2,7 @@ using HarmonyLib;
 using Nebula.Configuration;
 using Nebula.Game;
 using Nebula.Modules;
+using Nebula.Roles.Neutral;
 using Nebula.Utilities;
 using Virial;
 using Virial.Assignable;
@@ -23,26 +24,17 @@ public class Geniuse : DefinedAllocatableModifierTemplate, DefinedAllocatableMod
             () => Language.Translate("document.tip.winCond.geniuse")));
     }
     
-    private static GameEnd geniuseWin = new(40, "geniuse", Palette.ImpostorRed, 32);
+    private static GameEnd? geniuseWin = NebulaAPI.Preprocessor?.CreateEnd("geniuse", new(253,84,167));
     
     public static BoolConfiguration CanBeAwareAssignment = NebulaAPI.Configurations.Configuration("options.role.geniuse.canBeAwareAssignment", true);
 
-    public static Geniuse MyRole = new Geniuse();
+    public static Geniuse MyRole = new();
     RuntimeModifier RuntimeAssignableGenerator<RuntimeModifier>.CreateInstance(Player player, int[] arguments) => new Instance(player);
     
     public class Instance : RuntimeAssignableTemplate, RuntimeModifier
     {
         DefinedModifier RuntimeModifier.Modifier => MyRole;
-        bool RuntimeAssignable.CanBeAwareAssignment
-        {
-            get
-            {
-                if (CanBeAwareAssignment)
-                    return true;
-                
-                return NebulaGameManager.Instance?.CanSeeAllInfo ?? false;
-            }
-        }
+        bool RuntimeAssignable.CanBeAwareAssignment => CanBeAwareAssignment;
 
         public Instance(Player player) : base(player)
         {

@@ -50,11 +50,8 @@ public class SchrodingerCat : DefinedRoleTemplate, DefinedRole
 
             using (RPCRouter.CreateSection("SchrodingerCatAction"))
             {
-                MyPlayer.Unbox().RpcInvokerSetRole(nextRole, nextArgs).InvokeSingle();
+                MyPlayer.SetRole(nextRole, nextArgs);
             }
-
-            if(AmOwner) 
-                AmongUsUtil.PlayQuickFlash(Palette.ImpostorRed);
         }
     }
 }

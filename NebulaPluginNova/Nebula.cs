@@ -38,7 +38,7 @@ using UnityEngine.Networking;
 using Hazel.Udp;
 using BepInEx.Configuration;
 
-[assembly: AssemblyFileVersionAttribute(Nebula.NebulaPlugin.PluginEpochStr + "."  + Nebula.NebulaPlugin.PluginBuildNumStr)]
+[assembly: AssemblyFileVersion(Nebula.NebulaPlugin.PluginEpochStr + "."  + Nebula.NebulaPlugin.PluginBuildNumStr)]
 [assembly: InternalsVisibleTo("AddonDev")]
 
 namespace Nebula;
@@ -68,7 +68,8 @@ public class NebulaPlugin
         if (entryBase != null) loaderConfigurations[name] = entryBase;
         return entryBase as ConfigEntry<T>;
     }
-    internal static bool AllowHttpCommunication => NebulaPlugin.GetLoaderConfig<bool>(nameof(NebulaLoader.NebulaLoader.AllowHttpCommunication))?.Value ?? true;
+
+    internal static bool AllowHttpCommunication => false;
 
     static public HttpClient HttpClient
     {

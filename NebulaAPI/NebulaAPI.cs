@@ -14,9 +14,8 @@ using Virial.Media;
 using Virial.Runtime;
 using Virial.Text;
 
-[assembly: InternalsVisibleTo("AddonDev")]
 [assembly: InternalsVisibleTo("Nebula")]
-[assembly: InternalsVisibleTo("NebulaPluginNova")]
+[assembly: InternalsVisibleTo("AddonDev")]
 
 namespace Virial;
 

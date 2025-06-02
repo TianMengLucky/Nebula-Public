@@ -109,7 +109,8 @@ public static class AmongUsUtil
     public static MonoBehaviour CurrentCamTarget => HudManager.Instance.PlayerCam.Target;
     public static void SetCamTarget(MonoBehaviour? target = null)
     {
-        if(CurrentCamTarget == PlayerControl.LocalPlayer) PlayerControl.LocalPlayer.NetTransform.Halt();
+        if(CurrentCamTarget == PlayerControl.LocalPlayer) 
+            PlayerControl.LocalPlayer.NetTransform.Halt();
 
         HudManager.Instance.PlayerCam.Target = target ?? PlayerControl.LocalPlayer;
     }
