@@ -5,6 +5,7 @@ namespace AddonBuilder;
 
 internal static class Program
 {
+    public static AddonConfig? CurrentAddonConfig { get; set; }
     public static async Task Main()
     {
         var dir = Directory.GetCurrentDirectory();
@@ -30,6 +31,8 @@ internal static class Program
             Console.WriteLine("Addon.json is not valid");
             return;
         }
+
+        CurrentAddonConfig = addonConfig;
         
         var OutDir = Path.Combine(dir, "Output");
         var PackCacheDir = Path.Combine(OutDir, "PackCache");
@@ -63,10 +66,26 @@ internal static class Program
 
         await CopyScriptDir(DevDir, CacheScriptDir);
         
-        var zipFilePath = Path.Combine(OutDir, $"{addonConfig.Id}@{addonConfig.Version}.zip");
+        var devPostFix = addonConfig.Dev ? $"-Dev{GetLastDevId(OutDir)}" : "";
+        var zipFilePath = Path.Combine(OutDir, $"{addonConfig.Id}@{addonConfig.Version}{devPostFix}.zip");
         await PackZip(AddonCacheDir, zipFilePath);
 
         await CleanDir(PackCacheDir);
+    }
+
+    private static async Task<int> GetLastDevId(string outPath)
+    {
+        var path = Path.Combine(outPath, "OutDevVersion.dat");
+        if (!File.Exists(path))
+        {
+            await File.WriteAllTextAsync(path, 0.ToString());
+            return 0;
+        }
+        var devIdText = await File.ReadAllTextAsync(path);
+        var id = int.Parse(devIdText);
+        id++;
+        await File.WriteAllTextAsync(path, id.ToString());
+        return id;
     }
 
     private static async Task PackZip(string dir, string zipFilePath)
@@ -144,6 +163,7 @@ internal static class Program
             var emptyPath = file.Replace(sourceDir + "\\", string.Empty);
             if (emptyPath.Contains("Empty")) continue;
             if (emptyPath.Contains("obj") || emptyPath.Contains("bin")) continue;
+            if (!(CurrentAddonConfig?.Dev ?? false) && emptyPath.Contains("Dev")) continue;
             var newPath = Path.Combine(targetDir, emptyPath);
             File.Copy(file, newPath);
             Console.WriteLine($"Copy {file} to {newPath}");
@@ -158,6 +178,7 @@ internal static class Program
         {
             var emptyPath = sd.Replace(sourceDir + "\\", string.Empty);
             if (emptyPath.Contains("obj") || emptyPath.Contains("bin")) continue;
+            if (!(CurrentAddonConfig?.Dev ?? false) && emptyPath.Contains("Dev")) continue;
             if (noCreate != null && noCreate.Any(n => emptyPath.Contains(n))) continue;
             var newPath = Path.Combine(targetDir, emptyPath);
             Directory.CreateDirectory(newPath);

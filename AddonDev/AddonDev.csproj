@@ -8,13 +8,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\NebulaAPI\NebulaAPI.csproj" />
+<!--        <ProjectReference Include="..\NebulaAPI\NebulaAPI.csproj"/>-->
         <ProjectReference Include="..\NebulaPluginNova\NebulaPluginNova.csproj" />
     </ItemGroup>
-<!--    
+    
     <ItemGroup>
-        <Reference Include="$(SolutionDir)/Lib/NebulaAPI.dll" />
-    </ItemGroup>-->
+        <Reference Include="$(SolutionDir)/Lib/NebulaAPI.dll" Alias="NewNebulaApi"/>
+    </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="AmongUs.GameLibs.Steam" Version="2025.4.15" />

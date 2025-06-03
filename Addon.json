@@ -3,7 +3,8 @@
   "Name" : "天梦的职业包",
   "Author" : "TianMengLuckey",
   "Description" : "天梦制作的职业",
-  "Version" : "0.0.3",
+  "Version" : "0.0.4",
   "LoadRoles" : true,
-  "UseHiddenMembers" : true
+  "UseHiddenMembers" : true,
+  "Dev": false
 }

@@ -100,15 +100,7 @@ public class Geniuse : DefinedAllocatableModifierTemplate, DefinedAllocatableMod
     }
 }
 
-[NebulaPreprocess(PreprocessPhase.PostRoles)]
-internal static class GeniusePreprocess
-{
-    private static void Preprocess(NebulaPreprocessor preprocessor)
-    {
-        AddonLib.AddonHarmony.PatchAll(typeof(GeniusePatches));
-    }
-}
-
+[RolePatcher.RolePatch]
 public static class GeniusePatches
 {
     [HarmonyPatch(typeof(ExileController), nameof(ExileController.Begin)), HarmonyPostfix]

@@ -12,10 +12,10 @@ using Virial.Game;
 
 namespace AddonDev;
 
-public class SchrodingerCat : DefinedRoleTemplate, DefinedRole
+public class SchrodingerCat()
+    : DefinedRoleTemplate("SchrodingerCat", RoleTeam.Color, RoleCategory.NeutralRole, RoleTeam), DefinedRole
 {
-	private static Team RoleTeam = new("teams.SchrodingerCat", new Color(115, 115, 115), TeamRevealType.OnlyMe);
-	private SchrodingerCat() : base("SchrodingerCat", RoleTeam.Color, RoleCategory.NeutralRole, RoleTeam) { }
+	private static readonly Team RoleTeam = new("teams.SchrodingerCat", new Color(115, 115, 115), TeamRevealType.OnlyMe);
 
     RuntimeRole RuntimeAssignableGenerator<RuntimeRole>.CreateInstance(Player player, int[] arguments) => new Instance(player);
     

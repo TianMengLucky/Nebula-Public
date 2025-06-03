@@ -9,4 +9,6 @@ public class AddonConfig
     public string Author { get; set; }
     public bool LoadRoles { get; set; } = false;
     public bool UseHiddenMembers { get; set; } = false;
+
+    public bool Dev { get; set; } = false;
 }
