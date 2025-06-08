@@ -9,11 +9,12 @@
 
     <ItemGroup>
 <!--        <ProjectReference Include="..\NebulaAPI\NebulaAPI.csproj"/>-->
-        <ProjectReference Include="..\NebulaPluginNova\NebulaPluginNova.csproj" />
+<!--        <ProjectReference Include="..\NebulaPluginNova\NebulaPluginNova.csproj" />-->
     </ItemGroup>
     
     <ItemGroup>
-        <Reference Include="$(SolutionDir)/Lib/NebulaAPI.dll" Alias="NewNebulaApi"/>
+        <Reference Include="$(SolutionDir)/Lib/NebulaAPI.dll"/>
+        <Reference Include="$(SolutionDir)/Lib/Nebula.dll"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -23,6 +24,11 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="BepInEx.Unity.IL2CPP" Version="6.0.0-be.735" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Color\" />
+      <Folder Include="MoreCosmic\" />
     </ItemGroup>
 
 </Project>

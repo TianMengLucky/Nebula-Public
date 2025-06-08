@@ -11,4 +11,8 @@ public class AddonConfig
     public bool UseHiddenMembers { get; set; } = false;
 
     public bool Dev { get; set; } = false;
+
+    public List<ServerConfig> Servers { get; set; } = [];
+
+    public record ServerConfig(string DisplayName, string Ip, ushort Port);
 }

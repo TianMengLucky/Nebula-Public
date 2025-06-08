@@ -65,27 +65,45 @@ internal static class Program
             await CopyResourceDir(ResourceDir, CacheResourceDir);
 
         await CopyScriptDir(DevDir, CacheScriptDir);
+        await WriteServer(AddonCacheDir);
         
-        var devPostFix = addonConfig.Dev ? $"-Dev{GetLastDevId(OutDir)}" : "";
+        var devPostFix = addonConfig.Dev ? $"_Dev{await GetLastDevId(OutDir)}" : "";
         var zipFilePath = Path.Combine(OutDir, $"{addonConfig.Id}@{addonConfig.Version}{devPostFix}.zip");
         await PackZip(AddonCacheDir, zipFilePath);
 
         await CleanDir(PackCacheDir);
     }
 
+    private static async Task WriteServer(string cachePath)
+    {
+        if (CurrentAddonConfig == null)
+            return;
+
+        if (CurrentAddonConfig.Servers.Count == 0)
+            return;
+
+        var filePath = Path.Combine(cachePath, "CustomServer.json");
+        await File.WriteAllTextAsync(filePath, JsonSerializer.Serialize(CurrentAddonConfig.Servers));
+    }
+
     private static async Task<int> GetLastDevId(string outPath)
     {
+        const int defaultId = 1;
         var path = Path.Combine(outPath, "OutDevVersion.dat");
         if (!File.Exists(path))
         {
-            await File.WriteAllTextAsync(path, 0.ToString());
-            return 0;
+            await File.WriteAllTextAsync(path, defaultId.ToString());
+            return defaultId;
         }
         var devIdText = await File.ReadAllTextAsync(path);
-        var id = int.Parse(devIdText);
-        id++;
-        await File.WriteAllTextAsync(path, id.ToString());
-        return id;
+        if (int.TryParse(devIdText, out var id))
+        {
+            id++;
+            await File.WriteAllTextAsync(path, id.ToString());
+            return id;
+        }
+        await File.WriteAllTextAsync(path, defaultId.ToString());
+        return defaultId;
     }
 
     private static async Task PackZip(string dir, string zipFilePath)
@@ -114,7 +132,7 @@ internal static class Program
         try
         {
             Console.WriteLine("正在复制脚本");
-            await ReCreateAllDir(sourceDir, targetDir, noCreate:["Resources", "Languages"]);
+            await ReCreateAllDir(sourceDir, targetDir, noCreate:["Resources", "Languages", "Color", "MoreCosmic"]);
             await CopyAllFile(sourceDir, targetDir, "*.cs");
             Console.WriteLine("复制完成");
         }
