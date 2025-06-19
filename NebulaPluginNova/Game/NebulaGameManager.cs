@@ -1,6 +1,8 @@
-﻿using Nebula.Game.Statistics;
+﻿using Nebula.Behavior;
+using Nebula.Game.Statistics;
 using Nebula.Modules.Cosmetics;
 using Nebula.Roles.Abilities;
+using Nebula.Roles.Crewmate;
 using Nebula.VoiceChat;
 using System.Diagnostics.CodeAnalysis;
 using TMPro;

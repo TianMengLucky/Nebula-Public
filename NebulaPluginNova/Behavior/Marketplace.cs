@@ -17,7 +17,7 @@ public class DeveloperMarketplaceItem
 {
     static private readonly char[] alphabets = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".ToCharArray();
     static public char[] Alphabets => alphabets;
-    static public string GetRandomizedString(int length) => new(Enumerable.Repeat(Alphabets.Random(), length).ToArray());
+    static public string GetRandomizedString(int length) => new(Enumerable.Repeat(Alphabets.Random, length).Select(f => f.Invoke()).ToArray());
 
     public int EntryId = -1;
 
@@ -604,7 +604,7 @@ public class Marketplace : MonoBehaviour
 
 }
 
-public static class OnlineMarketplace
+internal static class OnlineMarketplace
 {
     private const string APIURL = "https://script.google.com/macros/s/AKfycbxc8jEhQBH7L4UeJinWxAmh3ziUYbtWnUfNiYsFGu9tj5KQVTApY67ObNNLOTNtKstPag/exec";
 
@@ -617,7 +617,7 @@ public static class OnlineMarketplace
         public T data;
     }
 
-    static public IEnumerator CoGetResponse<T>(string method, Func<T, IEnumerator> callback, params (string label, string value)[] contents)
+    static private IEnumerator CoGetResponse<T>(string method, Func<T, IEnumerator> callback, params (string label, string value)[] contents)
     {
         var json = contents.Prepend(("request", method)).Select(tuple => (tuple.Item1, Uri.EscapeDataString(tuple.Item2))).Join(tuple => $"\"{tuple.Item1}\" : \"{tuple.Item2}\"", ",");
         var content = new StringContent("{" + json + "}", Encoding.UTF8, @"application/json");

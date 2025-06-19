@@ -89,8 +89,7 @@ public class Roles
 
     static public IEnumerable<DefinedAllocatableModifier> AllAllocatableModifiers()
     {
-        foreach (var m in AllModifiers) 
-            if (m is DefinedAllocatableModifier adm) yield return adm;
+        foreach (var m in AllModifiers) if (m is DefinedAllocatableModifier adm) yield return adm;
     }
 
     static public IReadOnlyList<Team> AllTeams { get; private set; } = null!;

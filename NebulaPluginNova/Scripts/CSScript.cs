@@ -105,17 +105,17 @@ internal static class AddonScriptManager
             Patches.LoadPatch.LoadingText = "Compiling Addon Scripts\n" + addon.Id;
             yield return null;
 
-            var use = addonBehaviour?.UseHiddenMembers ?? false;
-            var myCompilationOptions = compilationOptions.WithModuleName(use ? "AddonDev" : "AddonDev" + addon.Id.HeadUpper());
-            System.Console.WriteLine($"usehiddenmembers: {addon.Id} {use}");
-            if (use)
+            var myCompilationOptions = compilationOptions.WithModuleName("Script." + addon.Id.HeadUpper());
+
+            System.Console.WriteLine("usehiddenmembers: " + (addonBehaviour?.UseHiddenMembers ?? false));
+            if (addonBehaviour?.UseHiddenMembers ?? false)
             {
                 //全Internal, Privateメンバにアクセスできるようにする
                 var topLevelBinderFlagsProperty = typeof(CSharpCompilationOptions).GetProperty("TopLevelBinderFlags", BindingFlags.Instance | BindingFlags.NonPublic)!;
                 topLevelBinderFlagsProperty.SetValue(myCompilationOptions, (uint)1 << 22);
             }
 
-            var compilation = CSharpCompilation.Create(use ? "AddonDev" : "Script." + addon.Id.HeadUpper(), trees, ReferenceAssemblies, myCompilationOptions)
+            var compilation = CSharpCompilation.Create("Script." + addon.Id.HeadUpper(), trees, ReferenceAssemblies, myCompilationOptions)
                 .AddReferences(scriptAssemblies.Where(a => addon.Dependency.Contains(a.Addon)).Select(a => a.Reference));
             
             Assembly? assembly = null;

@@ -370,8 +370,7 @@ public class ScarletLover : DefinedModifierTemplate, DefinedModifier
         }
 
         [OnlyMyPlayer]
-        void ShowMyRoleForScarlet(PlayerCheckRoleInfoVisibilityLocalEvent ev) => 
-            ev.CanSeeRole |= !AmFavorite && ((MyScarlet as RuntimeAssignable)?.AmOwner ?? false);
+        void ShowMyRoleForScarlet(PlayerCheckRoleInfoVisibilityLocalEvent ev) => ev.CanSeeRole |= !AmFavorite && ((MyScarlet as RuntimeAssignable)?.AmOwner ?? false);
 
         [OnlyMyPlayer]
         void BlockWins(PlayerBlockWinEvent ev) => ev.IsBlocked |= AmFavorite && (MyScarlet as RuntimeAssignable)!.MyPlayer.IsDead;

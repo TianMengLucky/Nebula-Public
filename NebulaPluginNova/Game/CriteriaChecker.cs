@@ -103,8 +103,7 @@ public class NebulaEndCriteria
                 quota += p.Tasks.Quota;
                 completed += p.Tasks.TotalCompleted;
             }
-            if (quota > 0 && quota <= completed) 
-                NebulaAPI.CurrentGame?.TriggerGameEnd(NebulaGameEnd.CrewmateWin, GameEndReason.Task);
+            if (quota > 0 && quota <= completed) NebulaAPI.CurrentGame?.TriggerGameEnd(NebulaGameEnd.CrewmateWin, GameEndReason.Task);
         }
     };
 

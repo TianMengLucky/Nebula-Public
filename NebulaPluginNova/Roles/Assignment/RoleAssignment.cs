@@ -207,8 +207,7 @@ public class StandardRoleAllocator : IRoleAllocator
 
         
 
-        foreach (var m in Roles.AllAllocatableModifiers().OrderBy(im => im.AssignPriority)) 
-            m.TryAssign(table);
+        foreach (var m in Roles.AllAllocatableModifiers().OrderBy(im => im.AssignPriority)) m.TryAssign(table);
 
         table.Determine();
     }
