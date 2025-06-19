@@ -39,6 +39,7 @@ using BepInEx.Configuration;
 using Virial.Utilities;
 
 [assembly: System.Reflection.AssemblyFileVersionAttribute(Nebula.NebulaPlugin.PluginEpochStr + "."  + Nebula.NebulaPlugin.PluginBuildNumStr)]
+[assembly: InternalsVisibleTo("AddonDev")]
 
 namespace Nebula;
 

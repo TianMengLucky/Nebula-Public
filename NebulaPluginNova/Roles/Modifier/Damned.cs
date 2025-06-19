@@ -103,7 +103,6 @@ public class Damned : DefinedAllocatableModifierTemplate, DefinedAllocatableModi
                         {
                             MyPlayer.RemoveModifier(MyRole);
                             MyPlayer.SetRole(myNextRole, myNextArgs);
-
                         }
                         else
                         {

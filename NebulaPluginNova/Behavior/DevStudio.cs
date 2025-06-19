@@ -1,4 +1,5 @@
-﻿using Il2CppInterop.Runtime.Injection;
+﻿using System.Collections;
+using Il2CppInterop.Runtime.Injection;
 using static Nebula.Modules.NebulaAddon;
 using System.Text;
 using System.IO.Compression;

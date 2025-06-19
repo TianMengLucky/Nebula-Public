@@ -1,0 +1,22 @@
+{
+  "Id" : "TianMengRole",
+  "Name" : "天梦的职业包",
+  "Author" : "TianMengLuckey",
+  "Description" : "天梦制作的职业",
+  "Version" : "0.0.5",
+  "LoadRoles" : true,
+  "UseHiddenMembers" : true,
+  "Dev": false,
+  "Server": [
+    {
+      "DisplayName" : "天梦服(域名)",
+      "Ip" : "https://au.luckey.icu",
+      "Port" : 1003
+    },
+    {
+      "DisplayName" : "天梦服(IP)",
+      "Ip" : "https://139.224.74.5",
+      "Port" : 443
+    }
+  ]
+}

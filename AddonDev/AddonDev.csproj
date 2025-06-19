@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <LangVersion>latest</LangVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+<!--        <ProjectReference Include="..\NebulaAPI\NebulaAPI.csproj"/>-->
+<!--        <ProjectReference Include="..\NebulaPluginNova\NebulaPluginNova.csproj" />-->
+    </ItemGroup>
+    
+    <ItemGroup>
+        <Reference Include="$(SolutionDir)/Lib/NebulaAPI.dll"/>
+        <Reference Include="$(SolutionDir)/Lib/Nebula.dll"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="AmongUs.GameLibs.Steam" Version="2025.4.15" />
+        <PackageReference Include="BepInEx.IL2CPP.MSBuild" Version="2.1.0-rc.1">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="BepInEx.Unity.IL2CPP" Version="6.0.0-be.735" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Color\" />
+      <Folder Include="MoreCosmic\" />
+    </ItemGroup>
+
+</Project>

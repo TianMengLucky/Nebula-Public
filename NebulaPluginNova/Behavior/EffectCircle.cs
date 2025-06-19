@@ -1,4 +1,5 @@
-﻿using Il2CppInterop.Runtime.Injection;
+﻿using System.Collections;
+using Il2CppInterop.Runtime.Injection;
 
 namespace Nebula.Behavior;
 

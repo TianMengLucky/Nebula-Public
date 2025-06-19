@@ -56,9 +56,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Reference Include="$(AmongUs)\BepInEx\core\*.dll" />
-		<Reference Include="$(AmongUs)\BepInEx\interop\*.dll" />
-		<Compile Remove="Resources\**" />
+		<PackageReference Include="AmongUs.GameLibs.Steam" Version="2025.4.15" />
+		<PackageReference Include="BepInEx.IL2CPP.MSBuild" Version="2.1.0-rc.1">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="BepInEx.Unity.IL2CPP" Version="6.0.0-be.735" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -81,20 +84,5 @@
 	  <ProjectReference Include="..\NebulaAPI\NebulaAPI.csproj" />
 	  <ProjectReference Include="..\NebulaLoader\NebulaLoader.csproj" />
 	</ItemGroup>
-
-	<Target Name="CopyCustomContent" AfterTargets="AfterBuild">
-		<Message Text="Construct release folders..." />
-		<Copy SourceFiles="bin\Release\net6.0\Nebula.dll" DestinationFolder="$(AmongUsRelease)\" />
-		<Copy SourceFiles="bin\Release\net6.0\Nebula.dll" DestinationFolder="$(AmongUsRelease)\Nebula_Steam\BepInEx\nebula" />
-		<Copy SourceFiles="bin\Release\net6.0\Nebula.dll" DestinationFolder="$(AmongUsRelease)\Nebula_Epic\BepInEx\nebula" />
-		<Exec Command="del $(AmongUsRelease)\Nebula_Steam.zip %26 cd $(AmongUsRelease)\Nebula_Steam %26 %22$(ZipArchiver)\7z.exe%22 a $(AmongUsRelease)\Nebula_Steam.zip" />
-		<Exec Command="del $(AmongUsRelease)\Nebula_Epic.zip %26 cd $(AmongUsRelease)\Nebula_Epic %26 %22$(ZipArchiver)\7z.exe%22 a $(AmongUsRelease)\Nebula_Epic.zip" />
-		<Copy SourceFiles="bin\Release\net6.0\Nebula.dll" DestinationFolder="$(AmongUsMod)\BepInEx\nebula\" />
-	</Target>
-
-	<Target Name="ZipAddons" BeforeTargets="BeforeBuild">
-		<Message Text="Zip DefaultLanguage addon..." />
-		<Exec Command="del Resources\Addons\DefaultLanguage.zip %26 cd Resources\Addons\DefaultLanguage %26 %22$(ZipArchiver)\7z.exe%22 a ..\DefaultLanguage.zip" />
-	</Target>
 
 </Project>
