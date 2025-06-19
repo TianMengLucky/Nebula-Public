@@ -8,16 +8,11 @@ global using System.Threading.Tasks;
 global using static AddonDev.AddonLib;
 
 global using GamePlayer = Virial.Game.Player;
-using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using System.Runtime.Loader;
-using System.Text.Json;
 using BepInEx.Logging;
-using Cpp2IL.Core.Extensions;
 using HarmonyLib;
 using Nebula;
-using Nebula.Utilities;
-using Virial;
+using Nebula.Behavior;
 using Virial.Attributes;
 using Virial.Runtime;
 
@@ -71,109 +66,20 @@ public static class AddonLib
     }
 }
 
-[RolePatcher.RolePatch]
-internal static class ResourceReplace
-{
-    internal static readonly Dictionary<(string, float), SpriteLoader> spriteCacheDic = new();
-    internal static Dictionary<string, string>? spriteAndPath;
-    
-    
-    [HarmonyPatch(typeof(SpriteLoader), nameof(SpriteLoader.FromResource)), HarmonyPrefix]
-    private static bool SpriteLoader_FormResource(string address, float pixelsPerUnit, ref SpriteLoader __result)
-    {
-        if (spriteAndPath == null) return true;
-        if (spriteCacheDic.TryGetValue((address, pixelsPerUnit), out var spriteLoader))
-        {
-            __result = spriteLoader;
-            return false;
-        }
-
-        if (TryGetSprite(address, pixelsPerUnit, out var get))
-        {
-            __result = get;
-            spriteCacheDic[(address, pixelsPerUnit)] = get;
-            return false;
-        }
-        
-        return true;
-    }
-
-    private static bool TryGetSprite(string address, float pixelsPerUnit, [MaybeNullWhen(false)] out SpriteLoader spriteLoader)
-    {
-        spriteLoader = null;
-        try
-        {
-            if (spriteAndPath == null)
-                return false;
-
-            if (!spriteAndPath.TryGetValue(address, out var path))
-            {
-                return false;
-            }
-            
-            var stream = NebulaAPI.AddonAsset.GetResource(path)?.AsStream();
-            if (stream == null)
-            {
-                LogWarning($"Sprite {address} not Stream");
-                return false;
-            }
-            
-            spriteLoader = new SpriteLoader(new UnloadTextureLoader(stream.ReadBytes()), pixelsPerUnit);
-            return true;
-        }
-        catch (Exception e)
-        {
-            LogWarning(e.ToString());
-            spriteLoader = null;
-            return false;
-        }
-    }
-}
-
 [NebulaPreprocess(PreprocessPhase.PostLoadAddons)]
-internal static class ConfigLoad
+internal static class FixPatches
 {
     private static void Preprocess(NebulaPreprocessor _)
     {
-        try
-        {
-            var jsonFile = NebulaAPI.AddonAsset.GetResource("ReplaceSprite.json");
-            if (jsonFile == null)
-            {
-                LogWarning("ReplaceSprite.json not found");
-                return;
-            }
-
-            var text = jsonFile.AsStream()?.ReadToEnd();
-            if (text == null)
-            {
-                LogWarning("ReplaceSprite.json is empty");
-                return;
-            }
-
-            if (HasJsonLib())
-            {
-                ResourceReplace.spriteAndPath = JsonSerializer.Deserialize<Dictionary<string, string>>(text);
-                LogInfo("Has System.Text.Json, Use JsonSerializer");
-            }
-            else
-            {
-                ResourceReplace.spriteAndPath =
-                    JsonStructure.Deserialize<Dictionary<string, string>>(text);
-                LogInfo("Not Has System.Text.Json, Use Nebula.JsonStructure");
-            }
-            
-            LogInfo($"ReplaceSprite.json loaded Path:{ResourceReplace.spriteAndPath?.Count ?? 0}");
-        }
-        catch (Exception e)
-        {
-            LogWarning(e.ToString());
-        }
+        AddonHarmony.PatchAll(typeof(FixPatches));
     }
 
-    private static bool HasJsonLib()
+    [HarmonyPrefix]
+    [HarmonyPatch(typeof(NebulaPlugin), nameof(NebulaPlugin.AllowHttpCommunication), MethodType.Getter)]
+    private static bool OnlineMarketplacePrefix(ref bool __result)
     {
-        return AssemblyLoadContext.Default.Assemblies.Any(n => n.GetName().Name == "System.Text.Json");
+        __result = false;
+        return false;
     }
 }
 

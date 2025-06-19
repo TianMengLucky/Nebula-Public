@@ -109,7 +109,7 @@ public static class GeniusePatches
         if (!GeneralConfigurations.ShowRoleOfExiled || !GameOptionsManager.Instance.currentNormalGameOptions.ConfirmImpostor) return;
         var player = NebulaGameManager.Instance?.GetPlayer(init.networkedPlayer.PlayerId);
         if (player == null) return;
-        if (player.Role.Role.Category != RoleCategory.NeutralRole && !player.TryGetModifier<Geniuse.Instance>(out _)) return;
-        __instance.ImpostorText.text = Language.Translate("role.geniuse.exileText");
+        if (player.Role.Role.Category != RoleCategory.NeutralRole || !player.TryGetModifier<Geniuse.Instance>(out _)) return;
+        __instance.ImpostorText.text += "\n" + Language.Translate("role.geniuse.exileText");
     }
 }

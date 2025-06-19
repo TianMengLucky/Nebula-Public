@@ -12,6 +12,8 @@ internal static class Program
         var DevDir = Path.Combine(dir, "AddonDev");
         var ResourceDir = Path.Combine(DevDir, "Resources");
         var LanguageDir = Path.Combine(DevDir, "Languages");
+        var CosmicDir = Path.Combine(DevDir, "MoreCosmic");
+        var ColorDir = Path.Combine(DevDir, "Color");
         Console.WriteLine($"""
                           Current Directory: {dir}
                           AddonDev Directory: {DevDir}
@@ -49,7 +51,9 @@ internal static class Program
         var CacheResourceDir = Path.Combine(AddonCacheDir, "Resources");
         var CacheLanguageDir = Path.Combine(AddonCacheDir, "Language");
         var CacheScriptDir = Path.Combine(AddonCacheDir, "Scripts");
-        await CheckDir(CacheResourceDir, CacheLanguageDir, CacheScriptDir);
+        var CacheCosmicDir = Path.Combine(AddonCacheDir, "MoreCosmic");
+        var CacheColorDir = Path.Combine(AddonCacheDir, "Color");
+        await CheckDir(CacheResourceDir, CacheLanguageDir, CacheScriptDir, CacheCosmicDir, CacheColorDir);
 
         var addonMetaPath = Path.Combine(AddonCacheDir, "addon.meta");
         await File.WriteAllTextAsync(addonMetaPath, addonConfig.GetMetaString());
@@ -63,15 +67,39 @@ internal static class Program
 
         if (Directory.Exists(ResourceDir))
             await CopyResourceDir(ResourceDir, CacheResourceDir);
+        
+        if (Directory.Exists(CosmicDir))
+            await PackCosmic(CosmicDir, CacheCosmicDir);
 
         await CopyScriptDir(DevDir, CacheScriptDir);
         await WriteServer(AddonCacheDir);
+
+        await RemoveNoUseDir(AddonCacheDir);
         
         var devPostFix = addonConfig.Dev ? $"_Dev{await GetLastDevId(OutDir)}" : "";
         var zipFilePath = Path.Combine(OutDir, $"{addonConfig.Id}@{addonConfig.Version}{devPostFix}.zip");
         await PackZip(AddonCacheDir, zipFilePath);
 
         await CleanDir(PackCacheDir);
+    }
+
+    private static Task RemoveNoUseDir(string dir)
+    {
+        foreach (var d in Directory.GetDirectories(dir))
+        {
+            if (Directory.GetFiles(d).Length <= 0)
+            {
+                Directory.Delete(d);
+                Console.WriteLine("删除空目录：" + d);
+            }
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private static async Task PackCosmic(string sourcePath, string cachePath)
+    {
+        
     }
 
     private static async Task WriteServer(string cachePath)
@@ -179,9 +207,7 @@ internal static class Program
         {
             if (Directory.Exists(file) || !File.Exists(file)) continue;
             var emptyPath = file.Replace(sourceDir + "\\", string.Empty);
-            if (emptyPath.Contains("Empty")) continue;
-            if (emptyPath.Contains("obj") || emptyPath.Contains("bin")) continue;
-            if (!(CurrentAddonConfig?.Dev ?? false) && emptyPath.Contains("Dev")) continue;
+            if (!CheckPathName(emptyPath)) continue;
             var newPath = Path.Combine(targetDir, emptyPath);
             File.Copy(file, newPath);
             Console.WriteLine($"Copy {file} to {newPath}");
@@ -195,8 +221,7 @@ internal static class Program
         foreach (var sd in Directory.GetDirectories(sourceDir, pattern, searchOption))
         {
             var emptyPath = sd.Replace(sourceDir + "\\", string.Empty);
-            if (emptyPath.Contains("obj") || emptyPath.Contains("bin")) continue;
-            if (!(CurrentAddonConfig?.Dev ?? false) && emptyPath.Contains("Dev")) continue;
+            if (!CheckPathName(emptyPath)) continue;
             if (noCreate != null && noCreate.Any(n => emptyPath.Contains(n))) continue;
             var newPath = Path.Combine(targetDir, emptyPath);
             Directory.CreateDirectory(newPath);
@@ -204,6 +229,16 @@ internal static class Program
         }
         
         return Task.CompletedTask;
+    }
+
+    private static bool CheckPathName(string path)
+    {
+        if (path.Contains("obj") || path.Contains("bin")) return false;
+        if (!(CurrentAddonConfig?.Dev ?? false) && path.Contains("Dev")) return false;
+        if (path.Contains("_No")) return false;
+        if (path.Contains("Empty")) return false;
+        
+        return true;
     }
 
     private static Task CleanDir(params string[] dirs)
